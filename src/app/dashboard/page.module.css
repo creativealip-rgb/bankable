@@ -8,68 +8,70 @@
 }
 
 .header {
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
 }
 
 .title {
   font-family: var(--font-display);
   font-size: 2.5rem;
   margin-bottom: 0.5rem;
+  letter-spacing: -0.02em;
 }
 
 /* Stats Row */
 .statsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
 }
 
 .statCard {
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
+  border: 1px solid rgba(63, 63, 70, 0.4);
+  border-radius: 16px;
   padding: 1.5rem;
   display: flex;
   align-items: center;
   gap: 1rem;
+  transition: border-color 0.25s ease, transform 0.25s ease;
+}
+
+.statCard:hover {
+  border-color: rgba(34, 211, 238, 0.2);
+  transform: translateY(-2px);
 }
 
 .statIcon {
-  font-size: 2rem;
-  padding: 1rem;
-  background: var(--surface-hover);
-  border-radius: 12px;
+  font-size: 1.75rem;
+  padding: 0.9rem;
+  background: linear-gradient(135deg, rgba(34, 211, 238, 0.08), rgba(192, 132, 252, 0.08));
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
 }
 
 .statValue {
-  font-size: 1.5rem;
-  font-weight: bold;
-  font-family: monospace;
+  font-size: 1.75rem;
+  font-weight: 700;
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
 }
 
 .statLabel {
   color: var(--text-muted);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
 }
 
 /* Content Split Area */
 .contentGrid {
   display: grid;
   grid-template-columns: 2fr 1fr;
-  gap: 2rem;
-}
-
-@media (max-width: 768px) {
-  .contentGrid {
-    grid-template-columns: 1fr;
-  }
+  gap: 1.5rem;
 }
 
 .sectionBox {
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 16px;
+  border: 1px solid rgba(63, 63, 70, 0.4);
+  border-radius: 20px;
   padding: 1.5rem;
 }
 
@@ -78,11 +80,14 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
 .sectionTitle {
   font-family: var(--font-display);
-  font-size: 1.25rem;
+  font-size: 1.2rem;
+  font-weight: 600;
 }
 
 .courseItem {
@@ -90,36 +95,52 @@
   justify-content: space-between;
   align-items: center;
   padding: 1rem 0;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid rgba(63, 63, 70, 0.3);
+  transition: background 0.2s ease;
+  border-radius: 8px;
+  gap: 1rem;
 }
 
 .courseItem:last-child {
   border-bottom: none;
 }
 
+.courseItem:hover {
+  background: rgba(39, 39, 42, 0.3);
+}
+
 .courseInfo {
   flex: 1;
+  min-width: 0;
 }
 
 .courseName {
-  font-weight: 500;
+  font-weight: 600;
   margin-bottom: 0.25rem;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .courseMeta {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .courseProgress {
   width: 100px;
   text-align: right;
+  flex-shrink: 0;
 }
 
 .progressBar {
   width: 100%;
   height: 6px;
-  background: var(--background);
+  background: rgba(9, 9, 11, 0.6);
   border-radius: 4px;
   overflow: hidden;
   margin-top: 0.5rem;
@@ -127,27 +148,73 @@
 
 .progressFill {
   height: 100%;
-  background: var(--primary);
+  background: linear-gradient(90deg, var(--primary), var(--secondary));
+  border-radius: 4px;
+  transition: width 0.5s ease;
 }
 
 /* Certificates */
 .certGrid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
 .certCard {
   padding: 1rem;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--background);
+  border: 1px solid rgba(63, 63, 70, 0.3);
+  border-radius: 12px;
+  background: rgba(9, 9, 11, 0.4);
   display: flex;
   align-items: center;
   gap: 1rem;
+  transition: border-color 0.2s ease;
+}
+
+.certCard:hover {
+  border-color: rgba(250, 204, 21, 0.3);
 }
 
 .certIcon {
   font-size: 2rem;
   color: var(--warning);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .statsGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboardContainer {
+    padding: 1rem;
+  }
+  .title {
+    font-size: 1.75rem;
+  }
+  .statsGrid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+  .contentGrid {
+    grid-template-columns: 1fr;
+  }
+  .courseItem {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  .courseProgress {
+    width: 100%;
+    text-align: left;
+  }
+  .progressBar {
+    margin-top: 0.25rem;
+  }
+  .sectionBox {
+    padding: 1.25rem;
+    border-radius: 16px;
+  }
 }

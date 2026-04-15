@@ -26,6 +26,7 @@ export default function Home() {
 
       <section className={styles.features}>
         <h2 className={styles.sectionTitle}>Massive Library of Assets</h2>
+        <p className={styles.sectionSubtitle}>Everything you need to level up your skills and creative projects, all in one place.</p>
         <div className={styles.grid}>
           <div className={styles.card}>
             <div className={styles.cardIcon}>🎬</div>

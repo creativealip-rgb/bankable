@@ -3,8 +3,8 @@
   min-height: calc(100vh - 80px);
   max-width: 1600px;
   margin: 0 auto;
-  border-left: 1px solid var(--border);
-  border-right: 1px solid var(--border);
+  border-left: 1px solid rgba(63, 63, 70, 0.3);
+  border-right: 1px solid rgba(63, 63, 70, 0.3);
   background: var(--background);
 }
 
@@ -12,34 +12,37 @@
   flex: 1;
   padding: 2rem;
   overflow-y: auto;
+  min-width: 0;
 }
 
 .sidebar {
   width: 350px;
-  border-left: 1px solid var(--border);
+  border-left: 1px solid rgba(63, 63, 70, 0.3);
   background: var(--surface);
   display: flex;
   flex-direction: column;
+  flex-shrink: 0;
 }
 
 .videoWrapper {
   width: 100%;
   aspect-ratio: 16/9;
   background: #000;
-  border-radius: 12px;
+  border-radius: 16px;
   overflow: hidden;
   margin-bottom: 2rem;
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--border);
+  border: 1px solid rgba(63, 63, 70, 0.3);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 }
 
 .videoPlaceholder {
   color: var(--text-muted);
   font-family: var(--font-display);
-  font-size: 1.5rem;
+  font-size: 1.25rem;
 }
 
 .courseHeader {
@@ -50,6 +53,7 @@
   font-family: var(--font-display);
   font-size: 2rem;
   margin-bottom: 0.5rem;
+  letter-spacing: -0.02em;
 }
 
 .moduleList {
@@ -61,103 +65,156 @@
 }
 
 .moduleHeader {
-  padding: 1.5rem;
-  border-bottom: 1px solid var(--border);
-  background: var(--surface-hover);
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid rgba(63, 63, 70, 0.3);
+  background: rgba(39, 39, 42, 0.4);
 }
 
 .moduleTitle {
   font-family: var(--font-display);
-  font-size: 1.1rem;
+  font-size: 1rem;
   margin-bottom: 0.5rem;
+  font-weight: 600;
 }
 
 .progressBar {
   width: 100%;
-  height: 6px;
-  background: var(--border);
+  height: 4px;
+  background: rgba(9, 9, 11, 0.5);
   border-radius: 4px;
   overflow: hidden;
-  margin-top: 1rem;
+  margin-top: 0.75rem;
 }
 
 .progressFill {
   height: 100%;
-  background: var(--primary);
-  transition: width 0.3s ease;
+  background: linear-gradient(90deg, var(--primary), var(--secondary));
+  border-radius: 4px;
+  transition: width 0.4s ease;
 }
 
 .videoItem {
-  padding: 1rem 1.5rem;
-  border-bottom: 1px solid var(--border);
+  padding: 0.9rem 1.5rem;
+  border-bottom: 1px solid rgba(63, 63, 70, 0.2);
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.75rem;
   cursor: pointer;
   transition: background 0.2s ease;
+  position: relative;
 }
 
 .videoItem:hover:not(.locked) {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .videoItem.active {
-  background: var(--primary-glow);
-  border-left: 4px solid var(--primary);
+  background: rgba(34, 211, 238, 0.08);
+  border-left: 3px solid var(--primary);
 }
 
 .videoItem.locked {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
 .videoIcon {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
+  flex-shrink: 0;
 }
 
 .videoInfo {
   flex: 1;
+  min-width: 0;
 }
 
 .videoTitle {
   font-weight: 500;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .videoDuration {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: var(--text-muted);
+  margin-top: 0.15rem;
 }
 
 .quizSection {
   padding: 1.5rem;
-  background: var(--surface-hover);
-  border-top: 1px solid var(--border);
+  background: rgba(39, 39, 42, 0.4);
+  border-top: 1px solid rgba(63, 63, 70, 0.3);
   margin-top: auto;
 }
 
 .quizButton {
   width: 100%;
   padding: 12px;
-  border-radius: 8px;
+  border-radius: 12px;
   font-weight: 600;
   text-align: center;
   transition: all 0.3s ease;
   display: block;
+  font-size: 0.95rem;
+  letter-spacing: 0.01em;
 }
 
 .quizButton.locked {
-  background: var(--border);
+  background: rgba(63, 63, 70, 0.4);
   color: var(--text-muted);
   cursor: not-allowed;
 }
 
 .quizButton.unlocked {
-  background: var(--success);
-  color: var(--background);
+  background: linear-gradient(135deg, var(--success), #059669);
+  color: #fff;
+  box-shadow: 0 4px 15px rgba(52, 211, 153, 0.25);
 }
 
 .quizButton.unlocked:hover {
   filter: brightness(1.1);
   transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(52, 211, 153, 0.35);
+}
+
+/* Mobile breakpoints */
+@media (max-width: 1024px) {
+  .courseContainer {
+    flex-direction: column;
+    border-left: none;
+    border-right: none;
+  }
+  .mainContent {
+    padding: 1rem;
+    overflow-y: visible;
+  }
+  .sidebar {
+    width: 100%;
+    border-left: none;
+    border-top: 1px solid rgba(63, 63, 70, 0.3);
+  }
+  .courseTitle {
+    font-size: 1.5rem;
+  }
+  .videoWrapper {
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .mainContent {
+    padding: 0.75rem;
+  }
+  .courseTitle {
+    font-size: 1.3rem;
+  }
+  .videoItem {
+    padding: 0.75rem 1rem;
+  }
+  .moduleHeader {
+    padding: 1rem;
+  }
 }

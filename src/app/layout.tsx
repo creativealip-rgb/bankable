@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import "./globals.css";
+import { NavAuth } from "./nav-auth";
 
 export const metadata: Metadata = {
   title: "Bankable | Premium Digital Assets",
@@ -18,13 +19,14 @@ export default function RootLayout({
         <nav className="glass-panel main-nav">
           <div className="nav-container">
             <div className="logo">
-              <span className="gradient-text" style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.5rem' }}>Bankable</span>
+              <Link href="/">
+                <span className="gradient-text" style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.5rem' }}>Bankable</span>
+              </Link>
             </div>
             <div className="nav-links">
               <Link href="/courses">Courses</Link>
               <Link href="/dashboard">Dashboard</Link>
-              <Link href="/login" style={{ color: 'var(--text-muted)' }}>Login</Link>
-              <Link href="/register" className="btn-primary" style={{ padding: '8px 16px', fontSize: '0.9rem' }}>Join Now</Link>
+              <NavAuth />
             </div>
           </div>
         </nav>
