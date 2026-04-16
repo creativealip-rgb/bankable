@@ -1,0 +1,214 @@
+.profileContainer {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.header {
+  margin-bottom: 2rem;
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.02em;
+}
+
+.profileCard {
+  background: var(--surface);
+  border: 1px solid rgba(63, 63, 70, 0.4);
+  border-radius: 20px;
+  padding: 2.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.avatarSection {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid rgba(63, 63, 70, 0.3);
+}
+
+.avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, rgba(34, 211, 238, 0.15), rgba(192, 132, 252, 0.15));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--primary);
+  flex-shrink: 0;
+  border: 2px solid rgba(34, 211, 238, 0.2);
+}
+
+.avatarInfo {
+  flex: 1;
+}
+
+.avatarName {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.avatarEmail {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.memberBadge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 0.5rem;
+  background: rgba(34, 211, 238, 0.1);
+  color: var(--primary);
+  border: 1px solid rgba(34, 211, 238, 0.2);
+}
+
+/* Form Fields */
+.formGroup {
+  margin-bottom: 1.5rem;
+}
+
+.formLabel {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.formInput {
+  width: 100%;
+  padding: 12px 16px;
+  background: rgba(9, 9, 11, 0.5);
+  border: 1px solid rgba(63, 63, 70, 0.5);
+  border-radius: var(--radius);
+  color: var(--text-main);
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.formInput:focus {
+  outline: none;
+  border-color: rgba(34, 211, 238, 0.5);
+  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.1);
+}
+
+.formInput:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.saveBtn {
+  padding: 14px 32px;
+  border-radius: var(--radius);
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: none;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  color: #fff;
+  box-shadow: 0 4px 15px var(--primary-glow);
+}
+
+.saveBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px var(--primary-glow);
+}
+
+.saveBtn:disabled {
+  opacity: 0.5;
+  transform: none;
+  cursor: not-allowed;
+}
+
+.successMsg {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: 1rem;
+  font-size: 0.9rem;
+  color: var(--success);
+}
+
+.dangerZone {
+  background: var(--surface);
+  border: 1px solid rgba(248, 113, 113, 0.2);
+  border-radius: 20px;
+  padding: 2rem;
+}
+
+.dangerTitle {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--danger);
+  margin-bottom: 0.5rem;
+}
+
+.dangerText {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.dangerBtn {
+  padding: 10px 20px;
+  border-radius: var(--radius);
+  border: 1px solid rgba(248, 113, 113, 0.3);
+  background: transparent;
+  color: var(--danger);
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.dangerBtn:hover {
+  background: rgba(248, 113, 113, 0.1);
+  border-color: rgba(248, 113, 113, 0.5);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .profileContainer {
+    padding: 1rem;
+  }
+  .title {
+    font-size: 1.75rem;
+  }
+  .profileCard {
+    padding: 1.5rem;
+    border-radius: 16px;
+  }
+  .formRow {
+    grid-template-columns: 1fr;
+  }
+  .avatarSection {
+    flex-direction: column;
+    text-align: center;
+  }
+}

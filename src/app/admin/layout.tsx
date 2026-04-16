@@ -55,7 +55,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <Link
               key={item.href}
               href={item.href}
-              className={`admin-nav-item ${pathname === item.href ? "active" : ""}`}
+              className={`admin-nav-item ${
+                item.href === "/admin"
+                  ? pathname === "/admin" ? "active" : ""
+                  : pathname.startsWith(item.href) ? "active" : ""
+              }`}
             >
               <span className="admin-nav-icon">{item.icon}</span>
               <span>{item.label}</span>

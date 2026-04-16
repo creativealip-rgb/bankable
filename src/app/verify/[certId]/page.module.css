@@ -1,0 +1,156 @@
+.verifyContainer {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 3rem 2rem;
+  text-align: center;
+}
+
+.certDisplay {
+  background: var(--surface);
+  border: 2px solid rgba(250, 204, 21, 0.25);
+  border-radius: 24px;
+  padding: 3rem 2.5rem;
+  margin-top: 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.certDisplay::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--primary), var(--warning), var(--secondary));
+}
+
+.certBrand {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.5rem;
+}
+
+.certLabel {
+  font-size: 1rem;
+  color: var(--text-muted);
+  margin-bottom: 2rem;
+  letter-spacing: 0.05em;
+}
+
+.certRecipient {
+  font-family: var(--font-display);
+  font-size: 2.2rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.02em;
+}
+
+.certCourse {
+  font-size: 1.1rem;
+  color: var(--text-muted);
+  margin-bottom: 2rem;
+  line-height: 1.5;
+}
+
+.certCourseName {
+  display: block;
+  font-weight: 600;
+  color: var(--primary);
+  font-size: 1.3rem;
+  margin-top: 0.5rem;
+}
+
+.certMeta {
+  display: flex;
+  justify-content: center;
+  gap: 3rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.certMetaItem {
+  text-align: center;
+}
+
+.certMetaLabel {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.3rem;
+}
+
+.certMetaValue {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.certId {
+  font-family: monospace;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  padding: 0.75rem 1rem;
+  background: rgba(9, 9, 11, 0.5);
+  border-radius: 10px;
+  border: 1px solid rgba(63, 63, 70, 0.3);
+  display: inline-block;
+}
+
+.verifiedBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+  padding: 8px 20px;
+  border-radius: 20px;
+  background: rgba(52, 211, 153, 0.1);
+  border: 1px solid rgba(52, 211, 153, 0.25);
+  color: var(--success);
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.errorCard {
+  background: var(--surface);
+  border: 1px solid rgba(248, 113, 113, 0.2);
+  border-radius: 20px;
+  padding: 3rem;
+  margin-top: 2rem;
+}
+
+.errorIcon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.errorTitle {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.errorText {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .verifyContainer {
+    padding: 2rem 1rem;
+  }
+  .certDisplay {
+    padding: 2rem 1.5rem;
+  }
+  .certRecipient {
+    font-size: 1.5rem;
+  }
+  .certMeta {
+    gap: 1.5rem;
+  }
+}

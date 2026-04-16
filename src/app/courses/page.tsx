@@ -103,7 +103,7 @@ export default function CatalogPage() {
           ) : (
             courses.map(course => (
               <Link
-                href={`/my-courses/${course.slug}`}
+                href={`/courses/${course.slug}`}
                 key={course.id}
                 className={styles.assetCard}
               >

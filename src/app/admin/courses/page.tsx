@@ -167,10 +167,15 @@ export default function AdminCoursesPage() {
               </button>
             ))}
           </div>
-          <button className="btn-primary" style={{ padding: "10px 20px", fontSize: "0.9rem" }}
-            onClick={() => setShowCreate(!showCreate)}>
-            {showCreate ? "Cancel" : "+ New Course"}
-          </button>
+          <div style={{ display: "flex", gap: "0.5rem" }}>
+            <button className="btn-primary" style={{ padding: "10px 20px", fontSize: "0.9rem" }}
+              onClick={() => setShowCreate(!showCreate)}>
+              {showCreate ? "Cancel" : "+ Quick Create"}
+            </button>
+            <Link href="/admin/courses/new" className="btn-secondary" style={{ padding: "10px 20px", fontSize: "0.9rem" }}>
+              📝 Full Form
+            </Link>
+          </div>
         </div>
 
         {/* Create Form */}
@@ -291,6 +296,20 @@ export default function AdminCoursesPage() {
                     </td>
                     <td>
                       <div style={{ display: "flex", gap: "0.5rem" }}>
+                        <Link
+                          href={`/admin/courses/${course.id}/edit`}
+                          className="admin-filter-btn"
+                          title="Edit"
+                        >
+                          ✏️
+                        </Link>
+                        <Link
+                          href={`/admin/courses/${course.id}/quiz`}
+                          className="admin-filter-btn"
+                          title="Manage Quiz"
+                        >
+                          📝
+                        </Link>
                         <button
                           className="admin-filter-btn"
                           onClick={() => handleToggleStatus(course.slug, course.status)}
