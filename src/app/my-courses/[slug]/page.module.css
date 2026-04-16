@@ -45,8 +45,25 @@
   font-size: 1.25rem;
 }
 
+.playerActions {
+  margin: -1.2rem 0 1.6rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
 .courseHeader {
   margin-bottom: 2rem;
+}
+
+.backDetailLink {
+  display: inline-block;
+  margin-bottom: 0.7rem;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.backDetailLink:hover {
+  color: var(--primary);
 }
 
 .courseTitle {
@@ -201,6 +218,10 @@
   .videoWrapper {
     border-radius: 12px;
     margin-bottom: 1.5rem;
+  }
+  .playerActions {
+    margin: -0.7rem 0 1.2rem;
+    justify-content: center;
   }
 }
 

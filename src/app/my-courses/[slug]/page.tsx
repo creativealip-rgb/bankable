@@ -21,6 +21,13 @@ type ProgressData = {
   totalVideos: number; completedVideos: number; overallProgress: number;
   videoProgress: Record<string, VideoProgress>;
 };
+type VideoSource =
+  | { kind: "none" }
+  | { kind: "file"; src: string }
+  | { kind: "audio"; src: string }
+  | { kind: "pdf"; src: string }
+  | { kind: "youtube"; src: string }
+  | { kind: "unsupported"; src: string };
 
 type PageProps = { params: Promise<{ slug: string }> };
 
@@ -50,6 +57,50 @@ export default function CoursePlayerPage({ params }: PageProps) {
   const [bookmarks, setBookmarks] = useState<number[]>([]);
 
   useEffect(() => { params.then((p) => setSlug(p.slug)); }, [params]);
+
+  const resolveVideoSource = useCallback((rawUrl?: string | null): VideoSource => {
+    const value = (rawUrl || "").trim();
+    if (!value) return { kind: "none" };
+
+    const normalized = value.split("?")[0].toLowerCase();
+
+    if (value.startsWith("blob:")) return { kind: "file", src: value };
+    if (normalized.endsWith(".pdf")) return { kind: "pdf", src: value };
+    if (normalized.endsWith(".mp3") || normalized.endsWith(".wav") || normalized.endsWith(".m4a") || normalized.endsWith(".aac")) {
+      return { kind: "audio", src: value };
+    }
+    if (normalized.endsWith(".mp4") || normalized.endsWith(".webm") || normalized.endsWith(".ogg")) {
+      return { kind: "file", src: value };
+    }
+
+    let youtubeId: string | null = null;
+    try {
+      const parsed = new URL(value);
+      const host = parsed.hostname.replace("www.", "");
+      if (host === "youtu.be") {
+        youtubeId = parsed.pathname.split("/").filter(Boolean)[0] || null;
+      } else if (host.includes("youtube.com")) {
+        if (parsed.pathname === "/watch") {
+          youtubeId = parsed.searchParams.get("v");
+        } else if (parsed.pathname.startsWith("/embed/")) {
+          youtubeId = parsed.pathname.split("/")[2] || null;
+        } else if (parsed.pathname.startsWith("/shorts/")) {
+          youtubeId = parsed.pathname.split("/")[2] || null;
+        }
+      }
+    } catch {
+      youtubeId = null;
+    }
+
+    if (youtubeId) {
+      return {
+        kind: "youtube",
+        src: `https://www.youtube.com/embed/${youtubeId}?rel=0&modestbranding=1`,
+      };
+    }
+
+    return { kind: "unsupported", src: value };
+  }, []);
 
   useEffect(() => {
     if (!slug) return;
@@ -232,6 +283,10 @@ export default function CoursePlayerPage({ params }: PageProps) {
       setBookmarks([]);
     }
     setMaxWatchedTime(0);
+    setIsPlaying(false);
+    setCurrentTime(0);
+    setDuration(0);
+    setWatchedPct(0);
   }, [activeVideoId, slug]);
 
   useEffect(() => {
@@ -247,11 +302,7 @@ export default function CoursePlayerPage({ params }: PageProps) {
   const allCompleted = progress ? progress.completedVideos >= progress.totalVideos : false;
   const quizId = course?.quiz?.[0]?.id;
 
-  // Check if active video has a usable video URL
-  const hasVideoUrl = activeVideo?.url && (
-    activeVideo.url.endsWith(".mp4") || activeVideo.url.endsWith(".webm") ||
-    activeVideo.url.endsWith(".ogg") || activeVideo.url.startsWith("blob:")
-  );
+  const activeVideoSource = resolveVideoSource(activeVideo?.url);
 
   if (loading) {
     return (
@@ -288,6 +339,9 @@ export default function CoursePlayerPage({ params }: PageProps) {
     <div className={styles.courseContainer}>
       <div className={styles.mainContent}>
         <div className={styles.courseHeader}>
+          <Link href={`/courses/${slug}`} className={styles.backDetailLink}>
+            ← Back to detail
+          </Link>
           <h1 className={styles.courseTitle}>{course.title}</h1>
           <p style={{ color: "var(--text-muted)" }}>
             {activeModule?.title} — {activeVideo?.title}
@@ -296,7 +350,7 @@ export default function CoursePlayerPage({ params }: PageProps) {
 
         {/* Video Player */}
         <div className={styles.videoWrapper}>
-          {hasVideoUrl ? (
+          {activeVideoSource.kind === "file" ? (
             <>
               <video
                 ref={videoRef}
@@ -366,30 +420,58 @@ export default function CoursePlayerPage({ params }: PageProps) {
                 </div>
               </div>
             </>
+          ) : activeVideoSource.kind === "youtube" ? (
+            <>
+              <iframe
+                src={activeVideoSource.src}
+                title={activeVideo?.title || "YouTube video player"}
+                style={{ width: "100%", height: "100%", border: "none" }}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+              />
+            </>
+          ) : activeVideoSource.kind === "audio" ? (
+            <div className={styles.videoPlaceholder}>
+              <div style={{ textAlign: "center", width: "100%", maxWidth: "640px", padding: "1rem" }}>
+                <p style={{ marginBottom: "0.75rem", fontSize: "1rem" }}>🎧 {activeVideo?.title || "Audio Lesson"}</p>
+                <audio controls style={{ width: "100%" }} src={activeVideoSource.src}>
+                  Browser tidak mendukung audio player.
+                </audio>
+              </div>
+            </div>
+          ) : activeVideoSource.kind === "pdf" ? (
+            <iframe
+              src={activeVideoSource.src}
+              title={activeVideo?.title || "PDF Viewer"}
+              style={{ width: "100%", height: "100%", border: "none", background: "#fff" }}
+            />
           ) : (
             <div className={styles.videoPlaceholder}>
-              {activeVideo?.url ? (
+              {activeVideoSource.kind === "unsupported" ? (
                 <div style={{ textAlign: "center" }}>
-                  <p style={{ marginBottom: "1rem" }}>🎬 {activeVideo.title}</p>
+                  <p style={{ marginBottom: "1rem" }}>🎬 {activeVideo?.title || "Video"}</p>
                   <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "1.5rem" }}>
-                    Video URL: {activeVideo.url}
+                    Format video belum didukung: {activeVideoSource.src}
                   </p>
                 </div>
               ) : (
                 <p>No video URL configured</p>
               )}
-              <div style={{ marginTop: "1rem", textAlign: "center" }}>
-                <button
-                  className="btn-primary"
-                  onClick={handleSimulateWatch}
-                  disabled={!activeVideoId || !isVideoAccessible(activeVideo!)}
-                >
-                  ✅ Mark as Watched (≥ 90%)
-                </button>
-              </div>
             </div>
           )}
         </div>
+
+        {activeVideoSource.kind !== "file" && (
+          <div className={styles.playerActions}>
+            <button
+              className="btn-primary"
+              onClick={handleSimulateWatch}
+              disabled={!activeVideoId || !isVideoAccessible(activeVideo!)}
+            >
+              ✅ Mark as Watched (≥ 90%)
+            </button>
+          </div>
+        )}
 
         {/* Notes Section */}
         <div style={{ marginBottom: "2rem" }}>
