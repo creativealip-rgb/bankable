@@ -21,18 +21,24 @@ export default function MyCoursesPage() {
   const { data: session } = useSession();
   const [courses, setCourses] = useState<MyCourse[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [filter, setFilter] = useState<"all" | "in-progress" | "completed">("all");
 
   useEffect(() => {
     async function fetchMyCourses() {
+      setError("");
       try {
         const res = await fetch("/api/dashboard");
         if (res.ok) {
           const data = await res.json();
           setCourses(data.continueLearning || []);
+        } else {
+          const data = await res.json();
+          setError(data.error || "Failed to load your courses.");
         }
-      } catch (error) {
-        console.error("Failed to fetch my courses:", error);
+      } catch (fetchError) {
+        console.error("Failed to fetch my courses:", fetchError);
+        setError("Failed to load your courses.");
       } finally {
         setLoading(false);
       }
@@ -75,6 +81,7 @@ export default function MyCoursesPage() {
         <p style={{ color: "var(--text-muted)" }}>
           Welcome back, {session?.user?.name || "Learner"}! Continue where you left off.
         </p>
+        {error && <p style={{ color: "var(--danger)", marginTop: "0.5rem" }}>{error}</p>}
       </div>
 
       <div className={styles.filterTabs}>

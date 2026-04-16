@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import styles from "./page.module.css";
 import Link from "next/link";
+import { useSession } from "@/lib/auth-client";
 
 const plans = [
   {
@@ -95,7 +96,63 @@ const faqs = [
 ];
 
 export default function PricingPage() {
+  const { data: session, isPending } = useSession();
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
+  const [currentTier, setCurrentTier] = useState<string>("FREE");
+  const [subscribingTier, setSubscribingTier] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<string>("");
+
+  useEffect(() => {
+    async function fetchCurrentTier() {
+      if (!session) {
+        setCurrentTier("FREE");
+        return;
+      }
+
+      try {
+        const res = await fetch("/api/billing");
+        if (!res.ok) {
+          setFeedback("Failed to load your current plan.");
+          return;
+        }
+        const data = await res.json();
+        setCurrentTier(data.currentMembership?.tier || "FREE");
+      } catch {
+        setFeedback("Failed to load your current plan.");
+      }
+    }
+
+    fetchCurrentTier();
+  }, [session]);
+
+  const mapPlanToTier = (tier: string) => tier.toUpperCase();
+
+  const handleSubscribe = async (planTier: string) => {
+    const selectedTier = mapPlanToTier(planTier);
+    setSubscribingTier(selectedTier);
+    setFeedback("");
+
+    try {
+      const res = await fetch("/api/billing/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tier: selectedTier }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        setFeedback(data.error || "Failed to update membership.");
+        return;
+      }
+
+      setCurrentTier(selectedTier);
+      setFeedback(`Plan updated to ${planTier}.`);
+    } catch {
+      setFeedback("Failed to update membership.");
+    } finally {
+      setSubscribingTier(null);
+    }
+  };
 
   return (
     <div className={styles.pricingContainer}>
@@ -109,6 +166,21 @@ export default function PricingPage() {
           Get unlimited access to premium courses, ebooks, and voice SFX. Start free or unlock everything.
         </p>
       </div>
+
+      {feedback && (
+        <div style={{
+          marginBottom: "1.5rem",
+          padding: "0.75rem 1rem",
+          borderRadius: "10px",
+          border: "1px solid rgba(34,211,238,0.3)",
+          background: "rgba(34,211,238,0.1)",
+          color: "var(--primary)",
+          fontSize: "0.9rem",
+          textAlign: "center",
+        }}>
+          {feedback}
+        </div>
+      )}
 
       {/* Pricing Cards */}
       <div className={styles.pricingGrid}>
@@ -143,14 +215,35 @@ export default function PricingPage() {
               ))}
             </ul>
 
-            <Link
-              href={plan.tier === "Free" ? "/register" : "/register"}
-              className={`${styles.ctaBtn} ${
-                plan.featured ? styles.ctaFilled : styles.ctaOutline
-              }`}
-            >
-              {plan.cta}
-            </Link>
+            {!session ? (
+              <Link
+                href={plan.tier === "Free" ? "/register" : "/login?callbackUrl=/pricing"}
+                className={`${styles.ctaBtn} ${
+                  plan.featured ? styles.ctaFilled : styles.ctaOutline
+                }`}
+              >
+                {plan.tier === "Free" ? plan.cta : "Login to Subscribe"}
+              </Link>
+            ) : (
+              <button
+                className={`${styles.ctaBtn} ${
+                  plan.featured ? styles.ctaFilled : styles.ctaOutline
+                }`}
+                onClick={() => handleSubscribe(plan.tier)}
+                disabled={
+                  isPending ||
+                  subscribingTier !== null ||
+                  currentTier === mapPlanToTier(plan.tier)
+                }
+                style={{ opacity: currentTier === mapPlanToTier(plan.tier) ? 0.7 : 1 }}
+              >
+                {subscribingTier === mapPlanToTier(plan.tier)
+                  ? "Processing..."
+                  : currentTier === mapPlanToTier(plan.tier)
+                  ? "Current Plan"
+                  : plan.cta}
+              </button>
+            )}
           </div>
         ))}
       </div>

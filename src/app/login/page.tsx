@@ -3,15 +3,19 @@
 import { useState } from "react";
 import { signIn } from "@/lib/auth-client";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import styles from "./page.module.css";
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const callbackUrl = searchParams.get("callbackUrl");
+  const safeCallbackUrl =
+    callbackUrl && callbackUrl.startsWith("/") ? callbackUrl : "/dashboard";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,7 +31,7 @@ export default function LoginPage() {
       if (result.error) {
         setError(result.error.message || "Login failed");
       } else {
-        router.push("/dashboard");
+        router.push(safeCallbackUrl);
         router.refresh();
       }
     } catch {
@@ -40,7 +44,7 @@ export default function LoginPage() {
   const handleGoogleLogin = async () => {
     await signIn.social({
       provider: "google",
-      callbackURL: "/dashboard",
+      callbackURL: safeCallbackUrl,
     });
   };
 

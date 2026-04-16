@@ -37,10 +37,12 @@ function formatPrice(price: string | null): string {
 export default function CatalogPage() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchCourses() {
+      setError("");
       try {
         const params = new URLSearchParams();
         if (activeCategory) params.set("category", activeCategory);
@@ -48,9 +50,13 @@ export default function CatalogPage() {
         if (res.ok) {
           const data = await res.json();
           setCourses(data);
+        } else {
+          const data = await res.json();
+          setError(data.error || "Failed to load courses.");
         }
-      } catch (error) {
-        console.error("Failed to fetch courses:", error);
+      } catch (fetchError) {
+        console.error("Failed to fetch courses:", fetchError);
+        setError("Failed to load courses.");
       } finally {
         setLoading(false);
       }
@@ -89,6 +95,11 @@ export default function CatalogPage() {
           <p style={{ color: "var(--text-muted)", marginTop: "0.5rem" }}>
             {loading ? "Loading..." : `${courses.length} courses available`}
           </p>
+          {error && (
+            <p style={{ color: "var(--danger)", marginTop: "0.5rem", fontSize: "0.9rem" }}>
+              {error}
+            </p>
+          )}
         </div>
 
         <div className={styles.assetGrid}>

@@ -18,12 +18,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname();
   const { data: session, isPending } = useSession();
   const router = useRouter();
+  const role = (session?.user as Record<string, unknown> | undefined)?.role as string | undefined;
+  const hasAdminAccess = role === "ADMIN" || role === "SUPER_ADMIN";
 
   useEffect(() => {
-    if (!isPending && (!session || (session.user as Record<string, unknown>).role !== "ADMIN")) {
-      router.push("/login");
+    if (!isPending && (!session || !hasAdminAccess)) {
+      router.push(`/login?callbackUrl=${encodeURIComponent(pathname || "/admin")}`);
     }
-  }, [session, isPending, router]);
+  }, [session, isPending, router, hasAdminAccess, pathname]);
 
   if (isPending) {
     return (
@@ -34,7 +36,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     );
   }
 
-  if (!session || (session.user as Record<string, unknown>).role !== "ADMIN") {
+  if (!session || !hasAdminAccess) {
     return null;
   }
 

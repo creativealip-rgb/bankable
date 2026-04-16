@@ -19,17 +19,23 @@ type Certificate = {
 export default function CertificatesPage() {
   const [certificates, setCertificates] = useState<Certificate[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     async function fetchCerts() {
+      setError("");
       try {
         const res = await fetch("/api/certificates");
         if (res.ok) {
           const data = await res.json();
           setCertificates(data);
+        } else {
+          const data = await res.json();
+          setError(data.error || "Failed to load certificates.");
         }
-      } catch (error) {
-        console.error("Failed to fetch certificates:", error);
+      } catch (fetchError) {
+        console.error("Failed to fetch certificates:", fetchError);
+        setError("Failed to load certificates.");
       } finally {
         setLoading(false);
       }
@@ -54,6 +60,7 @@ export default function CertificatesPage() {
         <p style={{ color: "var(--text-muted)" }}>
           Your earned certificates from completed courses. Share them with pride!
         </p>
+        {error && <p style={{ color: "var(--danger)", marginTop: "0.5rem" }}>{error}</p>}
       </div>
 
       <div className={styles.certGrid}>

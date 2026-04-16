@@ -37,17 +37,23 @@ export default function DashboardPage() {
   const { data: session } = useSession();
   const [dashboard, setDashboard] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     async function fetchDashboard() {
+      setError("");
       try {
         const res = await fetch("/api/dashboard");
         if (res.ok) {
           const data = await res.json();
           setDashboard(data);
+        } else {
+          const data = await res.json();
+          setError(data.error || "Failed to load dashboard.");
         }
-      } catch (error) {
-        console.error("Failed to fetch dashboard:", error);
+      } catch (fetchError) {
+        console.error("Failed to fetch dashboard:", fetchError);
+        setError("Failed to load dashboard.");
       } finally {
         setLoading(false);
       }
@@ -74,6 +80,7 @@ export default function DashboardPage() {
           Welcome back, {session?.user?.name || "Learner"}!
         </h1>
         <p style={{ color: "var(--text-muted)" }}>Here is your learning overview.</p>
+        {error && <p style={{ color: "var(--danger)", marginTop: "0.5rem" }}>{error}</p>}
       </div>
 
       <div className={styles.statsGrid}>

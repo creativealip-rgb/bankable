@@ -21,7 +21,6 @@ export default function AdminUsersPage() {
   const [search, setSearch] = useState("");
 
   const fetchUsers = (query?: string) => {
-    setLoading(true);
     const params = new URLSearchParams();
     if (query) params.set("search", query);
     fetch(`/api/admin/users?${params}`)
@@ -37,13 +36,13 @@ export default function AdminUsersPage() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
     fetchUsers(search);
   };
 
   // Compute analytics
   const totalUsers = users.length;
   const admins = users.filter((u) => u.role === "ADMIN").length;
-  const members = users.filter((u) => u.role === "MEMBER").length;
   const totalCerts = users.reduce((s, u) => s + u.certificateCount, 0);
   const totalWatched = users.reduce((s, u) => s + u.videosWatched, 0);
   const avgWatched = totalUsers > 0 ? (totalWatched / totalUsers).toFixed(1) : "0";

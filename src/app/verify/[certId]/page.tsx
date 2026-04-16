@@ -86,7 +86,7 @@ export default function VerifyCertificatePage({ params }: PageProps) {
 
         <div className={styles.certCourse}>
           has successfully completed the course
-          <span className={styles.certCourseName}>"{cert.courseName}"</span>
+          <span className={styles.certCourseName}>&quot;{cert.courseName}&quot;</span>
         </div>
 
         <div className={styles.certMeta}>
