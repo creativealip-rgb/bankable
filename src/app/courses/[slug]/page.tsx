@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import styles from "./page.module.css";
 import Link from "next/link";
+import { useSession } from "@/lib/auth-client";
+import { useRouter } from "next/navigation";
 
 type Video = {
   id: string;
@@ -44,6 +46,7 @@ type CourseDetail = {
   totalVideos: number;
   totalDuration: number;
   totalModules: number;
+  hasPremiumAccess?: boolean;
 };
 
 function formatDuration(seconds: number): string {
@@ -54,8 +57,8 @@ function formatDuration(seconds: number): string {
 }
 
 function formatPrice(price: string | null): string {
-  if (!price || price === "0") return "Free";
-  return `Rp ${parseInt(price).toLocaleString("id-ID")}`;
+  const value = Number(price || 0);
+  return new Intl.NumberFormat("id-ID").format(value);
 }
 
 function getLevelStyle(level: string): string {
@@ -84,10 +87,13 @@ type PageProps = {
 };
 
 export default function CourseDetailPage({ params }: PageProps) {
+  const { data: session } = useSession();
+  const router = useRouter();
   const [slug, setSlug] = useState<string>("");
   const [course, setCourse] = useState<CourseDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set());
+  const [buying, setBuying] = useState(false);
 
   useEffect(() => {
     params.then((p) => setSlug(p.slug));
@@ -152,7 +158,41 @@ export default function CourseDetailPage({ params }: PageProps) {
   }
 
   const quiz = course.quiz?.[0];
-  const isFree = !course.price || course.price === "0";
+  const isPaidCourse = Number(course.price || 0) > 0;
+  const hasPremiumAccess = Boolean(course.hasPremiumAccess);
+
+  const handleBuyPremium = async () => {
+    if (!isPaidCourse || buying) return;
+    if (!session) {
+      router.push(`/login?callbackUrl=${encodeURIComponent(`/courses/${course.slug}`)}`);
+      return;
+    }
+
+    setBuying(true);
+    try {
+      const res = await fetch("/api/payments/premium-checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ courseSlug: course.slug }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to create premium checkout");
+      }
+      if (!data.paymentId) {
+        throw new Error("Payment reference tidak tersedia.");
+      }
+      router.push(`/payments/${data.paymentId}`);
+      if (data.mode === "MANUAL") {
+        return;
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Gagal membuat checkout premium. Coba lagi.");
+    } finally {
+      setBuying(false);
+    }
+  };
 
   return (
     <div className={styles.detailContainer}>
@@ -245,15 +285,35 @@ export default function CourseDetailPage({ params }: PageProps) {
       <div className={styles.sidebar}>
         {/* Enroll Card */}
         <div className={styles.enrollCard}>
-          <div className={`${styles.priceTag} ${isFree ? styles.priceFree : styles.pricePaid}`}>
-            {formatPrice(course.price)}
+          <div className={`${styles.priceTag} ${isPaidCourse ? styles.pricePaid : styles.priceFree}`}>
+            {isPaidCourse ? `Rp${formatPrice(course.price)}` : "Included"}
           </div>
           <p className={styles.priceSubtext}>
-            {isFree ? "Start learning for free" : "One-time purchase • Lifetime access"}
+            {isPaidCourse
+              ? hasPremiumAccess
+                ? "Akses premium kamu sudah aktif untuk konten ini."
+                : "Konten premium berbayar terpisah dari paket one-time access."
+              : "Akses penuh sudah termasuk dalam pembelian sekali bayar."}
           </p>
-          <Link href={`/my-courses/${course.slug}`} className={styles.enrollBtn} style={{ display: "block", textDecoration: "none" }}>
-            {isFree ? "Start Course" : "Enroll Now"}
-          </Link>
+          {isPaidCourse && !hasPremiumAccess ? (
+            <button
+              type="button"
+              onClick={handleBuyPremium}
+              className={styles.enrollBtn}
+              style={{ width: "100%" }}
+              disabled={buying}
+            >
+              {buying ? "Memproses..." : "Beli Akses Premium"}
+            </button>
+          ) : (
+            <Link
+              href={`/my-courses/${course.slug}`}
+              className={styles.enrollBtn}
+              style={{ display: "block", textDecoration: "none" }}
+            >
+              Start Course
+            </Link>
+          )}
           <ul className={styles.courseInfoList}>
             <li className={styles.courseInfoItem}>
               <span className={styles.courseInfoIcon}>🎬</span>
@@ -269,11 +329,11 @@ export default function CourseDetailPage({ params }: PageProps) {
             </li>
             <li className={styles.courseInfoItem}>
               <span className={styles.courseInfoIcon}>📝</span>
-              <span>{quiz ? "Quiz & Certificate included" : "No quiz"}</span>
+              <span>{quiz ? "Quiz & Certificate tersedia" : "No quiz"}</span>
             </li>
             <li className={styles.courseInfoItem}>
               <span className={styles.courseInfoIcon}>♾️</span>
-              <span>Full lifetime access</span>
+              <span>{isPaidCourse && !hasPremiumAccess ? "Akses setelah pembelian" : "Full lifetime access"}</span>
             </li>
           </ul>
         </div>

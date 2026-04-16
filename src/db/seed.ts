@@ -1,22 +1,18 @@
-import { neon } from "@neondatabase/serverless";
-import { drizzle } from "drizzle-orm/neon-http";
-import * as schema from "./schema";
-import { users, accounts, sessions, courses, modules, videos, quizzes, questions, memberships } from "./schema";
+import { db } from "./index";
+import { users, accounts, courses, modules, videos, quizzes, questions, memberships, paymentSettings } from "./schema";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
+import { eq } from "drizzle-orm";
 
 // Load env
 import "dotenv/config";
-
-const sql = neon(process.env.DATABASE_URL!);
-const db = drizzle(sql, { schema });
 
 async function main() {
   console.log("🌱 Seeding Bankable database...\n");
 
   // --- Users ---
-  const adminId = crypto.randomUUID();
-  const memberId = crypto.randomUUID();
+  let adminId: string = crypto.randomUUID();
+  let memberId: string = crypto.randomUUID();
   const adminPasswordHash = await bcrypt.hash("admin123", 12);
   const memberPasswordHash = await bcrypt.hash("member123", 12);
 
@@ -38,6 +34,22 @@ async function main() {
       role: "MEMBER",
     },
   ]).onConflictDoNothing();
+
+  const [adminUser] = await db
+    .select({ id: users.id })
+    .from(users)
+    .where(eq(users.email, "admin@bankable.local"))
+    .limit(1);
+  const [memberUser] = await db
+    .select({ id: users.id })
+    .from(users)
+    .where(eq(users.email, "member@bankable.local"))
+    .limit(1);
+  if (!adminUser || !memberUser) {
+    throw new Error("Seed users not found after insert");
+  }
+  adminId = adminUser.id;
+  memberId = memberUser.id;
 
   // Create credential accounts for Better Auth
   await db.insert(accounts).values([
@@ -77,6 +89,13 @@ async function main() {
     },
   ]).onConflictDoNothing();
   console.log("  ✅ Memberships created\n");
+
+  await db.insert(paymentSettings).values({
+    id: "global",
+    paymentMode: "GATEWAY",
+    paymentProvider: "MIDTRANS",
+    manualInstructions: "Silakan transfer manual dan kirim bukti pembayaran ke admin.",
+  }).onConflictDoNothing();
 
   // --- Course 1: Single Video ---
   console.log("Creating courses...");
@@ -129,7 +148,7 @@ async function main() {
     type: "MULTI",
     category: "Business",
     level: "INTERMEDIATE",
-    price: "199000",
+    price: "0",
     status: "PUBLISHED",
     minWatchPct: 90,
     createdById: adminId,
@@ -168,7 +187,7 @@ async function main() {
     type: "MULTI",
     category: "Programming",
     level: "ADVANCED",
-    price: "149000",
+    price: "0",
     status: "PUBLISHED",
     minWatchPct: 90,
     createdById: adminId,
@@ -188,6 +207,82 @@ async function main() {
   ]).onConflictDoNothing();
 
   console.log("  ✅ Course 3: Advanced React Patterns (Multi Video, 2 Modules, 5 Videos)\n");
+
+  // --- Bulk content catalog for filters (10 per type) ---
+  console.log("Creating bulk catalog courses (Ebook / Video / Voice)...");
+  for (let i = 1; i <= 10; i++) {
+    // Ebook
+    await db.insert(courses).values({
+      id: crypto.randomUUID(),
+      title: `Ebook Finansial Practical Vol ${i}`,
+      slug: `ebook-finansial-practical-vol-${i}`,
+      description: `Koleksi ebook praktis volume ${i} untuk literasi finansial dan produktivitas.`,
+      type: "SINGLE",
+      category: "Personal Growth",
+      level: i <= 4 ? "BEGINNER" : i <= 7 ? "INTERMEDIATE" : "ADVANCED",
+      price: "0",
+      status: "PUBLISHED",
+      minWatchPct: 90,
+      createdById: adminId,
+    }).onConflictDoNothing();
+
+    // Video
+    const videoCourseId = crypto.randomUUID();
+    const videoModuleId = crypto.randomUUID();
+    await db.insert(courses).values({
+      id: videoCourseId,
+      title: `Video Course Growth Sprint ${i}`,
+      slug: `video-course-growth-sprint-${i}`,
+      description: `Serial video course batch ${i} untuk growth, marketing, dan execution.`,
+      type: "MULTI",
+      category: i % 2 === 0 ? "Marketing" : "Business",
+      level: i <= 4 ? "BEGINNER" : i <= 7 ? "INTERMEDIATE" : "ADVANCED",
+      price: "0",
+      status: "PUBLISHED",
+      minWatchPct: 90,
+      createdById: adminId,
+    }).onConflictDoNothing();
+    await db.insert(modules).values({
+      id: videoModuleId,
+      courseId: videoCourseId,
+      title: "Core Lessons",
+      order: 0,
+    }).onConflictDoNothing();
+    await db.insert(videos).values([
+      {
+        id: crypto.randomUUID(),
+        moduleId: videoModuleId,
+        title: `Video Course ${i} - Lesson 1`,
+        url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        duration: 900 + i * 30,
+        order: 0,
+      },
+      {
+        id: crypto.randomUUID(),
+        moduleId: videoModuleId,
+        title: `Video Course ${i} - Lesson 2`,
+        url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        duration: 780 + i * 20,
+        order: 1,
+      },
+    ]).onConflictDoNothing();
+
+    // Voice
+    await db.insert(courses).values({
+      id: crypto.randomUUID(),
+      title: `Voice SFX Creator Pack ${i}`,
+      slug: `voice-sfx-creator-pack-${i}`,
+      description: `Bundle voice and SFX pack volume ${i} untuk kebutuhan konten dan branding audio.`,
+      type: "SINGLE",
+      category: "Audio/Video",
+      level: i <= 4 ? "BEGINNER" : i <= 7 ? "INTERMEDIATE" : "ADVANCED",
+      price: "0",
+      status: "PUBLISHED",
+      minWatchPct: 90,
+      createdById: adminId,
+    }).onConflictDoNothing();
+  }
+  console.log("  ✅ Added 10 Ebook + 10 Video + 10 Voice courses\n");
 
   // --- Quizzes ---
   console.log("Creating quizzes...");

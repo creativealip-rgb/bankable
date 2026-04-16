@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { quizzes, questions, courses } from "@/db/schema";
+import { quizzes, courses } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { requireAdmin } from "@/lib/auth-helpers";
 import crypto from "crypto";

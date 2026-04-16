@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { users, courses, modules, videos, videoProgress, certificates, memberships, quizAttempts, sessions } from "@/db/schema";
-import { eq, count, sql, desc, gte } from "drizzle-orm";
+import { eq, count, desc, gte } from "drizzle-orm";
 import { requireAdmin } from "@/lib/auth-helpers";
 
 // GET /api/admin/stats — Admin dashboard analytics

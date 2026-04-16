@@ -11,7 +11,11 @@ import { useEffect } from "react";
 const NAV_ITEMS = [
   { href: "/admin", label: "Dashboard", icon: "📊" },
   { href: "/admin/courses", label: "Courses", icon: "🎬" },
-  { href: "/admin/users", label: "Users", icon: "👥" },
+  { href: "/admin/members", label: "Members", icon: "👥" },
+  { href: "/admin/certificates", label: "Certificates", icon: "🏆" },
+  { href: "/admin/payments", label: "Payments", icon: "💳" },
+  { href: "/admin/sidebar-content", label: "Sidebar Content", icon: "🧩" },
+  { href: "/admin/settings", label: "Settings", icon: "⚙️" },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

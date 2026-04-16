@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 
 type AdminCourse = {
@@ -42,7 +42,7 @@ export default function AdminCoursesPage() {
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState("");
 
-  const fetchCourses = () => {
+  const fetchCourses = useCallback(() => {
     const params = new URLSearchParams();
     if (statusFilter) params.set("status", statusFilter);
     if (search) params.set("search", search);
@@ -51,11 +51,11 @@ export default function AdminCoursesPage() {
       .then(data => setCourses(data))
       .catch(console.error)
       .finally(() => setLoading(false));
-  };
+  }, [statusFilter, search]);
 
   useEffect(() => {
     fetchCourses();
-  }, [statusFilter]);
+  }, [fetchCourses]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -114,6 +114,17 @@ export default function AdminCoursesPage() {
       fetchCourses();
     } catch {
       console.error("Failed to update status");
+    }
+  };
+
+  const handleDuplicate = async (id: string) => {
+    try {
+      const res = await fetch(`/api/admin/courses/${id}/duplicate`, { method: "POST" });
+      if (!res.ok) return;
+      setLoading(true);
+      fetchCourses();
+    } catch {
+      console.error("Failed to duplicate");
     }
   };
 
@@ -182,7 +193,7 @@ export default function AdminCoursesPage() {
         {showCreate && (
           <div style={{
             padding: "1.5rem",
-            background: "rgba(9,9,11,0.4)",
+            background: "rgba(255,255,255,0.9)",
             borderRadius: "12px",
             border: "1px solid rgba(63,63,70,0.3)",
             marginBottom: "1.5rem"
@@ -316,6 +327,13 @@ export default function AdminCoursesPage() {
                           title={course.status === "PUBLISHED" ? "Unpublish" : "Publish"}
                         >
                           {course.status === "PUBLISHED" ? "📤" : "📥"}
+                        </button>
+                        <button
+                          className="admin-filter-btn"
+                          onClick={() => handleDuplicate(course.id)}
+                          title="Duplicate course"
+                        >
+                          📄
                         </button>
                         <button
                           className="admin-filter-btn"

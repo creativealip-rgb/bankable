@@ -1,36 +1,90 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Bankable
 
-## Getting Started
+Platform belajar dengan model one-time access + premium webinar/course terpisah, dibangun dengan Next.js App Router, Better Auth, Drizzle, dan PostgreSQL.
 
-First, run the development server:
+## Fitur Inti
+
+- Auth (email/password, role MEMBER/ADMIN)
+- Katalog course + detail + player + progress
+- Quiz + sertifikat + verifikasi sertifikat
+- Admin panel (courses, users, payments, settings, sidebar CMS)
+- Payment mode:
+  - Gateway (Midtrans/Xendit)
+  - Manual (verifikasi oleh admin)
+- Tracking status pembayaran member (`/payments`, `/payments/[id]`)
+
+## Tech Stack
+
+- Next.js 16 (App Router)
+- React 19
+- Better Auth
+- Drizzle ORM + PostgreSQL (`pg`)
+- TypeScript
+
+## Quick Start
+
+1. Install dependencies
+
+```bash
+npm ci
+```
+
+2. Siapkan environment
+
+```bash
+copy .env.example .env.local
+```
+
+3. Isi env penting:
+- `DATABASE_URL`
+- `BETTER_AUTH_SECRET`
+- `BETTER_AUTH_URL`
+
+4. Push schema + seed
+
+```bash
+npm run db:push
+npm run db:seed
+```
+
+5. Jalankan app
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Default Akun Seed
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- Admin: `admin@bankable.local` / `admin123`
+- Member: `member@bankable.local` / `member123`
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Scripts
 
-## Learn More
+- `npm run dev`
+- `npm run build`
+- `npm run start`
+- `npm run lint`
+- `npm run test`
+- `npm run db:push`
+- `npm run db:seed`
 
-To learn more about Next.js, take a look at the following resources:
+## Payment Modes
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 1) Gateway
+- Set `PAYMENT_PROVIDER=MIDTRANS` atau `XENDIT`
+- Isi key terkait
+- Webhook endpoint: `/api/payments/webhook`
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 2) Manual
+- Buka Admin > Settings
+- Set payment mode ke `MANUAL`
+- Isi instruksi pembayaran manual
+- Admin konfirmasi di Admin > Payments (`Mark Paid`)
 
-## Deploy on Vercel
+## Operational Runbook
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Lihat dokumen:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `DOKUMENTASI_AUDIT_PROYEK.md` (audit gap & prioritas)
+- `docs/RUNBOOK_PAYMENT.md` (operasional payment/webhook/manual)
+

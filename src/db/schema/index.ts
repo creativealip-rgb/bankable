@@ -15,3 +15,21 @@ export { certificates, certificatesRelations } from "./certificates";
 
 // Membership tables
 export { memberships, membershipsRelations } from "./memberships";
+
+// Payment tables
+export { payments, paymentsRelations } from "./payments";
+export { paymentSettings } from "./payment-settings";
+export { premiumCourseAccess, premiumCourseAccessRelations } from "./premium-course-access";
+
+// Community and review tables
+export {
+  discussionThreads,
+  discussionThreadsRelations,
+  discussionPosts,
+  discussionPostsRelations,
+  courseReviews,
+  courseReviewsRelations,
+} from "./community";
+
+// Sidebar content tables
+export { sidebarItems } from "./sidebar-content";

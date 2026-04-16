@@ -5,11 +5,17 @@ import { useSession, signOut } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 
-export function NavAuth() {
+type NavAuthProps = {
+  onNavigate?: () => void;
+  drawerMode?: boolean;
+};
+
+export function NavAuth({ onNavigate, drawerMode = false }: NavAuthProps) {
   const { data: session, isPending } = useSession();
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const menuId = "nav-user-menu";
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -21,108 +27,135 @@ export function NavAuth() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    function handleEscape(e: KeyboardEvent) {
+      if (e.key === "Escape") setMenuOpen(false);
+    }
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, []);
+
   if (isPending) {
-    return <span style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>...</span>;
+    return <span className="nav-loading">...</span>;
   }
 
   if (session) {
     const role = (session.user as Record<string, unknown>).role as string;
     const initial = session.user.name?.charAt(0)?.toUpperCase() || "?";
+    const isAdmin = role === "ADMIN" || role === "SUPER_ADMIN";
+
+    if (drawerMode) {
+      return (
+        <div className="nav-drawer-account">
+          <div className="nav-drawer-section-label">Akun</div>
+          <div className="nav-drawer-account-header">
+            <span className="nav-user-initial">{initial}</span>
+            <div className="nav-drawer-account-meta">
+              <div className="nav-user-meta-name">{session.user.name}</div>
+              <div className="nav-user-meta-email">{session.user.email}</div>
+            </div>
+          </div>
+
+          <div className="nav-drawer-account-links">
+            <Link href="/profile" onClick={() => onNavigate?.()} className="nav-user-menu-link">
+              Profile
+            </Link>
+            <Link href="/certificates" onClick={() => onNavigate?.()} className="nav-user-menu-link">
+              Certificates
+            </Link>
+            {isAdmin && (
+              <Link href="/admin" onClick={() => onNavigate?.()} className="nav-user-menu-link nav-user-menu-link-admin">
+                Admin Panel
+              </Link>
+            )}
+            <button
+              type="button"
+              onClick={async () => {
+                await signOut();
+                onNavigate?.();
+                router.push("/");
+                router.refresh();
+              }}
+              className="nav-user-logout"
+            >
+              Logout
+            </button>
+          </div>
+        </div>
+      );
+    }
 
     return (
-      <div ref={menuRef} style={{ position: "relative" }}>
+      <div ref={menuRef} className="nav-auth">
         <button
+          type="button"
           onClick={() => setMenuOpen(!menuOpen)}
-          style={{
-            display: "flex", alignItems: "center", gap: "0.5rem",
-            background: "none", border: "none", cursor: "pointer", color: "var(--text-main)",
-            fontFamily: "var(--font-sans)", fontSize: "0.9rem",
-          }}
+          className="nav-user-toggle"
+          aria-haspopup="menu"
+          aria-expanded={menuOpen}
+          aria-controls={menuId}
         >
-          <span style={{
-            width: "32px", height: "32px", borderRadius: "10px",
-            background: "linear-gradient(135deg, rgba(34,211,238,0.2), rgba(192,132,252,0.2))",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontWeight: 700, fontSize: "0.85rem", color: "var(--primary)",
-          }}>
-            {initial}
-          </span>
-          {session.user.name}
-          <span style={{ fontSize: "0.7rem" }}>▾</span>
+          <span className="nav-user-initial">{initial}</span>
+          <span className="nav-user-name">{session.user.name}</span>
+          <span className="nav-caret" aria-hidden="true">▾</span>
         </button>
 
         {menuOpen && (
-          <div style={{
-            position: "absolute", top: "calc(100% + 8px)", right: 0,
-            background: "var(--surface)", border: "1px solid rgba(63,63,70,0.4)",
-            borderRadius: "14px", padding: "0.5rem", minWidth: "200px",
-            boxShadow: "0 8px 30px rgba(0,0,0,0.4)", zIndex: 50,
-          }}>
-            <div style={{ padding: "0.75rem 1rem", borderBottom: "1px solid rgba(63,63,70,0.3)", marginBottom: "0.25rem" }}>
-              <div style={{ fontWeight: 600, fontSize: "0.9rem" }}>{session.user.name}</div>
-              <div style={{ color: "var(--text-muted)", fontSize: "0.78rem" }}>{session.user.email}</div>
+          <div id={menuId} className="nav-user-menu" role="menu">
+            <div className="nav-user-meta">
+              <div className="nav-user-meta-name">{session.user.name}</div>
+              <div className="nav-user-meta-email">{session.user.email}</div>
             </div>
 
             {[
-              { href: "/my-courses", label: "📚 My Courses" },
-              { href: "/certificates", label: "🏆 Certificates" },
-              { href: "/profile", label: "👤 Profile" },
-              { href: "/billing", label: "💳 Billing" },
+              { href: "/profile", label: "Profile" },
+              { href: "/certificates", label: "Certificates" },
             ].map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                onClick={() => setMenuOpen(false)}
-                style={{
-                  display: "block", padding: "0.6rem 1rem", borderRadius: "8px",
-                  fontSize: "0.88rem", color: "var(--text-main)", textDecoration: "none",
-                  transition: "background 0.15s ease",
+                onClick={() => {
+                  setMenuOpen(false);
+                  onNavigate?.();
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(34,211,238,0.06)")}
-                onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                className="nav-user-menu-link"
+                role="menuitem"
               >
                 {item.label}
               </Link>
             ))}
 
-            {(role === "ADMIN" || role === "SUPER_ADMIN") && (
+            {isAdmin && (
               <>
-                <div style={{ height: "1px", background: "rgba(63,63,70,0.3)", margin: "0.25rem 0" }}></div>
+                <div className="nav-user-divider"></div>
                 <Link
                   href="/admin"
-                  onClick={() => setMenuOpen(false)}
-                  style={{
-                    display: "block", padding: "0.6rem 1rem", borderRadius: "8px",
-                    fontSize: "0.88rem", color: "var(--secondary)", fontWeight: 600, textDecoration: "none",
-                    transition: "background 0.15s ease",
+                  onClick={() => {
+                    setMenuOpen(false);
+                    onNavigate?.();
                   }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(192,132,252,0.06)")}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                  className="nav-user-menu-link nav-user-menu-link-admin"
+                  role="menuitem"
                 >
-                  ⚙️ Admin Panel
+                  Admin Panel
                 </Link>
               </>
             )}
 
-            <div style={{ height: "1px", background: "rgba(63,63,70,0.3)", margin: "0.25rem 0" }}></div>
+            <div className="nav-user-divider"></div>
             <button
+              type="button"
               onClick={async () => {
                 await signOut();
                 setMenuOpen(false);
+                onNavigate?.();
                 router.push("/");
                 router.refresh();
               }}
-              style={{
-                display: "block", width: "100%", textAlign: "left",
-                padding: "0.6rem 1rem", borderRadius: "8px",
-                fontSize: "0.88rem", color: "var(--danger)",
-                background: "none", border: "none", cursor: "pointer",
-                fontFamily: "var(--font-sans)", transition: "background 0.15s ease",
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(248,113,113,0.06)")}
-              onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+              className="nav-user-logout"
+              role="menuitem"
             >
-              🚪 Logout
+              Logout
             </button>
           </div>
         )}
@@ -131,9 +164,9 @@ export function NavAuth() {
   }
 
   return (
-    <>
-      <Link href="/login" style={{ color: "var(--text-muted)" }}>Login</Link>
-      <Link href="/register" className="btn-primary" style={{ padding: "8px 16px", fontSize: "0.9rem" }}>Join Now</Link>
-    </>
+    <div className="nav-auth-guest">
+      <Link href="/login" onClick={() => onNavigate?.()} className="nav-login-link">Login</Link>
+      <Link href="/register" onClick={() => onNavigate?.()} className="btn-primary nav-join-link">Join Now</Link>
+    </div>
   );
 }

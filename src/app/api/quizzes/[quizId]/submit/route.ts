@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { quizzes, questions, quizAttempts, certificates, courses } from "@/db/schema";
+import { quizzes, quizAttempts, certificates } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { requireMember } from "@/lib/auth-helpers";
 import crypto from "crypto";
+import { generateCertificateNumber, getCertificatePdfPath } from "@/lib/certificates";
 
 type RouteParams = { params: Promise<{ quizId: string }> };
 
@@ -120,14 +121,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       });
 
       if (!existingCert) {
-        const year = new Date().getFullYear();
-        const courseCode = quiz.course.slug
-          .split("-")
-          .map((w) => w[0]?.toUpperCase())
-          .join("")
-          .slice(0, 3);
-        const random = String(Math.floor(Math.random() * 99999)).padStart(5, "0");
-        const certNumber = `BNK-${year}-${courseCode}-${random}`;
+        const certNumber = generateCertificateNumber(quiz.course.slug);
 
         [certificate] = await db
           .insert(certificates)
@@ -138,6 +132,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
             quizAttemptId: attempt.id,
             certificateNumber: certNumber,
             score: String(scorePercent.toFixed(2)),
+            pdfUrl: getCertificatePdfPath(certNumber),
           })
           .returning();
       }

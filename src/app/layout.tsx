@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import "./globals.css";
-import { NavAuth } from "./nav-auth";
+import { MainNav } from "./main-nav";
 
 export const metadata: Metadata = {
-  title: "Bankable | Premium Digital Assets",
-  description: "Access 100+ Ebooks, 100+ Video Courses, and 100+ Voice SFX inside our premium membership.",
+  title: "Bankable | Sekali Bayar Akses Semua",
+  description: "Dengan Rp29.000 saat daftar, dapatkan akses penuh ke 100 ebook, 100 video course, dan 100 voice SFX.",
 };
 
 export default function RootLayout({
@@ -16,21 +15,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <nav className="glass-panel main-nav">
-          <div className="nav-container">
-            <div className="logo">
-              <Link href="/">
-                <span className="gradient-text" style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.5rem' }}>Bankable</span>
-              </Link>
-            </div>
-            <div className="nav-links">
-              <Link href="/courses">Courses</Link>
-              <Link href="/pricing">Pricing</Link>
-              <Link href="/dashboard">Dashboard</Link>
-              <NavAuth />
-            </div>
-          </div>
-        </nav>
+        <MainNav />
         <main>
           {children}
         </main>

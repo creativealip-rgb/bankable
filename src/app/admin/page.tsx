@@ -147,7 +147,7 @@ export default function AdminDashboard() {
               <div key={item.role} style={{
                 padding: "1rem 1.5rem",
                 borderRadius: "12px",
-                background: "rgba(9,9,11,0.4)",
+                background: "rgba(255,255,255,0.9)",
                 border: "1px solid rgba(63,63,70,0.3)",
                 textAlign: "center",
                 flex: "1",
@@ -173,7 +173,7 @@ export default function AdminDashboard() {
               <div key={item.status} style={{
                 padding: "1rem 1.5rem",
                 borderRadius: "12px",
-                background: "rgba(9,9,11,0.4)",
+                background: "rgba(255,255,255,0.9)",
                 border: "1px solid rgba(63,63,70,0.3)",
                 textAlign: "center",
                 flex: "1",

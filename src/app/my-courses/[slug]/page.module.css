@@ -27,7 +27,7 @@
 .videoWrapper {
   width: 100%;
   aspect-ratio: 16/9;
-  background: #000;
+  background: #0f172a;
   border-radius: 16px;
   overflow: hidden;
   margin-bottom: 2rem;
@@ -36,7 +36,7 @@
   align-items: center;
   justify-content: center;
   border: 1px solid rgba(63, 63, 70, 0.3);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 10px 26px rgba(42, 74, 122, 0.2);
 }
 
 .videoPlaceholder {
@@ -67,7 +67,7 @@
 .moduleHeader {
   padding: 1.25rem 1.5rem;
   border-bottom: 1px solid rgba(63, 63, 70, 0.3);
-  background: rgba(39, 39, 42, 0.4);
+  background: rgba(255, 255, 255, 0.9);
 }
 
 .moduleTitle {
@@ -80,7 +80,7 @@
 .progressBar {
   width: 100%;
   height: 4px;
-  background: rgba(9, 9, 11, 0.5);
+  background: rgba(148, 163, 184, 0.28);
   border-radius: 4px;
   overflow: hidden;
   margin-top: 0.75rem;
@@ -105,7 +105,7 @@
 }
 
 .videoItem:hover:not(.locked) {
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(34, 211, 238, 0.08);
 }
 
 .videoItem.active {
@@ -144,7 +144,7 @@
 
 .quizSection {
   padding: 1.5rem;
-  background: rgba(39, 39, 42, 0.4);
+  background: rgba(255, 255, 255, 0.9);
   border-top: 1px solid rgba(63, 63, 70, 0.3);
   margin-top: auto;
 }

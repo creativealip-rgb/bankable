@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { videoProgress, videos, modules, courses } from "@/db/schema";
+import { videoProgress, videos, courses } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { requireMember } from "@/lib/auth-helpers";
+import { hasPaidCourseAccess } from "@/lib/course-access";
 import crypto from "crypto";
 
 // GET /api/progress?courseSlug=xxx — Get user's progress for a course
@@ -33,6 +34,13 @@ export async function GET(request: NextRequest) {
 
     if (!course) {
       return NextResponse.json({ error: "Course not found" }, { status: 404 });
+    }
+    const isPaidCourse = Number(course.price || 0) > 0;
+    if (isPaidCourse) {
+      const hasAccess = await hasPaidCourseAccess(session.user.id, course.slug);
+      if (!hasAccess) {
+        return NextResponse.json({ error: "Premium access required for this course" }, { status: 403 });
+      }
     }
 
     // Get all video IDs for this course
@@ -92,7 +100,7 @@ export async function POST(request: NextRequest) {
         module: {
           with: {
             course: {
-              columns: { minWatchPct: true },
+              columns: { minWatchPct: true, slug: true, price: true },
             },
           },
         },
@@ -101,6 +109,13 @@ export async function POST(request: NextRequest) {
 
     if (!video) {
       return NextResponse.json({ error: "Video not found" }, { status: 404 });
+    }
+    const isPaidCourse = Number(video.module.course.price || 0) > 0;
+    if (isPaidCourse) {
+      const hasAccess = await hasPaidCourseAccess(session.user.id, video.module.course.slug);
+      if (!hasAccess) {
+        return NextResponse.json({ error: "Premium access required for this course" }, { status: 403 });
+      }
     }
 
     const minPct = video.module.course.minWatchPct;

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { quizzes, questions, videoProgress, courses, modules, videos } from "@/db/schema";
-import { eq, and } from "drizzle-orm";
+import { quizzes, videoProgress } from "@/db/schema";
+import { eq } from "drizzle-orm";
 import { requireMember } from "@/lib/auth-helpers";
 
 type RouteParams = { params: Promise<{ quizId: string }> };

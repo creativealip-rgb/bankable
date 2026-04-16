@@ -1,12 +1,13 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { certificates } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { getCertificatePdfPath, getCertificateVerifyPath } from "@/lib/certificates";
 
 type RouteParams = { params: Promise<{ certNumber: string }> };
 
 // GET /api/certificates/verify/[certNumber] — Public certificate verification
-export async function GET(request: NextRequest, { params }: RouteParams) {
+export async function GET(_request: Request, { params }: RouteParams) {
   const { certNumber } = await params;
 
   try {
@@ -23,21 +24,17 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     });
 
     if (!cert) {
-      return NextResponse.json(
-        { valid: false, error: "Certificate not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Certificate not found" }, { status: 404 });
     }
 
     return NextResponse.json({
-      valid: true,
-      certificate: {
-        certificateNumber: cert.certificateNumber,
-        holderName: cert.user.name,
-        courseTitle: cert.course.title,
-        score: cert.score,
-        issuedAt: cert.issuedAt,
-      },
+      certificateNumber: cert.certificateNumber,
+      recipientName: cert.user.name,
+      courseName: cert.course.title,
+      score: Number(cert.score),
+      issuedAt: cert.issuedAt,
+      verifyPath: getCertificateVerifyPath(cert.certificateNumber),
+      pdfPath: getCertificatePdfPath(cert.certificateNumber),
     });
   } catch (error) {
     console.error("Failed to verify certificate:", error);

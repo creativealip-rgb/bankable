@@ -23,7 +23,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "Course not found" }, { status: 404 });
     }
 
-    const { moduleId, title, url, duration } = body;
+    const { moduleId, title, url, subtitleUrl, duration } = body;
 
     if (!moduleId || !title) {
       return NextResponse.json(
@@ -53,6 +53,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         moduleId,
         title,
         url: url || null,
+        subtitleUrl: subtitleUrl || null,
         duration: duration || 0,
         order: nextOrder,
       })

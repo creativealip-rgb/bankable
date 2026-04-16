@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import styles from "./page.module.css";
 import Link from "next/link";
+import Image from "next/image";
+import QRCode from "qrcode";
 
 type CertificateData = {
   certificateNumber: string;
@@ -10,6 +12,8 @@ type CertificateData = {
   courseName: string;
   score: number;
   issuedAt: string;
+  verifyPath: string;
+  pdfPath: string;
 };
 
 type PageProps = {
@@ -21,6 +25,7 @@ export default function VerifyCertificatePage({ params }: PageProps) {
   const [cert, setCert] = useState<CertificateData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [qrDataUrl, setQrDataUrl] = useState("");
 
   useEffect(() => {
     params.then((p) => setCertId(p.certId));
@@ -46,6 +51,14 @@ export default function VerifyCertificatePage({ params }: PageProps) {
     }
     fetchCertificate();
   }, [certId]);
+
+  useEffect(() => {
+    if (!cert) return;
+    const verifyUrl = `${window.location.origin}${cert.verifyPath}`;
+    QRCode.toDataURL(verifyUrl, { margin: 1, width: 180 })
+      .then(setQrDataUrl)
+      .catch(() => setQrDataUrl(""));
+  }, [cert]);
 
   if (loading) {
     return (
@@ -111,6 +124,16 @@ export default function VerifyCertificatePage({ params }: PageProps) {
         <div>
           <span className={styles.verifiedBadge}>✓ Verified Certificate</span>
         </div>
+        {qrDataUrl && (
+          <div style={{ marginTop: "1rem", textAlign: "center" }}>
+            <Image src={qrDataUrl} alt="Certificate QR verification" width={120} height={120} />
+            <div style={{ marginTop: "0.75rem" }}>
+              <a href={cert.pdfPath} className="btn-primary" style={{ textDecoration: "none" }}>
+                Download PDF
+              </a>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -38,7 +38,6 @@ export default function AdminQuizPage({ params }: PageProps) {
 
   // Questions
   const [questionsList, setQuestionsList] = useState<Question[]>([]);
-  const [editingQ, setEditingQ] = useState<number | null>(null);
 
   // New question form
   const [newType, setNewType] = useState("MULTIPLE_CHOICE");
@@ -241,7 +240,7 @@ export default function AdminQuizPage({ params }: PageProps) {
 
         {/* Add Question Form */}
         {showAddForm && (
-          <div style={{ padding: "1.5rem", background: "rgba(9,9,11,0.4)", borderRadius: "12px", border: "1px solid rgba(63,63,70,0.3)", marginBottom: "1.5rem" }}>
+          <div style={{ padding: "1.5rem", background: "rgba(255,255,255,0.9)", borderRadius: "12px", border: "1px solid rgba(63,63,70,0.3)", marginBottom: "1.5rem" }}>
             <h4 style={{ fontFamily: "var(--font-display)", marginBottom: "1rem" }}>New Question</h4>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", marginBottom: "1rem" }}>
               <div>
@@ -321,7 +320,7 @@ export default function AdminQuizPage({ params }: PageProps) {
         {questionsList.map((q, i) => (
           <div key={q.id} style={{
             border: "1px solid rgba(63,63,70,0.3)", borderRadius: "12px",
-            padding: "1rem 1.25rem", marginBottom: "0.75rem", background: "rgba(9,9,11,0.2)",
+            padding: "1rem 1.25rem", marginBottom: "0.75rem", background: "rgba(255,255,255,0.85)",
           }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
               <span style={{ fontSize: "0.78rem", color: "var(--text-muted)", textTransform: "uppercase" }}>

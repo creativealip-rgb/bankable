@@ -9,6 +9,8 @@ type Certificate = {
   certificateNumber: string;
   score: string;
   issuedAt: string;
+  verifyPath: string;
+  pdfPath: string;
   course: {
     id: string;
     title: string;
@@ -112,7 +114,7 @@ export default function CertificatesPage() {
 
               <div className={styles.certActions}>
                 <Link
-                  href={`/verify/${cert.certificateNumber}`}
+                  href={cert.verifyPath}
                   className={`${styles.certBtn} ${styles.certBtnOutline}`}
                 >
                   View Certificate
@@ -121,13 +123,20 @@ export default function CertificatesPage() {
                   className={`${styles.certBtn} ${styles.certBtnPrimary}`}
                   onClick={() => {
                     navigator.clipboard.writeText(
-                      `${window.location.origin}/verify/${cert.certificateNumber}`
+                      `${window.location.origin}${cert.verifyPath}`
                     );
                     alert("Verification link copied to clipboard!");
                   }}
                 >
                   Share Link
                 </button>
+                <a
+                  href={cert.pdfPath}
+                  className={`${styles.certBtn} ${styles.certBtnPrimary}`}
+                  style={{ textDecoration: "none", textAlign: "center" }}
+                >
+                  Download PDF
+                </a>
               </div>
             </div>
           ))

@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { courses, modules } from "@/db/schema";
+import { courses } from "@/db/schema";
 import { eq, desc, and, ilike } from "drizzle-orm";
-import { getSession, requireAdmin } from "@/lib/auth-helpers";
+import { requireAdmin } from "@/lib/auth-helpers";
 import crypto from "crypto";
 
 // GET /api/courses — List all published courses (public)
@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
       orderBy: [desc(courses.createdAt)],
     });
 
-    // Add computed fields
+    // Add computed fields and hide paid premium/webinar from main course catalog
     const enrichedCourses = allCourses.map((course) => {
       const totalVideos = course.modules.reduce((sum, mod) => sum + mod.videos.length, 0);
       const totalDuration = course.modules.reduce(
@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
         totalDuration,
         totalModules: course.modules.length,
       };
-    });
+    }).filter((course) => Number(course.price || 0) <= 0);
 
     return NextResponse.json(enrichedCourses);
   } catch (error) {
@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
     const session = await requireAdmin();
     const body = await request.json();
 
-    const { title, description, type, category, level, thumbnail, price, status } = body;
+    const { title, description, type, category, level, thumbnail, status } = body;
 
     if (!title || !category) {
       return NextResponse.json(
@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
         category,
         level: level || "BEGINNER",
         thumbnail: thumbnail || null,
-        price: price ? String(price) : null,
+        price: "0",
         status: status || "DRAFT",
         createdById: session.user.id,
       })

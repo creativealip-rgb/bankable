@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import styles from "./page.module.css";
 import Link from "next/link";
 
@@ -69,6 +69,7 @@ export default function QuizPage({ params }: PageProps) {
   const [result, setResult] = useState<SubmitResult | null>(null);
   const [showNav, setShowNav] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const submitRef = useRef<() => void>(() => {});
 
   // Resolve params
   useEffect(() => {
@@ -119,14 +120,14 @@ export default function QuizPage({ params }: PageProps) {
 
   // Timer
   useEffect(() => {
-    if (!quiz || isSubmitted || timeLeft <= 0) return;
+    if (!quiz || isSubmitted) return;
 
     timerRef.current = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
           // Auto-submit on time up
           clearInterval(timerRef.current!);
-          handleSubmit();
+          submitRef.current();
           return 0;
         }
         return prev - 1;
@@ -169,7 +170,7 @@ export default function QuizPage({ params }: PageProps) {
     });
   };
 
-  const handleSubmit = useCallback(async () => {
+  async function handleSubmit() {
     if (!quiz || submitting) return;
     if (!confirm("Are you sure you want to submit your quiz?")) return;
 
@@ -201,7 +202,10 @@ export default function QuizPage({ params }: PageProps) {
     } finally {
       setSubmitting(false);
     }
-  }, [quiz, answers, submitting]);
+  }
+  submitRef.current = () => {
+    void handleSubmit();
+  };
 
   if (loading) {
     return (
@@ -383,7 +387,7 @@ export default function QuizPage({ params }: PageProps) {
             gap: "0.5rem",
             marginBottom: "1.5rem",
             padding: "1rem",
-            background: "rgba(9,9,11,0.4)",
+            background: "rgba(255,255,255,0.9)",
             borderRadius: "12px",
             border: "1px solid rgba(63,63,70,0.3)",
           }}>
@@ -400,7 +404,7 @@ export default function QuizPage({ params }: PageProps) {
                     height: "42px",
                     borderRadius: "8px",
                     border: isCurrent ? "2px solid var(--primary)" : "1px solid rgba(63,63,70,0.4)",
-                    background: isAnswered ? "rgba(34,211,238,0.15)" : "rgba(9,9,11,0.3)",
+                    background: isAnswered ? "rgba(34,211,238,0.15)" : "rgba(255,255,255,0.86)",
                     color: isAnswered ? "var(--primary)" : "var(--text-muted)",
                     fontWeight: 600,
                     fontSize: "0.85rem",
@@ -450,7 +454,7 @@ export default function QuizPage({ params }: PageProps) {
               style={{
                 width: "100%",
                 padding: "14px 16px",
-                background: "rgba(9,9,11,0.5)",
+                background: "rgba(255,255,255,0.92)",
                 border: "2px solid rgba(63,63,70,0.5)",
                 borderRadius: "12px",
                 color: "var(--text-main)",

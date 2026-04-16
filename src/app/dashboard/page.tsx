@@ -80,6 +80,9 @@ export default function DashboardPage() {
           Welcome back, {session?.user?.name || "Learner"}!
         </h1>
         <p style={{ color: "var(--text-muted)" }}>Here is your learning overview.</p>
+        <Link href="/payments" style={{ color: "var(--primary)", fontWeight: 600, fontSize: "0.92rem" }}>
+          Cek progres pembayaran &rarr;
+        </Link>
         {error && <p style={{ color: "var(--danger)", marginTop: "0.5rem" }}>{error}</p>}
       </div>
 

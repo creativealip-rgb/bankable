@@ -1,17 +1,19 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import styles from "./page.module.css";
 import Link from "next/link";
 
 type Video = {
-  id: string; title: string; url: string | null; duration: number; order: number;
+  id: string; title: string; url: string | null; subtitleUrl?: string | null; duration: number; order: number;
 };
 type Module = { id: string; title: string; order: number; videos: Video[] };
 type Quiz = { id: string; title: string; passingGrade: number; timeLimit: number; maxAttempts: number };
 type Course = {
   id: string; title: string; slug: string; description: string | null;
   type: string; minWatchPct: number; modules: Module[]; quiz: Quiz[];
+  price?: string | null;
+  hasPremiumAccess?: boolean;
   totalVideos: number; totalDuration: number;
 };
 type VideoProgress = { watchedPct: string; lastPosition: number; isCompleted: boolean };
@@ -28,6 +30,7 @@ export default function CoursePlayerPage({ params }: PageProps) {
   const [progress, setProgress] = useState<ProgressData | null>(null);
   const [activeVideoId, setActiveVideoId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [accessDenied, setAccessDenied] = useState(false);
 
   // Video player state
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -38,11 +41,13 @@ export default function CoursePlayerPage({ params }: PageProps) {
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
   const [watchedPct, setWatchedPct] = useState(0);
+  const [maxWatchedTime, setMaxWatchedTime] = useState(0);
   const autoSaveRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Notes state
   const [noteText, setNoteText] = useState("");
   const [showNotes, setShowNotes] = useState(false);
+  const [bookmarks, setBookmarks] = useState<number[]>([]);
 
   useEffect(() => { params.then((p) => setSlug(p.slug)); }, [params]);
 
@@ -56,6 +61,12 @@ export default function CoursePlayerPage({ params }: PageProps) {
         ]);
         if (courseRes.ok) {
           const courseData = await courseRes.json();
+          const isPaidCourse = Number(courseData.price || 0) > 0;
+          const hasPremiumAccess = Boolean(courseData.hasPremiumAccess);
+          if (isPaidCourse && !hasPremiumAccess) {
+            setAccessDenied(true);
+            return;
+          }
           setCourse(courseData);
           const allVideos = courseData.modules.flatMap((m: Module) => m.videos);
           if (allVideos.length > 0) {
@@ -66,6 +77,8 @@ export default function CoursePlayerPage({ params }: PageProps) {
                 (v: Video) => !progressData.videoProgress[v.id]?.isCompleted
               );
               setActiveVideoId(firstIncomplete?.id || allVideos[0].id);
+            } else if (progressRes.status === 403) {
+              setAccessDenied(true);
             } else {
               setActiveVideoId(allVideos[0].id);
             }
@@ -77,7 +90,7 @@ export default function CoursePlayerPage({ params }: PageProps) {
     fetchData();
   }, [slug]);
 
-  const allVideos = course?.modules.flatMap((m) => m.videos) || [];
+  const allVideos = useMemo(() => course?.modules.flatMap((m) => m.videos) || [], [course]);
 
   const isVideoAccessible = useCallback((video: Video): boolean => {
     if (!progress || !course) return video === allVideos[0];
@@ -90,20 +103,7 @@ export default function CoursePlayerPage({ params }: PageProps) {
   const activeVideo = allVideos.find((v) => v.id === activeVideoId);
   const activeModule = course?.modules.find((m) => m.videos.some((v) => v.id === activeVideoId));
 
-  // Auto-save progress every 10 seconds
-  useEffect(() => {
-    if (!activeVideoId || !isPlaying) return;
-
-    autoSaveRef.current = setInterval(() => {
-      saveProgress(false);
-    }, 10000);
-
-    return () => {
-      if (autoSaveRef.current) clearInterval(autoSaveRef.current);
-    };
-  }, [activeVideoId, isPlaying, watchedPct, currentTime]);
-
-  const saveProgress = async (markComplete: boolean) => {
+  const saveProgress = useCallback(async (markComplete: boolean) => {
     if (!activeVideoId) return;
     const pct = markComplete ? 95 : Math.max(watchedPct, Math.floor((currentTime / Math.max(duration, 1)) * 100));
 
@@ -117,6 +117,8 @@ export default function CoursePlayerPage({ params }: PageProps) {
           lastPosition: Math.floor(currentTime),
         }),
       });
+
+      setMaxWatchedTime((prev) => Math.max(prev, currentTime));
 
       if (markComplete || pct >= (course?.minWatchPct || 90)) {
         const progressRes = await fetch(`/api/progress?courseSlug=${slug}`);
@@ -133,21 +135,44 @@ export default function CoursePlayerPage({ params }: PageProps) {
         }
       }
     } catch (error) { console.error("Failed to save progress:", error); }
-  };
+  }, [activeVideoId, watchedPct, currentTime, duration, course?.minWatchPct, slug, allVideos]);
+
+  // Auto-save progress every 10 seconds
+  useEffect(() => {
+    if (!activeVideoId || !isPlaying) return;
+
+    autoSaveRef.current = setInterval(() => {
+      saveProgress(false);
+    }, 10000);
+
+    return () => {
+      if (autoSaveRef.current) clearInterval(autoSaveRef.current);
+    };
+  }, [activeVideoId, isPlaying, saveProgress]);
 
   const handleVideoTimeUpdate = () => {
     if (!videoRef.current) return;
     const ct = videoRef.current.currentTime;
     const dur = videoRef.current.duration || 0;
     setCurrentTime(ct);
+    setMaxWatchedTime((prev) => Math.max(prev, ct));
     if (dur > 0) setWatchedPct(Math.floor((ct / dur) * 100));
   };
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!videoRef.current) return;
-    const time = parseFloat(e.target.value);
+    const requested = parseFloat(e.target.value);
+    const allowed = Math.min(requested, maxWatchedTime + 5);
+    const time = Number.isFinite(allowed) ? allowed : 0;
     videoRef.current.currentTime = time;
     setCurrentTime(time);
+  };
+
+  const handleNativeSeeking = () => {
+    if (!videoRef.current) return;
+    if (videoRef.current.currentTime > maxWatchedTime + 5) {
+      videoRef.current.currentTime = maxWatchedTime + 5;
+    }
   };
 
   const togglePlayPause = () => {
@@ -191,6 +216,34 @@ export default function CoursePlayerPage({ params }: PageProps) {
     await saveProgress(true);
   };
 
+  const addBookmark = () => {
+    const rounded = Math.floor(currentTime);
+    setBookmarks((prev) => Array.from(new Set([...prev, rounded])).sort((a, b) => a - b));
+  };
+
+  useEffect(() => {
+    if (!activeVideoId) return;
+    const notesKey = `bankable-notes-${slug}-${activeVideoId}`;
+    const marksKey = `bankable-bookmarks-${slug}-${activeVideoId}`;
+    setNoteText(localStorage.getItem(notesKey) || "");
+    try {
+      setBookmarks(JSON.parse(localStorage.getItem(marksKey) || "[]"));
+    } catch {
+      setBookmarks([]);
+    }
+    setMaxWatchedTime(0);
+  }, [activeVideoId, slug]);
+
+  useEffect(() => {
+    if (!activeVideoId) return;
+    localStorage.setItem(`bankable-notes-${slug}-${activeVideoId}`, noteText);
+  }, [noteText, activeVideoId, slug]);
+
+  useEffect(() => {
+    if (!activeVideoId) return;
+    localStorage.setItem(`bankable-bookmarks-${slug}-${activeVideoId}`, JSON.stringify(bookmarks));
+  }, [bookmarks, activeVideoId, slug]);
+
   const allCompleted = progress ? progress.completedVideos >= progress.totalVideos : false;
   const quizId = course?.quiz?.[0]?.id;
 
@@ -205,6 +258,17 @@ export default function CoursePlayerPage({ params }: PageProps) {
       <div className={styles.courseContainer}>
         <div style={{ textAlign: "center", padding: "4rem 0", color: "var(--text-muted)", width: "100%" }}>
           Loading course...
+        </div>
+      </div>
+    );
+  }
+
+  if (accessDenied) {
+    return (
+      <div className={styles.courseContainer}>
+        <div style={{ textAlign: "center", padding: "4rem 0", color: "var(--text-muted)", width: "100%" }}>
+          Premium access belum aktif untuk course ini.{" "}
+          <Link href={`/courses/${slug}`} style={{ color: "var(--primary)" }}>Kembali ke detail course</Link>
         </div>
       </div>
     );
@@ -236,19 +300,24 @@ export default function CoursePlayerPage({ params }: PageProps) {
             <>
               <video
                 ref={videoRef}
-                src={activeVideo?.url || ""}
                 style={{ width: "100%", height: "100%" }}
                 onTimeUpdate={handleVideoTimeUpdate}
                 onLoadedMetadata={() => {
                   if (videoRef.current) setDuration(videoRef.current.duration);
                 }}
                 onEnded={() => { setIsPlaying(false); saveProgress(true); }}
+                onSeeking={handleNativeSeeking}
                 onClick={togglePlayPause}
-              />
+              >
+                <source src={activeVideo?.url || ""} />
+                {activeVideo?.subtitleUrl && (
+                  <track kind="subtitles" src={activeVideo.subtitleUrl} srcLang="id" label="Indonesia" default />
+                )}
+              </video>
               {/* Custom Controls */}
               <div style={{
                 position: "absolute", bottom: 0, left: 0, right: 0,
-                background: "linear-gradient(transparent, rgba(0,0,0,0.9))",
+                background: "linear-gradient(transparent, rgba(15,23,42,0.82))",
                 padding: "1rem", display: "flex", flexDirection: "column", gap: "0.5rem",
               }}>
                 {/* Seek Bar */}
@@ -335,17 +404,43 @@ export default function CoursePlayerPage({ params }: PageProps) {
             📝 {showNotes ? "Hide Notes" : "Show Notes"}
           </button>
           {showNotes && (
-            <textarea
-              value={noteText}
-              onChange={(e) => setNoteText(e.target.value)}
-              placeholder="Take notes while watching..."
-              style={{
-                width: "100%", minHeight: "100px", padding: "12px 16px",
-                background: "rgba(9,9,11,0.5)", border: "1px solid rgba(63,63,70,0.5)",
-                borderRadius: "12px", color: "var(--text-main)", fontFamily: "var(--font-sans)",
-                fontSize: "0.9rem", resize: "vertical",
-              }}
-            />
+            <>
+              <div style={{ marginBottom: "0.5rem", display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                <button
+                  type="button"
+                  onClick={addBookmark}
+                  style={{ background: "none", border: "1px solid rgba(63,63,70,0.4)", color: "var(--text-muted)", padding: "6px 12px", borderRadius: "8px", cursor: "pointer" }}
+                >
+                  🔖 Add bookmark ({formatTime(currentTime)})
+                </button>
+                {bookmarks.map((b) => (
+                  <button
+                    key={b}
+                    type="button"
+                    onClick={() => {
+                      if (videoRef.current) {
+                        videoRef.current.currentTime = b;
+                        setCurrentTime(b);
+                      }
+                    }}
+                    style={{ background: "none", border: "1px solid rgba(63,63,70,0.4)", color: "var(--text-muted)", padding: "6px 10px", borderRadius: "8px", cursor: "pointer" }}
+                  >
+                    {formatTime(b)}
+                  </button>
+                ))}
+              </div>
+              <textarea
+                value={noteText}
+                onChange={(e) => setNoteText(e.target.value)}
+                placeholder="Take notes while watching..."
+                style={{
+                  width: "100%", minHeight: "100px", padding: "12px 16px",
+                  background: "rgba(255,255,255,0.92)", border: "1px solid rgba(63,63,70,0.5)",
+                  borderRadius: "12px", color: "var(--text-main)", fontFamily: "var(--font-sans)",
+                  fontSize: "0.9rem", resize: "vertical",
+                }}
+              />
+            </>
           )}
         </div>
 

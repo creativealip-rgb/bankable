@@ -18,7 +18,7 @@
 .heroSection {
   border-radius: 20px;
   overflow: hidden;
-  background: linear-gradient(135deg, #18181b, #27272a);
+  background: linear-gradient(135deg, #e0f2fe, #dbeafe);
   border: 1px solid rgba(63, 63, 70, 0.4);
   position: relative;
 }
@@ -43,7 +43,7 @@
   left: 0;
   right: 0;
   padding: 2rem;
-  background: linear-gradient(transparent, rgba(9, 9, 11, 0.95));
+  background: linear-gradient(transparent, rgba(248, 250, 252, 0.96));
 }
 
 .courseType {
@@ -145,7 +145,7 @@
 
 .moduleHeader {
   padding: 1rem 1.25rem;
-  background: rgba(9, 9, 11, 0.4);
+  background: rgba(255, 255, 255, 0.86);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -155,7 +155,7 @@
 }
 
 .moduleHeader:hover {
-  background: rgba(9, 9, 11, 0.6);
+  background: rgba(241, 245, 249, 0.95);
 }
 
 .moduleName {
@@ -185,7 +185,7 @@
 }
 
 .videoPreviewItem:hover {
-  background: rgba(39, 39, 42, 0.3);
+  background: rgba(34, 211, 238, 0.08);
 }
 
 .videoPreviewIcon {

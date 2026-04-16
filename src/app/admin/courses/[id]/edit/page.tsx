@@ -195,7 +195,7 @@ export default function EditCoursePage({ params }: PageProps) {
               marginBottom: "0.75rem", overflow: "hidden",
             }}>
               <div style={{
-                padding: "1rem 1.25rem", background: "rgba(9,9,11,0.4)",
+                padding: "1rem 1.25rem", background: "rgba(255,255,255,0.9)",
                 display: "flex", justifyContent: "space-between", alignItems: "center",
                 fontWeight: 600, fontSize: "0.95rem",
               }}>

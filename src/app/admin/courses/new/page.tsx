@@ -8,6 +8,7 @@ import Link from "next/link";
 type VideoInput = {
   title: string;
   url: string;
+  subtitleUrl: string;
   duration: number;
 };
 
@@ -34,7 +35,7 @@ export default function NewCoursePage() {
 
   // Modules & Videos
   const [modules, setModules] = useState<ModuleInput[]>([
-    { title: "Module 1", videos: [{ title: "Video 1", url: "", duration: 600 }] },
+    { title: "Module 1", videos: [{ title: "Video 1", url: "", subtitleUrl: "", duration: 600 }] },
   ]);
 
   const addModule = () => {
@@ -42,7 +43,7 @@ export default function NewCoursePage() {
       ...modules,
       {
         title: `Module ${modules.length + 1}`,
-        videos: [{ title: "Video 1", url: "", duration: 600 }],
+        videos: [{ title: "Video 1", url: "", subtitleUrl: "", duration: 600 }],
       },
     ]);
   };
@@ -63,9 +64,38 @@ export default function NewCoursePage() {
     updated[mIndex].videos.push({
       title: `Video ${updated[mIndex].videos.length + 1}`,
       url: "",
+      subtitleUrl: "",
       duration: 600,
     });
     setModules(updated);
+  };
+
+  const moveModule = (from: number, to: number) => {
+    if (to < 0 || to >= modules.length) return;
+    const updated = [...modules];
+    const [item] = updated.splice(from, 1);
+    updated.splice(to, 0, item);
+    setModules(updated);
+  };
+
+  const moveVideo = (mIndex: number, from: number, to: number) => {
+    const updated = [...modules];
+    if (to < 0 || to >= updated[mIndex].videos.length) return;
+    const [item] = updated[mIndex].videos.splice(from, 1);
+    updated[mIndex].videos.splice(to, 0, item);
+    setModules(updated);
+  };
+
+  const uploadVideoFile = async (mIndex: number, vIndex: number, file: File) => {
+    const form = new FormData();
+    form.set("file", file);
+    const res = await fetch("/api/admin/uploads/video", { method: "POST", body: form });
+    if (!res.ok) {
+      alert("Upload failed");
+      return;
+    }
+    const data = await res.json();
+    updateVideo(mIndex, vIndex, "url", data.url);
   };
 
   const removeVideo = (mIndex: number, vIndex: number) => {
@@ -133,17 +163,18 @@ export default function NewCoursePage() {
         // 3. Create videos for this module
         for (let vIdx = 0; vIdx < mod.videos.length; vIdx++) {
           const video = mod.videos[vIdx];
-          await fetch(`/api/courses/${course.slug}/videos`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              moduleId: createdMod.id,
-              title: video.title,
-              url: video.url || null,
-              duration: video.duration,
-              order: vIdx,
-            }),
-          });
+              await fetch(`/api/courses/${course.slug}/videos`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  moduleId: createdMod.id,
+                  title: video.title,
+                  url: video.url || null,
+                  subtitleUrl: video.subtitleUrl || null,
+                  duration: video.duration,
+                  order: vIdx,
+                }),
+              });
         }
       }
 
@@ -245,7 +276,7 @@ export default function NewCoursePage() {
             className={`${styles.typeOption} ${type === "SINGLE" ? styles.typeOptionActive : ""}`}
             onClick={() => {
               setType("SINGLE");
-              setModules([{ title: "Main", videos: [{ title: "Full Video", url: "", duration: 3600 }] }]);
+              setModules([{ title: "Main", videos: [{ title: "Full Video", url: "", subtitleUrl: "", duration: 3600 }] }]);
             }}
           >
             <div className={styles.typeOptionIcon}>🎬</div>
@@ -271,11 +302,17 @@ export default function NewCoursePage() {
 
         {modules.map((mod, mIndex) => (
           <div key={mIndex} className={styles.moduleItem}>
-            <div className={styles.moduleHeader}>
-              <div className={styles.moduleNumber}>{mIndex + 1}</div>
-              <input
-                type="text"
-                className={styles.moduleInput}
+              <div className={styles.moduleHeader}>
+                <div className={styles.moduleNumber}>{mIndex + 1}</div>
+                {type === "MULTI" && (
+                  <div style={{ display: "flex", gap: "0.25rem" }}>
+                    <button type="button" className={styles.removeBtn} onClick={() => moveModule(mIndex, mIndex - 1)}>↑</button>
+                    <button type="button" className={styles.removeBtn} onClick={() => moveModule(mIndex, mIndex + 1)}>↓</button>
+                  </div>
+                )}
+                <input
+                  type="text"
+                  className={styles.moduleInput}
                 value={mod.title}
                 onChange={(e) => updateModuleTitle(mIndex, e.target.value)}
                 placeholder="Module title"
@@ -307,6 +344,13 @@ export default function NewCoursePage() {
                   placeholder="Video URL"
                 />
                 <input
+                  type="text"
+                  className={`${styles.videoInput} ${styles.urlInput}`}
+                  value={video.subtitleUrl}
+                  onChange={(e) => updateVideo(mIndex, vIndex, "subtitleUrl", e.target.value)}
+                  placeholder="Subtitle URL (.vtt)"
+                />
+                <input
                   type="number"
                   className={`${styles.videoInput} ${styles.durationInput}`}
                   value={video.duration}
@@ -314,6 +358,16 @@ export default function NewCoursePage() {
                   placeholder="Secs"
                   title="Duration in seconds"
                 />
+                <input
+                  type="file"
+                  accept="video/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) uploadVideoFile(mIndex, vIndex, file);
+                  }}
+                />
+                <button type="button" className={styles.removeBtn} onClick={() => moveVideo(mIndex, vIndex, vIndex - 1)}>↑</button>
+                <button type="button" className={styles.removeBtn} onClick={() => moveVideo(mIndex, vIndex, vIndex + 1)}>↓</button>
                 {mod.videos.length > 1 && (
                   <button type="button" className={styles.removeBtn} onClick={() => removeVideo(mIndex, vIndex)}>
                     ✕
@@ -336,6 +390,18 @@ export default function NewCoursePage() {
       </div>
 
       {/* Submit */}
+      <div className={styles.formCard}>
+        <h2 className={styles.sectionTitle}>Preview Before Publish</h2>
+        <p style={{ color: "var(--text-muted)", marginBottom: "0.75rem" }}>
+          {title || "Untitled course"} • {modules.reduce((s, m) => s + m.videos.length, 0)} videos
+        </p>
+        <ul style={{ margin: 0, paddingLeft: "1rem", color: "var(--text-muted)" }}>
+          {modules.map((m, i) => (
+            <li key={`${m.title}-${i}`}>{m.title} — {m.videos.length} videos</li>
+          ))}
+        </ul>
+      </div>
+
       <div className={styles.submitArea}>
         <button
           type="button"

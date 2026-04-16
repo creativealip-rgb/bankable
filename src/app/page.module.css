@@ -87,7 +87,7 @@
   padding: 2rem;
   border-radius: 20px;
   background: var(--background);
-  border: 1px solid rgba(63, 63, 70, 0.4);
+  border: 1px solid rgba(34, 52, 84, 0.12);
   transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
   position: relative;
   overflow: hidden;
@@ -114,7 +114,7 @@
 .card:hover {
   transform: translateY(-6px);
   border-color: rgba(34, 211, 238, 0.3);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3), 0 0 20px rgba(34, 211, 238, 0.07);
+  box-shadow: 0 12px 30px rgba(50, 94, 158, 0.14), 0 0 20px rgba(34, 211, 238, 0.08);
 }
 
 .cardIcon {
@@ -127,7 +127,7 @@
   height: 64px;
   background: linear-gradient(135deg, rgba(34, 211, 238, 0.1), rgba(192, 132, 252, 0.1));
   border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(34, 52, 84, 0.08);
 }
 
 .cardTitle {

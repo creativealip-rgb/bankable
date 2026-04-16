@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { courses } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { requireAdmin } from "@/lib/auth-helpers";
+import { getSession, requireAdmin } from "@/lib/auth-helpers";
+import { hasPaidCourseAccess } from "@/lib/course-access";
 
 type RouteParams = { params: Promise<{ slug: string }> };
 
@@ -41,6 +42,10 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "Course not found" }, { status: 404 });
     }
 
+    const isPaidCourse = Number(course.price || 0) > 0;
+    const session = await getSession();
+    const hasPremiumAccess = !isPaidCourse || (session ? await hasPaidCourseAccess(session.user.id, slug) : false);
+
     // Compute totals
     const totalVideos = course.modules.reduce((sum, mod) => sum + mod.videos.length, 0);
     const totalDuration = course.modules.reduce(
@@ -53,6 +58,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       totalVideos,
       totalDuration,
       totalModules: course.modules.length,
+      hasPremiumAccess,
     });
   } catch (error) {
     console.error("Failed to fetch course:", error);
@@ -76,7 +82,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "Course not found" }, { status: 404 });
     }
 
-    const { title, description, type, category, level, thumbnail, price, status, minWatchPct } = body;
+    const { title, description, type, category, level, thumbnail, status, minWatchPct } = body;
 
     const [updated] = await db
       .update(courses)
@@ -87,7 +93,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
         ...(category && { category }),
         ...(level && { level }),
         ...(thumbnail !== undefined && { thumbnail }),
-        ...(price !== undefined && { price: price ? String(price) : null }),
+        price: "0",
         ...(status && { status }),
         ...(minWatchPct && { minWatchPct }),
         updatedAt: new Date(),

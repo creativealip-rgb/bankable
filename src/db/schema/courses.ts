@@ -1,4 +1,4 @@
-import { pgTable, text, integer, timestamp, boolean, numeric } from "drizzle-orm/pg-core";
+import { pgTable, text, integer, timestamp, numeric } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { users } from "./users";
 import { quizzes } from "./quizzes";
@@ -35,6 +35,7 @@ export const modules = pgTable("module", {
     .references(() => courses.id, { onDelete: "cascade" }),
   title: text("title").notNull(),
   order: integer("order").notNull().default(0),
+  releaseAt: timestamp("release_at"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
@@ -50,6 +51,7 @@ export const videos = pgTable("video", {
     .references(() => modules.id, { onDelete: "cascade" }),
   title: text("title").notNull(),
   url: text("url"), // YouTube/Vimeo embed URL or uploaded file URL
+  subtitleUrl: text("subtitle_url"),
   duration: integer("duration").notNull().default(0), // in seconds
   order: integer("order").notNull().default(0),
   createdAt: timestamp("created_at").notNull().defaultNow(),

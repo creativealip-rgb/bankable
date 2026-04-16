@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
-import { videoProgress, certificates, courses, modules, videos } from "@/db/schema";
-import { eq, and } from "drizzle-orm";
+import { videoProgress, certificates, courses } from "@/db/schema";
+import { eq } from "drizzle-orm";
 import { requireMember } from "@/lib/auth-helpers";
 
 // GET /api/dashboard — Dashboard stats for member

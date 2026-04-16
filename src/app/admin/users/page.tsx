@@ -174,7 +174,7 @@ export default function AdminUsersPage() {
                         <div style={{
                           width: "50px",
                           height: "6px",
-                          background: "rgba(9,9,11,0.5)",
+                          background: "rgba(255,255,255,0.9)",
                           borderRadius: "3px",
                           overflow: "hidden"
                         }}>

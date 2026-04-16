@@ -1,8 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { certificates } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { requireMember } from "@/lib/auth-helpers";
+import { getCertificatePdfPath, getCertificateVerifyPath } from "@/lib/certificates";
 
 // GET /api/certificates — List user's certificates
 export async function GET() {
@@ -19,7 +20,13 @@ export async function GET() {
       orderBy: (certificates, { desc }) => [desc(certificates.issuedAt)],
     });
 
-    return NextResponse.json(certs);
+    return NextResponse.json(
+      certs.map((c) => ({
+        ...c,
+        verifyPath: getCertificateVerifyPath(c.certificateNumber),
+        pdfPath: c.pdfUrl || getCertificatePdfPath(c.certificateNumber),
+      }))
+    );
   } catch (error) {
     if (error instanceof Response) throw error;
     console.error("Failed to fetch certificates:", error);

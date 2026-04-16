@@ -65,12 +65,12 @@
 .courseCard:hover {
   transform: translateY(-4px);
   border-color: rgba(34, 211, 238, 0.3);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3), 0 0 15px rgba(34, 211, 238, 0.06);
+  box-shadow: 0 12px 28px rgba(42, 74, 122, 0.18), 0 0 15px rgba(34, 211, 238, 0.06);
 }
 
 .courseThumb {
   aspect-ratio: 16/9;
-  background: linear-gradient(135deg, #18181b, #27272a);
+  background: linear-gradient(135deg, #e0f2fe, #dbeafe);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -84,7 +84,7 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: rgba(9, 9, 11, 0.6);
+  background: rgba(148, 163, 184, 0.28);
 }
 
 .progressStrike {
