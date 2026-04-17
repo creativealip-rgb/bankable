@@ -18,6 +18,7 @@ export default function AdminPaymentsPage() {
   const [items, setItems] = useState<AdminPayment[]>([]);
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
   const loadPayments = () => {
     setLoading(true);
@@ -34,6 +35,8 @@ export default function AdminPaymentsPage() {
   const markAsPaid = async (paymentId: string) => {
     if (updatingId) return;
     setUpdatingId(paymentId);
+    setFeedback(null);
+
     try {
       const res = await fetch(`/api/admin/payments/${paymentId}`, { method: "PATCH" });
       const data = await res.json();
@@ -41,8 +44,9 @@ export default function AdminPaymentsPage() {
         throw new Error(data.error || "Failed to update payment");
       }
       loadPayments();
+      setFeedback({ type: "success", message: "Status pembayaran berhasil diperbarui." });
     } catch (error) {
-      alert((error as Error).message || "Failed to update payment");
+      setFeedback({ type: "error", message: (error as Error).message || "Failed to update payment" });
     } finally {
       setUpdatingId(null);
     }
@@ -56,6 +60,29 @@ export default function AdminPaymentsPage() {
       </div>
 
       <div className="admin-section">
+        {feedback ? (
+          <div
+            role="status"
+            style={{
+              marginBottom: "1rem",
+              borderRadius: "10px",
+              border:
+                feedback.type === "error"
+                  ? "1px solid rgba(248, 113, 113, 0.3)"
+                  : "1px solid rgba(52, 211, 153, 0.25)",
+              background:
+                feedback.type === "error"
+                  ? "rgba(248, 113, 113, 0.08)"
+                  : "rgba(52, 211, 153, 0.08)",
+              color: feedback.type === "error" ? "var(--danger)" : "var(--success)",
+              fontSize: "0.86rem",
+              lineHeight: 1.5,
+              padding: "0.65rem 0.8rem",
+            }}
+          >
+            {feedback.message}
+          </div>
+        ) : null}
         {loading ? (
           <div className="admin-empty">Loading payments...</div>
         ) : (

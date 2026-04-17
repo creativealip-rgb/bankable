@@ -12,8 +12,10 @@ async function main() {
 
   // --- Users ---
   let adminId: string = crypto.randomUUID();
+  let admin2Id: string = crypto.randomUUID();
   let memberId: string = crypto.randomUUID();
   const adminPasswordHash = await bcrypt.hash("admin123", 12);
+  const admin2PasswordHash = await bcrypt.hash("password123", 12);
   const memberPasswordHash = await bcrypt.hash("member123", 12);
 
   console.log("Creating users...");
@@ -33,6 +35,13 @@ async function main() {
       emailVerified: true,
       role: "MEMBER",
     },
+    {
+      id: admin2Id,
+      name: "Admin Bankable 2",
+      email: "admin2@bankable.local",
+      emailVerified: true,
+      role: "ADMIN",
+    },
   ]).onConflictDoNothing();
 
   const [adminUser] = await db
@@ -40,15 +49,21 @@ async function main() {
     .from(users)
     .where(eq(users.email, "admin@bankable.local"))
     .limit(1);
+  const [admin2User] = await db
+    .select({ id: users.id })
+    .from(users)
+    .where(eq(users.email, "admin2@bankable.local"))
+    .limit(1);
   const [memberUser] = await db
     .select({ id: users.id })
     .from(users)
     .where(eq(users.email, "member@bankable.local"))
     .limit(1);
-  if (!adminUser || !memberUser) {
+  if (!adminUser || !admin2User || !memberUser) {
     throw new Error("Seed users not found after insert");
   }
   adminId = adminUser.id;
+  admin2Id = admin2User.id;
   memberId = memberUser.id;
 
   // Create credential accounts for Better Auth
@@ -67,9 +82,17 @@ async function main() {
       userId: memberId,
       password: memberPasswordHash,
     },
+    {
+      id: crypto.randomUUID(),
+      accountId: admin2Id,
+      providerId: "credential",
+      userId: admin2Id,
+      password: admin2PasswordHash,
+    },
   ]).onConflictDoNothing();
 
   console.log("  ✅ Admin: admin@bankable.local / admin123");
+  console.log("  ✅ Admin 2: admin2@bankable.local / password123");
   console.log("  ✅ Member: member@bankable.local / member123\n");
 
   // --- Memberships ---
@@ -85,6 +108,12 @@ async function main() {
       id: crypto.randomUUID(),
       userId: memberId,
       tier: "FREE",
+      status: "ACTIVE",
+    },
+    {
+      id: crypto.randomUUID(),
+      userId: admin2Id,
+      tier: "LIFETIME",
       status: "ACTIVE",
     },
   ]).onConflictDoNothing();
@@ -283,6 +312,78 @@ async function main() {
     }).onConflictDoNothing();
   }
   console.log("  ✅ Added 10 Ebook + 10 Video + 10 Voice courses\n");
+
+  console.log("Creating additional bulk catalog courses for admin2 (10 per type)...");
+  for (let i = 1; i <= 10; i++) {
+    await db.insert(courses).values({
+      id: crypto.randomUUID(),
+      title: `Ebook Admin2 Collection Vol ${i}`,
+      slug: `admin2-ebook-collection-vol-${i}`,
+      description: `Koleksi ebook admin2 volume ${i} untuk tambahan konten katalog.`,
+      type: "SINGLE",
+      category: "Personal Growth",
+      level: i <= 4 ? "BEGINNER" : i <= 7 ? "INTERMEDIATE" : "ADVANCED",
+      price: "0",
+      status: "PUBLISHED",
+      minWatchPct: 90,
+      createdById: admin2Id,
+    }).onConflictDoNothing();
+
+    const videoCourseId = crypto.randomUUID();
+    const videoModuleId = crypto.randomUUID();
+    await db.insert(courses).values({
+      id: videoCourseId,
+      title: `Video Admin2 Collection ${i}`,
+      slug: `admin2-video-collection-${i}`,
+      description: `Video course tambahan dari admin2 batch ${i}.`,
+      type: "MULTI",
+      category: i % 2 === 0 ? "Marketing" : "Business",
+      level: i <= 4 ? "BEGINNER" : i <= 7 ? "INTERMEDIATE" : "ADVANCED",
+      price: "0",
+      status: "PUBLISHED",
+      minWatchPct: 90,
+      createdById: admin2Id,
+    }).onConflictDoNothing();
+    await db.insert(modules).values({
+      id: videoModuleId,
+      courseId: videoCourseId,
+      title: "Core Lessons",
+      order: 0,
+    }).onConflictDoNothing();
+    await db.insert(videos).values([
+      {
+        id: crypto.randomUUID(),
+        moduleId: videoModuleId,
+        title: `Admin2 Video ${i} - Lesson 1`,
+        url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        duration: 900 + i * 30,
+        order: 0,
+      },
+      {
+        id: crypto.randomUUID(),
+        moduleId: videoModuleId,
+        title: `Admin2 Video ${i} - Lesson 2`,
+        url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        duration: 780 + i * 20,
+        order: 1,
+      },
+    ]).onConflictDoNothing();
+
+    await db.insert(courses).values({
+      id: crypto.randomUUID(),
+      title: `Voice Admin2 Collection ${i}`,
+      slug: `admin2-voice-collection-${i}`,
+      description: `Koleksi voice/SFX admin2 volume ${i} untuk kebutuhan produksi konten.`,
+      type: "SINGLE",
+      category: "Audio/Video",
+      level: i <= 4 ? "BEGINNER" : i <= 7 ? "INTERMEDIATE" : "ADVANCED",
+      price: "0",
+      status: "PUBLISHED",
+      minWatchPct: 90,
+      createdById: admin2Id,
+    }).onConflictDoNothing();
+  }
+  console.log("  ✅ Added admin2 assets: 10 Ebook + 10 Video + 10 Voice\n");
 
   // --- Quizzes ---
   console.log("Creating quizzes...");

@@ -66,6 +66,7 @@ export default function QuizPage({ params }: PageProps) {
   const [timeLeft, setTimeLeft] = useState(0);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [result, setResult] = useState<SubmitResult | null>(null);
   const [showNav, setShowNav] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -170,11 +171,12 @@ export default function QuizPage({ params }: PageProps) {
     });
   };
 
-  async function handleSubmit() {
+  async function handleSubmit(skipConfirmation = false) {
     if (!quiz || submitting) return;
-    if (!confirm("Are you sure you want to submit your quiz?")) return;
+    if (!skipConfirmation && !confirm("Are you sure you want to submit your quiz?")) return;
 
     setSubmitting(true);
+    setSubmitError(null);
     if (timerRef.current) clearInterval(timerRef.current);
 
     try {
@@ -195,16 +197,16 @@ export default function QuizPage({ params }: PageProps) {
         setIsSubmitted(true);
       } else {
         const data = await res.json();
-        alert(data.error || "Failed to submit quiz");
+        setSubmitError(data.error || "Failed to submit quiz");
       }
     } catch {
-      alert("Network error. Please try again.");
+      setSubmitError("Network error. Please try again.");
     } finally {
       setSubmitting(false);
     }
   }
   submitRef.current = () => {
-    void handleSubmit();
+    void handleSubmit(true);
   };
 
   if (loading) {
@@ -486,6 +488,23 @@ export default function QuizPage({ params }: PageProps) {
         )}
 
         {/* Footer Nav */}
+        {submitError ? (
+          <div
+            role="alert"
+            style={{
+              marginBottom: "1rem",
+              borderRadius: "10px",
+              border: "1px solid rgba(248, 113, 113, 0.3)",
+              background: "rgba(248, 113, 113, 0.08)",
+              color: "var(--danger)",
+              fontSize: "0.85rem",
+              lineHeight: 1.45,
+              padding: "0.65rem 0.8rem",
+            }}
+          >
+            {submitError}
+          </div>
+        ) : null}
         <div className={styles.quizFooter}>
           <button
             className="btn-secondary"
@@ -508,7 +527,9 @@ export default function QuizPage({ params }: PageProps) {
               <button
                 className="btn-primary"
                 style={{ background: "var(--success)" }}
-                onClick={handleSubmit}
+                onClick={() => {
+                  void handleSubmit();
+                }}
                 disabled={submitting}
               >
                 {submitting ? "Submitting..." : "Submit Quiz ✨"}

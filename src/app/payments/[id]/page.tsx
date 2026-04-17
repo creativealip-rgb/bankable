@@ -34,6 +34,38 @@ function toLabel(status: string) {
   return v;
 }
 
+type FlowState = "done" | "active" | "todo" | "error";
+type PaymentFlow = { title: string; hint: string; state: FlowState };
+
+function getPaymentFlow(status: string): PaymentFlow[] {
+  const v = status.toUpperCase();
+
+  if (v === "PAID") {
+    return [
+      { title: "Dibuat", hint: "Order berhasil dibuat.", state: "done" },
+      { title: "Pembayaran", hint: "Pembayaran berhasil diterima.", state: "done" },
+      { title: "Verifikasi", hint: "Status sudah tervalidasi sistem/admin.", state: "done" },
+      { title: "Akses Aktif", hint: "Konten sudah bisa diakses.", state: "active" },
+    ];
+  }
+
+  if (v === "FAILED" || v === "EXPIRED") {
+    return [
+      { title: "Dibuat", hint: "Order berhasil dibuat.", state: "done" },
+      { title: "Pembayaran", hint: "Pembayaran tidak terselesaikan.", state: "error" },
+      { title: "Verifikasi", hint: "Tidak bisa lanjut sebelum pembayaran berhasil.", state: "todo" },
+      { title: "Akses Aktif", hint: "Belum aktif.", state: "todo" },
+    ];
+  }
+
+  return [
+    { title: "Dibuat", hint: "Order berhasil dibuat.", state: "done" },
+    { title: "Pembayaran", hint: "Menunggu kamu menyelesaikan pembayaran.", state: "active" },
+    { title: "Verifikasi", hint: "Status akan diperbarui otomatis/admin.", state: "todo" },
+    { title: "Akses Aktif", hint: "Akan aktif setelah status PAID.", state: "todo" },
+  ];
+}
+
 export default function PaymentDetailPage({ params }: PageProps) {
   const router = useRouter();
   const [id, setId] = useState("");
@@ -98,6 +130,7 @@ export default function PaymentDetailPage({ params }: PageProps) {
 
   const isPending = payment.status.toUpperCase() === "PENDING";
   const isPaid = payment.status.toUpperCase() === "PAID";
+  const paymentFlow = getPaymentFlow(payment.status);
 
   return (
     <div className={styles.container}>
@@ -117,6 +150,28 @@ export default function PaymentDetailPage({ params }: PageProps) {
           <div><strong>Provider:</strong> {payment.provider}</div>
           <div><strong>Amount:</strong> Rp {Number(payment.amount).toLocaleString("id-ID")}</div>
           <div><strong>Created:</strong> {new Date(payment.createdAt).toLocaleString("id-ID")}</div>
+        </div>
+
+        <div className={styles.statusFlow}>
+          {paymentFlow.map((step) => (
+            <div key={step.title} className={styles.statusStep}>
+              <span
+                className={`${styles.statusDot} ${
+                  step.state === "done"
+                    ? styles.statusDone
+                    : step.state === "active"
+                      ? styles.statusActive
+                      : step.state === "error"
+                        ? styles.statusError
+                        : styles.statusTodo
+                }`}
+              />
+              <div>
+                <p className={styles.statusTitle}>{step.title}</p>
+                <p className={styles.statusHint}>{step.hint}</p>
+              </div>
+            </div>
+          ))}
         </div>
 
         {isPending && payment.provider === "MANUAL" && (

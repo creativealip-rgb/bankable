@@ -553,28 +553,30 @@ export default function CoursePlayerPage({ params }: PageProps) {
               <div style={{ padding: "0.5rem 0.75rem", fontSize: "0.8rem", color: "var(--text-muted)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>
                 {mod.title}
               </div>
-              {mod.videos.map((video) => {
-                const vp = progress?.videoProgress[video.id];
-                const accessible = isVideoAccessible(video);
-                const completed = vp?.isCompleted;
-                return (
-                  <li
-                    key={video.id}
-                    className={`${styles.videoItem} ${activeVideoId === video.id ? styles.active : ""} ${!accessible ? styles.locked : ""}`}
-                    onClick={() => { if (accessible) setActiveVideoId(video.id); }}
-                  >
-                    <div className={styles.videoIcon}>
-                      {completed ? "✅" : !accessible ? "🔒" : "▶️"}
-                    </div>
-                    <div className={styles.videoInfo}>
-                      <div className={styles.videoTitle}>{video.title}</div>
-                      <div className={styles.videoDuration}>
-                        {Math.floor(video.duration / 60)}:{String(video.duration % 60).padStart(2, "0")}
+              <ul className={styles.moduleVideoList}>
+                {mod.videos.map((video) => {
+                  const vp = progress?.videoProgress[video.id];
+                  const accessible = isVideoAccessible(video);
+                  const completed = vp?.isCompleted;
+                  return (
+                    <li
+                      key={video.id}
+                      className={`${styles.videoItem} ${activeVideoId === video.id ? styles.active : ""} ${!accessible ? styles.locked : ""}`}
+                      onClick={() => { if (accessible) setActiveVideoId(video.id); }}
+                    >
+                      <div className={styles.videoIcon}>
+                        {completed ? "✅" : !accessible ? "🔒" : "▶️"}
                       </div>
-                    </div>
-                  </li>
-                );
-              })}
+                      <div className={styles.videoInfo}>
+                        <div className={styles.videoTitle}>{video.title}</div>
+                        <div className={styles.videoDuration}>
+                          {Math.floor(video.duration / 60)}:{String(video.duration % 60).padStart(2, "0")}
+                        </div>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
             </li>
           ))}
         </ul>

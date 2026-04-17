@@ -94,6 +94,7 @@ export default function CourseDetailPage({ params }: PageProps) {
   const [loading, setLoading] = useState(true);
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set());
   const [buying, setBuying] = useState(false);
+  const [checkoutError, setCheckoutError] = useState("");
 
   useEffect(() => {
     params.then((p) => setSlug(p.slug));
@@ -163,6 +164,8 @@ export default function CourseDetailPage({ params }: PageProps) {
 
   const handleBuyPremium = async () => {
     if (!isPaidCourse || buying) return;
+    setCheckoutError("");
+
     if (!session) {
       router.push(`/login?callbackUrl=${encodeURIComponent(`/courses/${course.slug}`)}`);
       return;
@@ -188,7 +191,7 @@ export default function CourseDetailPage({ params }: PageProps) {
       }
     } catch (error) {
       console.error(error);
-      alert("Gagal membuat checkout premium. Coba lagi.");
+      setCheckoutError(error instanceof Error ? error.message : "Gagal membuat checkout premium. Coba lagi.");
     } finally {
       setBuying(false);
     }
@@ -295,6 +298,11 @@ export default function CourseDetailPage({ params }: PageProps) {
                 : "Konten premium berbayar terpisah dari paket one-time access."
               : "Akses penuh sudah termasuk dalam pembelian sekali bayar."}
           </p>
+          {checkoutError ? (
+            <p className={styles.checkoutError} role="alert">
+              {checkoutError}
+            </p>
+          ) : null}
           {isPaidCourse && !hasPremiumAccess ? (
             <button
               type="button"
