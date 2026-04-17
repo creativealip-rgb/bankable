@@ -139,3 +139,64 @@
   font-size: 1.25rem;
   margin-bottom: 2rem;
 }
+
+@media (max-width: 768px) {
+  .quizContainer {
+    margin: 1rem auto;
+    padding: 0 0.75rem;
+  }
+
+  .quizCard {
+    padding: 1rem;
+    border-radius: 12px;
+  }
+
+  .quizHeader {
+    margin-bottom: 1rem;
+    padding-bottom: 0.72rem;
+    gap: 0.6rem;
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .quizTitle {
+    font-size: 1.08rem;
+  }
+
+  .timer {
+    font-size: 1rem;
+  }
+
+  .progressBar {
+    margin-bottom: 0.95rem;
+    height: 6px;
+  }
+
+  .questionText {
+    font-size: 1rem;
+    margin-bottom: 1rem;
+    line-height: 1.5;
+  }
+
+  .optionsList {
+    gap: 0.62rem;
+    margin-bottom: 1.2rem;
+  }
+
+  .optionItem {
+    padding: 0.72rem;
+    border-radius: 10px;
+    gap: 0.72rem;
+  }
+
+  .optionMarker {
+    width: 20px;
+    height: 20px;
+  }
+
+  .quizFooter {
+    padding-top: 0.95rem;
+    gap: 0.55rem;
+    flex-wrap: wrap;
+  }
+}

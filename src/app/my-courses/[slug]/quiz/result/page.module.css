@@ -1,0 +1,135 @@
+.container {
+  max-width: 840px;
+  margin: 2.5rem auto;
+  padding: 0 1rem;
+}
+
+.card {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: 0 12px 28px rgba(42, 74, 122, 0.18);
+  padding: 1.25rem;
+}
+
+.title {
+  font-family: var(--font-display);
+  margin: 0;
+  font-size: 1.3rem;
+}
+
+.subtitle {
+  margin: 0.35rem 0 1rem;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.7rem;
+  margin-bottom: 0.9rem;
+}
+
+.summaryItem {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.7rem 0.8rem;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.summaryLabel {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.summaryValue {
+  margin-top: 0.35rem;
+  font-weight: 700;
+}
+
+.success {
+  color: var(--success);
+}
+
+.danger {
+  color: var(--danger);
+}
+
+.notice {
+  margin-bottom: 0.85rem;
+  padding: 0.65rem 0.8rem;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--success) 28%, transparent);
+  background: color-mix(in srgb, var(--success) 10%, transparent);
+  font-size: 0.9rem;
+}
+
+.muted {
+  margin: 0 0 0.9rem;
+  color: var(--text-muted);
+  font-size: 0.86rem;
+}
+
+.reviewList {
+  margin-top: 1rem;
+}
+
+.reviewTitle {
+  margin: 0 0 0.7rem;
+  font-family: var(--font-display);
+  font-size: 1rem;
+}
+
+.reviewItem {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.65rem 0.75rem;
+  margin-bottom: 0.55rem;
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.reviewHead {
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.reviewAnswer {
+  margin-top: 0.25rem;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.actions {
+  margin-top: 1rem;
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+  .container {
+    margin: 1rem auto;
+    padding: 0 0.7rem;
+  }
+
+  .card {
+    padding: 0.9rem;
+    border-radius: 12px;
+  }
+
+  .title {
+    font-size: 1.08rem;
+  }
+
+  .subtitle,
+  .muted {
+    font-size: 0.8rem;
+  }
+
+  .summaryGrid {
+    grid-template-columns: 1fr;
+  }
+}

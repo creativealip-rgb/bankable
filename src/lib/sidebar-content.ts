@@ -22,16 +22,24 @@ export async function ensureSidebarDetailHref(
 
   const existing = await db.query.courses.findFirst({
     where: eq(courses.slug, slug),
-    columns: { slug: true },
+    columns: { id: true, slug: true, price: true },
   });
+  const defaultPrice = section === "WEBINAR" ? "79000" : "149000";
   if (existing) {
+    if (Number(existing.price || 0) <= 0) {
+      await db
+        .update(courses)
+        .set({
+          price: defaultPrice,
+          updatedAt: new Date(),
+        })
+        .where(eq(courses.id, existing.id));
+    }
     return `/courses/${existing.slug}`;
   }
 
   const courseId = crypto.randomUUID();
   const moduleId = crypto.randomUUID();
-
-  const defaultPrice = section === "WEBINAR" ? "79000" : "149000";
 
   await db.insert(courses).values({
     id: courseId,

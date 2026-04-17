@@ -4,6 +4,7 @@ import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { courseReviews, courses } from "@/db/schema";
 import { requireMember } from "@/lib/auth-helpers";
+import { hasCourseLearningAccess } from "@/lib/course-entitlement";
 
 type RouteParams = { params: Promise<{ slug: string }> };
 
@@ -11,6 +12,7 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
   const { slug } = await params;
   const course = await db.query.courses.findFirst({ where: eq(courses.slug, slug) });
   if (!course) return NextResponse.json({ error: "Course not found" }, { status: 404 });
+  if (course.status !== "PUBLISHED") return NextResponse.json({ error: "Course not found" }, { status: 404 });
 
   const reviews = await db.query.courseReviews.findMany({
     where: eq(courseReviews.courseId, course.id),
@@ -35,6 +37,15 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     const course = await db.query.courses.findFirst({ where: eq(courses.slug, slug) });
     if (!course) return NextResponse.json({ error: "Course not found" }, { status: 404 });
+    if (course.status !== "PUBLISHED") return NextResponse.json({ error: "Course not found" }, { status: 404 });
+    const hasAccess = await hasCourseLearningAccess({
+      userId: session.user.id,
+      courseSlug: course.slug,
+      price: course.price,
+    });
+    if (!hasAccess) {
+      return NextResponse.json({ error: "Active access is required for this course" }, { status: 403 });
+    }
 
     const existing = await db.query.courseReviews.findFirst({
       where: and(eq(courseReviews.courseId, course.id), eq(courseReviews.userId, session.user.id)),

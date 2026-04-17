@@ -6,6 +6,8 @@ type AdminSettings = {
   paymentMode: "MANUAL" | "GATEWAY";
   paymentProvider: string;
   manualInstructions: string;
+  manualEtaHours: number;
+  supportContact: string;
   hasMidtransKey: boolean;
   hasXenditKey: boolean;
   appUrl: string;
@@ -27,7 +29,7 @@ export default function AdminSettingsPage() {
   if (!settings) {
     return (
       <div className="admin-empty">
-        <div className="admin-loading-spinner" style={{ margin: "0 auto 1rem" }} />
+        <div className="admin-loading-spinner admin-loading-compact" />
         Loading settings...
       </div>
     );
@@ -40,12 +42,14 @@ export default function AdminSettingsPage() {
       const res = await fetch("/api/admin/settings", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          paymentMode: settings.paymentMode,
-          paymentProvider: settings.paymentProvider,
-          manualInstructions: settings.manualInstructions,
-        }),
-      });
+          body: JSON.stringify({
+            paymentMode: settings.paymentMode,
+            paymentProvider: settings.paymentProvider,
+            manualInstructions: settings.manualInstructions,
+            manualEtaHours: settings.manualEtaHours,
+            supportContact: settings.supportContact,
+          }),
+        });
       const data = await res.json();
       if (!res.ok) {
         throw new Error(data.error || "Failed to save settings");
@@ -65,27 +69,27 @@ export default function AdminSettingsPage() {
         <p className="admin-page-subtitle">Runtime configuration visibility for operators</p>
       </div>
       <div className="admin-section">
-        <div style={{ display: "grid", gap: "0.85rem", marginBottom: "1rem" }}>
-          <label style={{ display: "grid", gap: "0.4rem", maxWidth: "320px" }}>
-            <span style={{ fontWeight: 600, color: "var(--text-main)" }}>Payment Mode</span>
+        <div className="admin-grid-two admin-toolbar-spaced">
+          <label className="admin-grid-full admin-form-field">
+            <span className="admin-field-label">Payment Mode</span>
             <select
               value={settings.paymentMode}
               onChange={(e) =>
                 setSettings((prev) => (prev ? { ...prev, paymentMode: e.target.value as "MANUAL" | "GATEWAY" } : prev))
               }
-              style={{ padding: "0.55rem 0.75rem", borderRadius: "10px", border: "1px solid var(--border-light)" }}
+              className="admin-search-input admin-input-full"
             >
               <option value="MANUAL">MANUAL (tanpa gateway)</option>
               <option value="GATEWAY">GATEWAY (Midtrans/Xendit)</option>
             </select>
           </label>
 
-          <label style={{ display: "grid", gap: "0.4rem", maxWidth: "320px" }}>
-            <span style={{ fontWeight: 600, color: "var(--text-main)" }}>Gateway Provider</span>
+          <label className="admin-form-field">
+            <span className="admin-field-label">Gateway Provider</span>
             <select
               value={settings.paymentProvider}
               onChange={(e) => setSettings((prev) => (prev ? { ...prev, paymentProvider: e.target.value } : prev))}
-              style={{ padding: "0.55rem 0.75rem", borderRadius: "10px", border: "1px solid var(--border-light)" }}
+              className="admin-search-input admin-input-full"
               disabled={settings.paymentMode !== "GATEWAY"}
             >
               <option value="MIDTRANS">MIDTRANS</option>
@@ -93,22 +97,49 @@ export default function AdminSettingsPage() {
             </select>
           </label>
 
-          <label style={{ display: "grid", gap: "0.4rem" }}>
-            <span style={{ fontWeight: 600, color: "var(--text-main)" }}>Manual Payment Instructions</span>
+          <label className="admin-grid-full admin-form-field">
+            <span className="admin-field-label">Manual Payment Instructions</span>
             <textarea
               value={settings.manualInstructions}
               onChange={(e) => setSettings((prev) => (prev ? { ...prev, manualInstructions: e.target.value } : prev))}
               rows={4}
               placeholder="Contoh: Transfer ke BCA 123xxx a.n. Bankable, lalu kirim bukti ke WhatsApp admin."
-              style={{ padding: "0.65rem 0.8rem", borderRadius: "10px", border: "1px solid var(--border-light)" }}
+              className="admin-search-input admin-input-full admin-textarea"
             />
           </label>
 
-          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-            <button type="button" onClick={handleSave} className="btn-primary" disabled={saving}>
+          <label className="admin-form-field">
+            <span className="admin-field-label">Manual ETA (hours)</span>
+            <input
+              type="number"
+              min={1}
+              max={168}
+              value={settings.manualEtaHours}
+              onChange={(e) =>
+                setSettings((prev) =>
+                  prev ? { ...prev, manualEtaHours: Number(e.target.value) || 24 } : prev
+                )
+              }
+              className="admin-search-input admin-input-full"
+            />
+          </label>
+
+          <label className="admin-form-field">
+            <span className="admin-field-label">Support Contact</span>
+            <input
+              type="text"
+              value={settings.supportContact}
+              onChange={(e) => setSettings((prev) => (prev ? { ...prev, supportContact: e.target.value } : prev))}
+              placeholder="WA admin / email support"
+              className="admin-search-input admin-input-full"
+            />
+          </label>
+
+          <div className="admin-grid-full admin-row">
+            <button type="button" onClick={handleSave} className="btn-primary admin-btn-compact" disabled={saving}>
               {saving ? "Saving..." : "Save Settings"}
             </button>
-            {message ? <span style={{ color: "var(--text-muted)" }}>{message}</span> : null}
+            {message ? <span className="admin-note">{message}</span> : null}
           </div>
         </div>
 
@@ -117,6 +148,8 @@ export default function AdminSettingsPage() {
             <tbody>
               <tr><td>Payment Mode</td><td>{settings.paymentMode}</td></tr>
               <tr><td>Payment Provider</td><td>{settings.paymentProvider}</td></tr>
+              <tr><td>Manual ETA (hours)</td><td>{settings.manualEtaHours}</td></tr>
+              <tr><td>Support Contact</td><td>{settings.supportContact || "-"}</td></tr>
               <tr><td>Midtrans Key Configured</td><td>{String(settings.hasMidtransKey)}</td></tr>
               <tr><td>Xendit Key Configured</td><td>{String(settings.hasXenditKey)}</td></tr>
               <tr><td>App URL</td><td>{settings.appUrl}</td></tr>

@@ -6,12 +6,17 @@ import { courses, payments } from "@/db/schema";
 import { getRuntimePaymentSettings } from "@/lib/payment-settings";
 import { eq } from "drizzle-orm";
 import crypto from "crypto";
+import { enforceRateLimit } from "@/lib/rate-limit";
+import { logError } from "@/lib/logger";
 
 export async function POST(request: NextRequest) {
+  const limited = enforceRateLimit(request, { namespace: "payments:premium-checkout", limit: 20, windowMs: 60_000 });
+  if (limited) return limited;
+
   try {
     const session = await requireAuth();
     const body = await request.json();
-    const courseSlug = String(body.courseSlug || "");
+    const courseSlug = typeof body?.courseSlug === "string" ? body.courseSlug.trim() : "";
 
     if (!courseSlug) {
       return NextResponse.json({ error: "courseSlug is required" }, { status: 400 });
@@ -99,6 +104,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     if (error instanceof Response) throw error;
+    logError("payments.premium_checkout.failed", error);
     return NextResponse.json({ error: (error as Error).message || "Failed to create premium checkout" }, { status: 500 });
   }
 }

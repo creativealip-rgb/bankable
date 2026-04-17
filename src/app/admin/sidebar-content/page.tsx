@@ -69,10 +69,7 @@ export default function AdminSidebarContentPage() {
     fetchItems();
   }, []);
 
-  const webinars = useMemo(
-    () => items.filter((item) => item.section === "WEBINAR"),
-    [items]
-  );
+  const webinars = useMemo(() => items.filter((item) => item.section === "WEBINAR"), [items]);
   const premiumVideos = useMemo(
     () => items.filter((item) => item.section === "PREMIUM_VIDEO"),
     [items]
@@ -158,16 +155,26 @@ export default function AdminSidebarContentPage() {
     }
   };
 
+  const sectionLabel = form.section === "WEBINAR" ? "Upcoming Webinar" : "Premium Paid Video";
+  const subtitleLabel = form.section === "WEBINAR" ? "Speaker / subtitle" : "Description / note";
+  const metaLabel = form.section === "WEBINAR" ? "Date label" : "Price label";
+  const metaPlaceholder = form.section === "WEBINAR" ? "Contoh: 28 Apr" : "Contoh: Rp149.000";
+  const ctaPlaceholder = form.section === "WEBINAR" ? "Contoh: Save Seat" : "Contoh: Lihat Detail";
+  const hrefHint =
+    form.section === "WEBINAR"
+      ? "Kosongkan link untuk auto-generate halaman detail webinar."
+      : "Kosongkan link untuk auto-generate halaman detail premium video.";
+
   return (
     <>
       <div className="admin-page-header">
         <h1 className="admin-page-title">Sidebar Content</h1>
         <p className="admin-page-subtitle">
-          Manage upcoming webinar and premium paid video cards on the courses page
+          Kelola kartu sidebar Webinar dan Premium Video pada halaman Courses
         </p>
       </div>
 
-      <div className="admin-stats-grid" style={{ gridTemplateColumns: "repeat(3, 1fr)" }}>
+      <div className="admin-stats-grid admin-stats-grid-3">
         <div className="admin-stat-card">
           <div className="admin-stat-label">Total Items</div>
           <div className="admin-stat-value">{items.length}</div>
@@ -185,20 +192,17 @@ export default function AdminSidebarContentPage() {
       <div className="admin-section">
         <div className="admin-section-header">
           <h3 className="admin-section-title">
-            {editingId ? "Edit Sidebar Item" : "Add Sidebar Item"}
+            {editingId ? "Edit Item Sidebar" : "Tambah Item Sidebar"}
           </h3>
         </div>
 
-        {error && (
-          <div style={{ marginBottom: "1rem", color: "var(--danger)", fontSize: "0.9rem" }}>
-            {error}
-          </div>
-        )}
+        {error ? <div className="admin-feedback error">{error}</div> : null}
 
-        <form onSubmit={handleSubmit} style={{ display: "grid", gap: "0.75rem" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 120px", gap: "0.75rem" }}>
+        <form onSubmit={handleSubmit} className="admin-grid-two">
+          <label className="admin-form-field">
+            <span className="admin-field-label">Section</span>
             <select
-              className="admin-search-input"
+              className="admin-search-input admin-input-full"
               value={form.section}
               onChange={(e) =>
                 setForm((prev) => ({ ...prev, section: e.target.value as SidebarSection }))
@@ -207,35 +211,39 @@ export default function AdminSidebarContentPage() {
               <option value="WEBINAR">Upcoming Webinar</option>
               <option value="PREMIUM_VIDEO">Premium Paid Video</option>
             </select>
+          </label>
+
+          <div className="admin-note admin-sidebar-guide">
+            <strong className="admin-sidebar-guide-title">Format aktif: {sectionLabel}</strong>
+            <span>Isi field mengikuti kebutuhan section ini agar card di Courses konsisten.</span>
+          </div>
+
+          <label className="admin-form-field admin-grid-full">
+            <span className="admin-field-label">Title</span>
             <input
-              className="admin-search-input"
-              placeholder="Title"
+              className="admin-search-input admin-input-full"
+              placeholder="Judul konten"
               value={form.title}
               onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))}
               required
             />
+          </label>
+
+          <label className="admin-form-field admin-grid-full">
+            <span className="admin-field-label">{subtitleLabel}</span>
             <input
-              className="admin-search-input"
-              type="number"
-              placeholder="Order"
-              value={form.sortOrder}
-              onChange={(e) =>
-                setForm((prev) => ({ ...prev, sortOrder: Number(e.target.value) || 0 }))
-              }
+              className="admin-search-input admin-input-full"
+              placeholder={subtitleLabel}
+              value={form.subtitle}
+              onChange={(e) => setForm((prev) => ({ ...prev, subtitle: e.target.value }))}
             />
-          </div>
+          </label>
 
-          <input
-            className="admin-search-input"
-            placeholder={form.section === "WEBINAR" ? "Speaker / subtitle" : "Description / note"}
-            value={form.subtitle}
-            onChange={(e) => setForm((prev) => ({ ...prev, subtitle: e.target.value }))}
-          />
-
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
+          <label className="admin-form-field">
+            <span className="admin-field-label">{metaLabel}</span>
             <input
-              className="admin-search-input"
-              placeholder={form.section === "WEBINAR" ? "Date label (contoh: 28 Apr)" : "Price label (contoh: Rp149.000)"}
+              className="admin-search-input admin-input-full"
+              placeholder={metaPlaceholder}
               value={form.section === "WEBINAR" ? form.dateLabel : form.priceLabel}
               onChange={(e) =>
                 setForm((prev) =>
@@ -245,39 +253,60 @@ export default function AdminSidebarContentPage() {
                 )
               }
             />
+          </label>
+
+          <label className="admin-form-field">
+            <span className="admin-field-label">CTA Label</span>
             <input
-              className="admin-search-input"
-              placeholder={form.section === "WEBINAR" ? "CTA label (Save Seat)" : "CTA label (Optional)"}
+              className="admin-search-input admin-input-full"
+              placeholder={ctaPlaceholder}
               value={form.ctaLabel}
               onChange={(e) => setForm((prev) => ({ ...prev, ctaLabel: e.target.value }))}
             />
-          </div>
+          </label>
 
-          <input
-            className="admin-search-input"
-            placeholder="CTA link (optional, contoh: /register)"
-            value={form.href}
-            onChange={(e) => setForm((prev) => ({ ...prev, href: e.target.value }))}
-          />
+          <label className="admin-form-field admin-grid-full">
+            <span className="admin-field-label">CTA Link (optional)</span>
+            <input
+              className="admin-search-input admin-input-full"
+              placeholder="Contoh: /courses/nama-course atau /register"
+              value={form.href}
+              onChange={(e) => setForm((prev) => ({ ...prev, href: e.target.value }))}
+            />
+            <span className="admin-note">{hrefHint}</span>
+          </label>
 
-          <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.85rem" }}>
+          <label className="admin-form-field">
+            <span className="admin-field-label">Sort Order</span>
+            <input
+              className="admin-search-input admin-input-full"
+              type="number"
+              placeholder="0"
+              value={form.sortOrder}
+              onChange={(e) =>
+                setForm((prev) => ({ ...prev, sortOrder: Number(e.target.value) || 0 }))
+              }
+            />
+          </label>
+
+          <label className="admin-sidebar-toggle">
             <input
               type="checkbox"
               checked={form.isActive}
               onChange={(e) => setForm((prev) => ({ ...prev, isActive: e.target.checked }))}
             />
-            Active (show on sidebar)
+            <span>Active (tampilkan di sidebar)</span>
           </label>
 
-          <div style={{ display: "flex", gap: "0.5rem" }}>
-            <button type="submit" className="btn-primary" style={{ padding: "10px 20px", fontSize: "0.9rem" }} disabled={saving}>
+          <div className="admin-grid-full admin-row">
+            <button type="submit" className="btn-primary admin-btn-compact" disabled={saving}>
               {saving ? "Saving..." : editingId ? "Update Item" : "Add Item"}
             </button>
-            {editingId && (
-              <button type="button" className="btn-secondary" style={{ padding: "10px 20px", fontSize: "0.9rem" }} onClick={resetForm}>
+            {editingId ? (
+              <button type="button" className="btn-secondary admin-btn-compact" onClick={resetForm}>
                 Cancel Edit
               </button>
-            )}
+            ) : null}
           </div>
         </form>
       </div>
@@ -289,7 +318,7 @@ export default function AdminSidebarContentPage() {
 
         {loading ? (
           <div className="admin-empty">
-            <div className="admin-loading-spinner" style={{ margin: "0 auto 1rem" }} />
+            <div className="admin-loading-spinner admin-loading-compact" />
             Loading items...
           </div>
         ) : (
@@ -308,7 +337,7 @@ export default function AdminSidebarContentPage() {
               <tbody>
                 {items.length === 0 ? (
                   <tr>
-                    <td colSpan={6} style={{ textAlign: "center", color: "var(--text-muted)", padding: "2rem" }}>
+                    <td colSpan={6} className="admin-table-empty">
                       No sidebar items yet
                     </td>
                   </tr>
@@ -317,12 +346,10 @@ export default function AdminSidebarContentPage() {
                     <tr key={item.id}>
                       <td>{item.section === "WEBINAR" ? "Webinar" : "Premium Video"}</td>
                       <td>
-                        <div style={{ fontWeight: 600 }}>{item.title}</div>
-                        <div style={{ color: "var(--text-muted)", fontSize: "0.8rem" }}>
-                          {item.subtitle || "—"}
-                        </div>
+                        <div className="admin-course-title">{item.title}</div>
+                        <div className="admin-course-slug">{item.subtitle || "—"}</div>
                       </td>
-                      <td style={{ color: "var(--text-muted)", fontSize: "0.8rem" }}>
+                      <td className="admin-note">
                         {item.section === "WEBINAR"
                           ? `${item.dateLabel || "No date"}${item.ctaLabel ? ` • ${item.ctaLabel}` : ""}`
                           : `${item.priceLabel || "No price"}${item.ctaLabel ? ` • ${item.ctaLabel}` : ""}`}
@@ -334,7 +361,7 @@ export default function AdminSidebarContentPage() {
                         </span>
                       </td>
                       <td>
-                        <div style={{ display: "flex", gap: "0.5rem" }}>
+                        <div className="admin-row-actions">
                           <button className="admin-filter-btn" onClick={() => startEdit(item)}>
                             ✏️
                           </button>
@@ -342,8 +369,7 @@ export default function AdminSidebarContentPage() {
                             {item.isActive ? "⏸️" : "▶️"}
                           </button>
                           <button
-                            className="admin-filter-btn"
-                            style={{ borderColor: "rgba(248,113,113,0.3)", color: "var(--danger)" }}
+                            className="admin-filter-btn admin-danger-outline"
                             onClick={() => removeItem(item)}
                           >
                             🗑️
@@ -361,4 +387,3 @@ export default function AdminSidebarContentPage() {
     </>
   );
 }
-

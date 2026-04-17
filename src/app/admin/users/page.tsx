@@ -19,25 +19,35 @@ export default function AdminUsersPage() {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [role, setRole] = useState("");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
-  const fetchUsers = (query?: string) => {
+  const fetchUsers = (query?: string, selectedRole?: string, targetPage?: number) => {
     const params = new URLSearchParams();
     if (query) params.set("search", query);
+    if (selectedRole) params.set("role", selectedRole);
+    params.set("page", String(targetPage || page));
+    params.set("pageSize", "20");
     fetch(`/api/admin/users?${params}`)
       .then((r) => r.json())
-      .then((data) => setUsers(data))
+      .then((data) => {
+        setUsers(Array.isArray(data.items) ? data.items : []);
+        setTotalPages(Math.max(1, Number(data.pagination?.totalPages || 1)));
+      })
       .catch(console.error)
       .finally(() => setLoading(false));
   };
 
   useEffect(() => {
-    fetchUsers();
-  }, []);
+    fetchUsers(search, role, page);
+  }, [page, role, search]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    fetchUsers(search);
+    setPage(1);
+    fetchUsers(search, role, 1);
   };
 
   // Compute analytics
@@ -71,7 +81,7 @@ export default function AdminUsersPage() {
         </div>
         <div className="admin-stat-card">
           <div className="admin-stat-label">Admins</div>
-          <div className="admin-stat-value" style={{ color: "var(--secondary)" }}>{admins}</div>
+          <div className="admin-stat-value admin-kpi-secondary">{admins}</div>
         </div>
         <div className="admin-stat-card">
           <div className="admin-stat-label">Avg. Videos Watched</div>
@@ -79,7 +89,7 @@ export default function AdminUsersPage() {
         </div>
         <div className="admin-stat-card">
           <div className="admin-stat-label">Total Certificates</div>
-          <div className="admin-stat-value" style={{ color: "var(--warning)" }}>{totalCerts}</div>
+          <div className="admin-stat-value admin-kpi-warning">{totalCerts}</div>
         </div>
       </div>
 
@@ -100,7 +110,7 @@ export default function AdminUsersPage() {
             <span className="admin-chart-bar-value">{count}</span>
           </div>
         )) : (
-          <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>No membership data</p>
+          <p className="admin-muted">No membership data</p>
         )}
       </div>
 
@@ -109,7 +119,7 @@ export default function AdminUsersPage() {
         <div className="admin-section-header">
           <h3 className="admin-section-title">All Users</h3>
           <div className="admin-toolbar">
-            <form onSubmit={handleSearch} style={{ display: "flex", gap: "0.5rem" }}>
+            <form onSubmit={handleSearch} className="admin-form-inline">
               <input
                 type="text"
                 className="admin-search-input"
@@ -117,6 +127,20 @@ export default function AdminUsersPage() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
+              <select
+                className="admin-search-input"
+                value={role}
+                onChange={(e) => {
+                  setLoading(true);
+                  setPage(1);
+                  setRole(e.target.value);
+                }}
+              >
+                <option value="">All Role</option>
+                <option value="MEMBER">MEMBER</option>
+                <option value="ADMIN">ADMIN</option>
+                <option value="SUPER_ADMIN">SUPER_ADMIN</option>
+              </select>
               <button type="submit" className="admin-filter-btn active">Search</button>
             </form>
           </div>
@@ -124,7 +148,7 @@ export default function AdminUsersPage() {
 
         {loading ? (
           <div className="admin-empty">
-            <div className="admin-loading-spinner" style={{ margin: "0 auto 1rem" }} />
+            <div className="admin-loading-spinner admin-loading-inline" />
             Loading users...
           </div>
         ) : (
@@ -144,21 +168,21 @@ export default function AdminUsersPage() {
               <tbody>
                 {users.length === 0 ? (
                   <tr>
-                    <td colSpan={7} style={{ textAlign: "center", color: "var(--text-muted)", padding: "2rem" }}>
+                    <td colSpan={7} className="admin-table-empty">
                       No users found
                     </td>
                   </tr>
                 ) : users.map((user) => (
                   <tr key={user.id}>
                     <td>
-                      <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                        <div className="admin-user-avatar" style={{ width: 32, height: 32, fontSize: "0.75rem" }}>
+                      <div className="admin-inline-row">
+                        <div className="admin-user-avatar admin-user-avatar-sm">
                           {user.name.charAt(0).toUpperCase()}
                         </div>
-                        <span style={{ fontWeight: 500 }}>{user.name}</span>
+                        <span className="admin-name-strong">{user.name}</span>
                       </div>
                     </td>
-                    <td style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>{user.email}</td>
+                    <td className="admin-email-cell">{user.email}</td>
                     <td>
                       <span className={`admin-badge-status ${user.role.toLowerCase()}`}>
                         {user.role}
@@ -170,36 +194,28 @@ export default function AdminUsersPage() {
                       </span>
                     </td>
                     <td>
-                      <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                        <div style={{
-                          width: "50px",
-                          height: "6px",
-                          background: "rgba(255,255,255,0.9)",
-                          borderRadius: "3px",
-                          overflow: "hidden"
-                        }}>
-                          <div style={{
-                            width: `${Math.min((user.videosWatched / Math.max(user.totalProgress, 1)) * 100, 100)}%`,
-                            height: "100%",
-                            background: "linear-gradient(90deg, var(--primary), var(--secondary))",
-                            borderRadius: "3px",
-                          }} />
+                      <div className="admin-inline-row">
+                        <div className="admin-progress-track">
+                          <div
+                            className="admin-progress-fill"
+                            style={{ width: `${Math.min((user.videosWatched / Math.max(user.totalProgress, 1)) * 100, 100)}%` }}
+                          />
                         </div>
-                        <span style={{ fontSize: "0.85rem" }}>
+                        <span className="admin-muted">
                           {user.videosWatched}{user.totalProgress > 0 ? `/${user.totalProgress}` : ""}
                         </span>
                       </div>
                     </td>
                     <td>
                       {user.certificateCount > 0 ? (
-                        <span style={{ color: "var(--warning)", fontWeight: 600 }}>
+                        <span className="admin-crown">
                           🏆 {user.certificateCount}
                         </span>
                       ) : (
-                        <span style={{ color: "var(--text-muted)" }}>—</span>
+                        <span className="admin-table-placeholder">—</span>
                       )}
                     </td>
-                    <td style={{ color: "var(--text-muted)", whiteSpace: "nowrap", fontSize: "0.85rem" }}>
+                    <td className="admin-email-cell">
                       {new Date(user.createdAt).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}
                     </td>
                   </tr>
@@ -208,6 +224,31 @@ export default function AdminUsersPage() {
             </table>
           </div>
         )}
+        <div className="admin-pagination">
+          <button
+            className="admin-filter-btn"
+            onClick={() => {
+              setLoading(true);
+              setPage((p) => Math.max(1, p - 1));
+            }}
+            disabled={page <= 1}
+          >
+            ← Prev
+          </button>
+          <span className="admin-pagination-label">
+            Page {page} / {totalPages}
+          </span>
+          <button
+            className="admin-filter-btn"
+            onClick={() => {
+              setLoading(true);
+              setPage((p) => Math.min(totalPages, p + 1));
+            }}
+            disabled={page >= totalPages}
+          >
+            Next →
+          </button>
+        </div>
       </div>
     </>
   );

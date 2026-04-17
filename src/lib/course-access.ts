@@ -59,3 +59,24 @@ export async function hasPaidCourseAccess(userId: string, courseSlug: string): P
   return false;
 }
 
+export async function getPaidCourseAccessSlugs(userId: string): Promise<Set<string>> {
+  const entitlementRows = await db.query.premiumCourseAccess.findMany({
+    where: eq(premiumCourseAccess.userId, userId),
+    columns: { courseSlug: true },
+  });
+
+  const slugSet = new Set(entitlementRows.map((row) => row.courseSlug));
+
+  const paidRows = await db.query.payments.findMany({
+    where: and(eq(payments.userId, userId), eq(payments.status, "PAID"), eq(payments.tier, "PREMIUM")),
+    columns: { providerPayload: true },
+  });
+
+  for (const row of paidRows) {
+    const slug = readCourseSlug(row.providerPayload);
+    if (slug) slugSet.add(slug);
+  }
+
+  return slugSet;
+}
+

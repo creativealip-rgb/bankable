@@ -1,46 +1,46 @@
 .profileContainer {
   max-width: 800px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 1.25rem;
 }
 
 .header {
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
 }
 
 .title {
   font-family: var(--font-display);
-  font-size: 2.5rem;
-  margin-bottom: 0.5rem;
+  font-size: 2rem;
+  margin-bottom: 0.35rem;
   letter-spacing: -0.02em;
 }
 
 .profileCard {
   background: var(--surface);
-  border: 1px solid rgba(63, 63, 70, 0.4);
-  border-radius: 20px;
-  padding: 2.5rem;
-  margin-bottom: 1.5rem;
+  border: 1px solid var(--line-border);
+  border-radius: 14px;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
 }
 
 .avatarSection {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-  padding-bottom: 2rem;
-  border-bottom: 1px solid rgba(63, 63, 70, 0.3);
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--line-subtle);
 }
 
 .avatar {
-  width: 80px;
-  height: 80px;
-  border-radius: 20px;
+  width: 64px;
+  height: 64px;
+  border-radius: 14px;
   background: linear-gradient(135deg, rgba(34, 211, 238, 0.15), rgba(192, 132, 252, 0.15));
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2rem;
+  font-size: 1.5rem;
   font-weight: 700;
   color: var(--primary);
   flex-shrink: 0;
@@ -53,21 +53,21 @@
 
 .avatarName {
   font-family: var(--font-display);
-  font-size: 1.5rem;
+  font-size: 1.2rem;
   font-weight: 700;
   margin-bottom: 0.25rem;
 }
 
 .avatarEmail {
   color: var(--text-muted);
-  font-size: 0.9rem;
+  font-size: 0.86rem;
 }
 
 .memberBadge {
   display: inline-block;
   padding: 4px 12px;
   border-radius: 8px;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -79,12 +79,12 @@
 
 /* Form Fields */
 .formGroup {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .formLabel {
   display: block;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 600;
   color: var(--text-muted);
   margin-bottom: 0.5rem;
@@ -94,13 +94,13 @@
 
 .formInput {
   width: 100%;
-  padding: 12px 16px;
+  padding: 10px 12px;
   background: rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(63, 63, 70, 0.5);
+  border: 1px solid var(--line-border);
   border-radius: var(--radius);
   color: var(--text-main);
   font-family: var(--font-sans);
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -122,10 +122,10 @@
 }
 
 .saveBtn {
-  padding: 14px 32px;
+  padding: 11px 20px;
   border-radius: var(--radius);
   font-weight: 700;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border: none;
@@ -150,39 +150,39 @@
   align-items: center;
   gap: 0.5rem;
   margin-left: 1rem;
-  font-size: 0.9rem;
-  color: var(--success);
+  font-size: 0.86rem;
+  color: var(--success-ink);
 }
 
 .dangerZone {
   background: var(--surface);
-  border: 1px solid rgba(248, 113, 113, 0.2);
-  border-radius: 20px;
-  padding: 2rem;
+  border: 1px solid rgba(248, 113, 113, 0.32);
+  border-radius: 14px;
+  padding: 1.1rem;
 }
 
 .dangerTitle {
   font-family: var(--font-display);
   font-size: 1.1rem;
   font-weight: 600;
-  color: var(--danger);
+  color: var(--danger-ink);
   margin-bottom: 0.5rem;
 }
 
 .dangerText {
   color: var(--text-muted);
-  font-size: 0.9rem;
-  margin-bottom: 1rem;
+  font-size: 0.86rem;
+  margin-bottom: 0.75rem;
 }
 
 .dangerBtn {
-  padding: 10px 20px;
+  padding: 8px 14px;
   border-radius: var(--radius);
   border: 1px solid rgba(248, 113, 113, 0.3);
   background: transparent;
-  color: var(--danger);
+  color: var(--danger-ink);
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.86rem;
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -195,14 +195,22 @@
 /* Responsive */
 @media (max-width: 768px) {
   .profileContainer {
-    padding: 1rem;
+    padding: 0.75rem;
   }
   .title {
-    font-size: 1.75rem;
+    font-size: 1.3rem;
   }
   .profileCard {
-    padding: 1.5rem;
-    border-radius: 16px;
+    padding: 1rem;
+    border-radius: 12px;
+  }
+  .avatarName {
+    font-size: 1.02rem;
+  }
+  .avatarEmail,
+  .formInput,
+  .dangerText {
+    font-size: 0.82rem;
   }
   .formRow {
     grid-template-columns: 1fr;

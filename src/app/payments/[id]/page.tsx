@@ -19,6 +19,15 @@ type PaymentDetail = {
   itemTitle: string;
   itemSlug: string | null;
   manualInstructions: string | null;
+  estimatedVerificationMinutes: number;
+  supportContact: string;
+  paymentProofUrl: string | null;
+  paymentProofName: string | null;
+  paymentProofNote: string | null;
+  paymentProofSubmittedAt: string | null;
+  paymentProofVerifiedAt: string | null;
+  paymentProofRejectReason: string | null;
+  paymentProofRejectedAt: string | null;
 };
 
 type PageProps = {
@@ -67,11 +76,17 @@ function getPaymentFlow(status: string): PaymentFlow[] {
 }
 
 export default function PaymentDetailPage({ params }: PageProps) {
+  const MAX_PROOF_SIZE_BYTES = 8 * 1024 * 1024;
   const router = useRouter();
   const [id, setId] = useState("");
   const [payment, setPayment] = useState<PaymentDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [refreshTick, setRefreshTick] = useState(0);
+  const [proofFile, setProofFile] = useState<File | null>(null);
+  const [proofNote, setProofNote] = useState("");
+  const [proofSubmitting, setProofSubmitting] = useState(false);
+  const [proofFeedback, setProofFeedback] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   useEffect(() => {
     params.then((p) => setId(p.id));
@@ -107,12 +122,48 @@ export default function PaymentDetailPage({ params }: PageProps) {
       isMounted = false;
       clearInterval(interval);
     };
-  }, [id]);
+  }, [id, refreshTick]);
+
+  const uploadProof = async () => {
+    if (!id || !proofFile || proofSubmitting) return;
+    if (proofFile.size > MAX_PROOF_SIZE_BYTES) {
+      setProofFeedback({ type: "error", text: "Ukuran file melebihi batas 8MB." });
+      return;
+    }
+
+    setProofSubmitting(true);
+    setProofFeedback(null);
+    try {
+      const form = new FormData();
+      form.set("file", proofFile);
+      if (proofNote.trim()) form.set("note", proofNote.trim());
+
+      const res = await fetch(`/api/payments/${id}/proof`, {
+        method: "POST",
+        body: form,
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Gagal upload bukti pembayaran.");
+      }
+      setProofFeedback({ type: "success", text: "Bukti pembayaran berhasil diupload." });
+      setProofFile(null);
+      setRefreshTick((n) => n + 1);
+    } catch (err) {
+      setProofFeedback({ type: "error", text: (err as Error).message || "Gagal upload bukti pembayaran." });
+    } finally {
+      setProofSubmitting(false);
+    }
+  };
 
   if (loading) {
     return (
       <div className={styles.container}>
-        <div className={styles.card}>Loading payment status...</div>
+        <div className={`${styles.card} ${styles.skeletonCard}`}>
+          <div className={`${styles.skeletonLineLg} skeleton`} />
+          <div className={`${styles.skeletonLine} skeleton`} />
+          <div className={`${styles.skeletonLine} skeleton`} />
+        </div>
       </div>
     );
   }
@@ -121,7 +172,7 @@ export default function PaymentDetailPage({ params }: PageProps) {
     return (
       <div className={styles.container}>
         <div className={styles.card}>
-          <p style={{ color: "var(--danger)" }}>{error || "Payment not found."}</p>
+          <p className={styles.errorText}>{error || "Payment not found."}</p>
           <Link href="/payments" className={styles.link}>Back to payments</Link>
         </div>
       </div>
@@ -176,14 +227,72 @@ export default function PaymentDetailPage({ params }: PageProps) {
 
         {isPending && payment.provider === "MANUAL" && (
           <div className={styles.notice}>
-            <p><strong>Instruksi pembayaran manual:</strong></p>
+            <p className={styles.noticeTitle}><strong>Instruksi pembayaran manual</strong></p>
             <p>{payment.manualInstructions || "Silakan transfer manual dan kirim bukti ke admin."}</p>
-            <p className={styles.muted}>Status akan berubah otomatis setelah admin verifikasi.</p>
+            <p className={styles.muted}>
+              Estimasi verifikasi: ±{payment.estimatedVerificationMinutes} menit.
+              {payment.supportContact ? ` Jika mendesak, hubungi ${payment.supportContact}.` : ""}
+            </p>
+            {payment.paymentProofUrl ? (
+              <div className={styles.proofMeta}>
+                <p>
+                  <strong>Bukti sudah diupload</strong>
+                  {payment.paymentProofSubmittedAt
+                    ? ` (${new Date(payment.paymentProofSubmittedAt).toLocaleString("id-ID")})`
+                    : ""}
+                </p>
+                {payment.paymentProofNote ? <p className={styles.muted}>Catatan: {payment.paymentProofNote}</p> : null}
+                <a href={payment.paymentProofUrl} target="_blank" rel="noreferrer" className={styles.link}>
+                  Lihat bukti pembayaran
+                </a>
+              </div>
+            ) : (
+              <p className={styles.muted}>Belum ada bukti pembayaran yang diupload.</p>
+            )}
+            {payment.paymentProofRejectedAt ? (
+              <p className={styles.errorText}>
+                Bukti sebelumnya ditolak
+                {payment.paymentProofRejectReason ? `: ${payment.paymentProofRejectReason}` : "."}
+              </p>
+            ) : null}
+            <div className={styles.proofUpload}>
+              <label className={styles.proofLabel}>Upload bukti pembayaran (JPG/PNG/WEBP/PDF, max 8MB)</label>
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp,application/pdf"
+                className={styles.proofInput}
+                onChange={(e) => {
+                  const file = e.target.files?.[0] || null;
+                  setProofFile(file);
+                  setProofFeedback(null);
+                }}
+              />
+              <textarea
+                className={styles.proofTextarea}
+                placeholder="Catatan untuk admin (opsional)"
+                value={proofNote}
+                onChange={(e) => setProofNote(e.target.value)}
+              />
+              {proofFeedback ? (
+                <p className={proofFeedback.type === "error" ? styles.errorText : styles.successText}>{proofFeedback.text}</p>
+              ) : null}
+              <button
+                type="button"
+                className={styles.secondaryBtn}
+                onClick={() => {
+                  void uploadProof();
+                }}
+                disabled={!proofFile || proofSubmitting}
+              >
+                {proofSubmitting ? "Mengupload..." : "Kirim Bukti Pembayaran"}
+              </button>
+            </div>
           </div>
         )}
 
         {isPending && payment.checkoutUrl && (
           <div className={styles.notice}>
+            <p className={styles.noticeTitle}><strong>Lanjutkan pembayaran</strong></p>
             <p>Pembayaran belum selesai. Lanjutkan checkout di gateway.</p>
             <a href={payment.checkoutUrl} className={styles.primaryBtn}>
               Lanjutkan Pembayaran

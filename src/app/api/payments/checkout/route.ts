@@ -5,14 +5,19 @@ import { db } from "@/db";
 import { payments } from "@/db/schema";
 import { getRuntimePaymentSettings } from "@/lib/payment-settings";
 import crypto from "crypto";
+import { enforceRateLimit } from "@/lib/rate-limit";
+import { logError } from "@/lib/logger";
 
 const PAID_TIERS = ["LIFETIME"] as const;
 
 export async function POST(request: NextRequest) {
+  const limited = enforceRateLimit(request, { namespace: "payments:lifetime-checkout", limit: 20, windowMs: 60_000 });
+  if (limited) return limited;
+
   try {
     const session = await requireAuth();
     const body = await request.json();
-    const tier = String(body.tier || "").toUpperCase();
+    const tier = typeof body?.tier === "string" ? body.tier.trim().toUpperCase() : "";
     if (!PAID_TIERS.includes(tier as (typeof PAID_TIERS)[number])) {
       return NextResponse.json({ error: "Only one-time LIFETIME checkout is supported" }, { status: 400 });
     }
@@ -86,6 +91,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     if (error instanceof Response) throw error;
+    logError("payments.checkout.failed", error);
     return NextResponse.json({ error: (error as Error).message || "Failed to create checkout" }, { status: 500 });
   }
 }

@@ -27,6 +27,14 @@ function formatStatus(status: string) {
   return value;
 }
 
+function statusIcon(status: string) {
+  const value = status.toUpperCase();
+  if (value === "PAID") return "✓";
+  if (value === "PENDING") return "!";
+  if (value === "FAILED" || value === "EXPIRED") return "×";
+  return "•";
+}
+
 export default function PaymentsPage() {
   const [items, setItems] = useState<PaymentListItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,7 +55,11 @@ export default function PaymentsPage() {
 
       <div className={styles.card}>
         {loading ? (
-          <div className={styles.empty}>Loading payments...</div>
+          <div className={styles.skeletonList}>
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className={`${styles.skeletonCard} skeleton`} />
+            ))}
+          </div>
         ) : items.length === 0 ? (
           <div className={styles.empty}>
             Belum ada pembayaran.{" "}
@@ -56,7 +68,8 @@ export default function PaymentsPage() {
             </Link>
           </div>
         ) : (
-          <div className={styles.tableWrap}>
+          <>
+          <div className={`${styles.tableWrap} ${styles.desktopTable}`}>
             <table className={styles.table}>
               <thead>
                 <tr>
@@ -74,6 +87,7 @@ export default function PaymentsPage() {
                     <td>{item.itemTitle}</td>
                     <td>
                       <span className={`${styles.status} ${styles[`status${item.status.toUpperCase()}`] || ""}`}>
+                        <span className={styles.statusIcon} aria-hidden>{statusIcon(item.status)}</span>
                         {formatStatus(item.status)}
                       </span>
                     </td>
@@ -90,6 +104,28 @@ export default function PaymentsPage() {
               </tbody>
             </table>
           </div>
+          <div className={styles.mobileList}>
+            {items.map((item) => (
+              <article key={item.id} className={styles.mobileCard}>
+                <div className={styles.mobileHead}>
+                  <h3 className={styles.mobileTitle}>{item.itemTitle}</h3>
+                  <span className={`${styles.status} ${styles[`status${item.status.toUpperCase()}`] || ""}`}>
+                    <span className={styles.statusIcon} aria-hidden>{statusIcon(item.status)}</span>
+                    {formatStatus(item.status)}
+                  </span>
+                </div>
+                <div className={styles.mobileMeta}>
+                  <span>Provider: {item.provider}</span>
+                  <span>Rp {Number(item.amount).toLocaleString("id-ID")}</span>
+                  <span>{new Date(item.createdAt).toLocaleDateString("id-ID")}</span>
+                </div>
+                <Link href={`/payments/${item.id}`} className={styles.mobileCta}>
+                  Lihat Detail
+                </Link>
+              </article>
+            ))}
+          </div>
+          </>
         )}
       </div>
     </div>

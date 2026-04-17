@@ -79,11 +79,11 @@ export default function DashboardPage() {
         <h1 className={styles.title}>
           Welcome back, {session?.user?.name || "Learner"}!
         </h1>
-        <p style={{ color: "var(--text-muted)" }}>Here is your learning overview.</p>
-        <Link href="/payments" style={{ color: "var(--primary)", fontWeight: 600, fontSize: "0.92rem" }}>
+        <p className={styles.subtitle}>Here is your learning overview.</p>
+        <Link href="/payments" className={styles.paymentLink}>
           Cek progres pembayaran &rarr;
         </Link>
-        {error && <p style={{ color: "var(--danger)", marginTop: "0.5rem" }}>{error}</p>}
+        {error && <p className={styles.errorText}>{error}</p>}
       </div>
 
       <div className={styles.statsGrid}>
@@ -115,7 +115,7 @@ export default function DashboardPage() {
         <div className={styles.sectionBox}>
           <div className={styles.sectionHeader}>
             <h2 className={styles.sectionTitle}>Continue Learning</h2>
-            <Link href="/courses" style={{ color: "var(--primary)", fontSize: "0.9rem" }}>Browse Catalog &rarr;</Link>
+            <Link href="/courses" className={styles.sectionLink}>Browse Catalog &rarr;</Link>
           </div>
 
           {dashboard?.continueLearning && dashboard.continueLearning.length > 0 ? (
@@ -126,7 +126,7 @@ export default function DashboardPage() {
                   <div className={styles.courseMeta}>{course.lastModule} • {course.lastVideo}</div>
                 </div>
                 <div className={styles.courseProgress}>
-                  <span style={{ fontSize: "0.85rem", fontWeight: "bold" }}>{course.progressPct}%</span>
+                  <span className={styles.progressPct}>{course.progressPct}%</span>
                   <div className={styles.progressBar}>
                     <div className={styles.progressFill} style={{ width: `${course.progressPct}%` }}></div>
                   </div>
@@ -134,8 +134,8 @@ export default function DashboardPage() {
               </Link>
             ))
           ) : (
-            <div style={{ padding: "2rem 0", color: "var(--text-muted)", textAlign: "center" }}>
-              No courses in progress yet. <Link href="/courses" style={{ color: "var(--primary)" }}>Start learning!</Link>
+            <div className={styles.emptyState}>
+              No courses in progress yet. <Link href="/courses" className={styles.inlineLink}>Start learning!</Link>
             </div>
           )}
         </div>
@@ -151,19 +151,19 @@ export default function DashboardPage() {
               dashboard.certificates.map((cert) => (
                 <div key={cert.id} className={styles.certCard}>
                   <div className={styles.certIcon}>🏆</div>
-                  <div>
-                    <div style={{ fontWeight: 500, fontSize: "0.95rem" }}>{cert.course.title}</div>
-                    <div style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>
+                  <div className={styles.certInfo}>
+                    <div className={styles.certTitle}>{cert.course.title}</div>
+                    <div className={styles.certMeta}>
                       Score: {parseFloat(cert.score).toFixed(0)}% • {new Date(cert.issuedAt).toLocaleDateString("id-ID", { month: "short", year: "numeric" })}
                     </div>
-                    <div style={{ fontSize: "0.75rem", color: "var(--primary)", marginTop: "0.25rem" }}>
+                    <div className={styles.certNumber}>
                       {cert.certificateNumber}
                     </div>
                   </div>
                 </div>
               ))
             ) : (
-              <div style={{ padding: "2rem 0", color: "var(--text-muted)", textAlign: "center", gridColumn: "1/-1" }}>
+              <div className={styles.emptyState}>
                 No certificates yet. Complete a course to earn one!
               </div>
             )}

@@ -67,9 +67,7 @@ export default function MyCoursesPage() {
   if (loading) {
     return (
       <div className={styles.myCoursesContainer}>
-        <div style={{ textAlign: "center", padding: "4rem 0", color: "var(--text-muted)" }}>
-          Loading your courses...
-        </div>
+        <div className={styles.loadingState}>Loading your courses...</div>
       </div>
     );
   }
@@ -78,10 +76,10 @@ export default function MyCoursesPage() {
     <div className={styles.myCoursesContainer}>
       <div className={styles.header}>
         <h1 className={styles.title}>My Courses</h1>
-        <p style={{ color: "var(--text-muted)" }}>
+        <p className={styles.subtitle}>
           Welcome back, {session?.user?.name || "Learner"}! Continue where you left off.
         </p>
-        {error && <p style={{ color: "var(--danger)", marginTop: "0.5rem" }}>{error}</p>}
+        {error && <p className={styles.errorText}>{error}</p>}
       </div>
 
       <div className={styles.filterTabs}>
@@ -124,19 +122,23 @@ export default function MyCoursesPage() {
                 </div>
               </div>
               <div className={styles.courseBody}>
-                <div className={styles.courseCategory}>{course.category}</div>
+                <div className={styles.courseTop}>
+                  <div className={styles.courseCategory}>{course.category}</div>
+                  {course.progressPct >= 100 ? (
+                    <span className={styles.completeBadge}>Complete</span>
+                  ) : (
+                    <span className={styles.progressText}>{course.progressPct}%</span>
+                  )}
+                </div>
                 <div className={styles.courseName}>{course.title}</div>
+                <div className={styles.lastLesson}>
+                  {course.lastModule ? `Last: ${course.lastModule}` : "Start learning now"}
+                </div>
                 <div className={styles.courseStats}>
                   <span>
                     {course.completedVideos}/{course.totalVideos} videos
                   </span>
-                  {course.progressPct >= 100 ? (
-                    <span className={styles.completeBadge}>✅ Complete</span>
-                  ) : (
-                    <span className={styles.progressText} style={{ color: "var(--primary)" }}>
-                      {course.progressPct}%
-                    </span>
-                  )}
+                  <span>{Math.max(course.progressPct, 0)}% progress</span>
                 </div>
               </div>
             </Link>

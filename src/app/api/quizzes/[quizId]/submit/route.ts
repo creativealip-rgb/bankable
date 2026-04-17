@@ -1,15 +1,35 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { quizzes, quizAttempts, certificates } from "@/db/schema";
-import { eq, and } from "drizzle-orm";
+import { quizzes, quizAttempts, certificates, videoProgress } from "@/db/schema";
+import { eq, and, inArray } from "drizzle-orm";
 import { requireMember } from "@/lib/auth-helpers";
 import crypto from "crypto";
 import { generateCertificateNumber, getCertificatePdfPath } from "@/lib/certificates";
+import { hasCourseLearningAccess } from "@/lib/course-entitlement";
+import { enforceRateLimit } from "@/lib/rate-limit";
+import { logError } from "@/lib/logger";
 
 type RouteParams = { params: Promise<{ quizId: string }> };
+const MAX_CERTIFICATE_INSERT_RETRIES = 5;
+
+function isCertificateNumberConflict(error: unknown) {
+  if (!error || typeof error !== "object") return false;
+  const maybeError = error as {
+    code?: string;
+    constraint?: string;
+    cause?: { code?: string; constraint?: string };
+  };
+  const code = maybeError.code ?? maybeError.cause?.code;
+  if (code !== "23505") return false;
+  const constraint = maybeError.constraint ?? maybeError.cause?.constraint;
+  return typeof constraint === "string" ? constraint.includes("certificate_number") : true;
+}
 
 // POST /api/quizzes/[quizId]/submit — Submit quiz answers
 export async function POST(request: NextRequest, { params }: RouteParams) {
+  const limited = enforceRateLimit(request, { namespace: "quiz:submit", limit: 30, windowMs: 60_000 });
+  if (limited) return limited;
+
   const { quizId } = await params;
 
   try {
@@ -20,18 +40,66 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     if (!answers || !Array.isArray(answers)) {
       return NextResponse.json({ error: "Answers array is required" }, { status: 400 });
     }
+    if (answers.length > 200) {
+      return NextResponse.json({ error: "Too many answers submitted" }, { status: 400 });
+    }
 
     // Get quiz with questions and course
     const quiz = await db.query.quizzes.findFirst({
       where: eq(quizzes.id, quizId),
       with: {
         questions: true,
-        course: true,
+        course: {
+          with: {
+            modules: {
+              with: {
+                videos: {
+                  columns: { id: true },
+                },
+              },
+            },
+          },
+        },
       },
     });
 
     if (!quiz) {
       return NextResponse.json({ error: "Quiz not found" }, { status: 404 });
+    }
+    if (quiz.course.status !== "PUBLISHED") {
+      return NextResponse.json({ error: "Quiz not found" }, { status: 404 });
+    }
+
+    const hasAccess = await hasCourseLearningAccess({
+      userId: session.user.id,
+      courseSlug: quiz.course.slug,
+      price: quiz.course.price,
+    });
+    if (!hasAccess) {
+      return NextResponse.json({ error: "Active access is required for this course" }, { status: 403 });
+    }
+
+    const allVideoIds = quiz.course.modules.flatMap((m) => m.videos.map((v) => v.id));
+    if (allVideoIds.length > 0) {
+      const completedRows = await db.query.videoProgress.findMany({
+        where: and(
+          eq(videoProgress.userId, session.user.id),
+          eq(videoProgress.isCompleted, true),
+          inArray(videoProgress.videoId, allVideoIds)
+        ),
+        columns: { videoId: true },
+      });
+      const completedVideoIds = new Set(completedRows.map((row) => row.videoId));
+      if (completedVideoIds.size < allVideoIds.length) {
+        return NextResponse.json(
+          {
+            error: "You must complete all videos before submitting the quiz",
+            completedVideos: completedVideoIds.size,
+            totalVideos: allVideoIds.length,
+          },
+          { status: 403 }
+        );
+      }
     }
 
     // Check max attempts
@@ -121,20 +189,29 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       });
 
       if (!existingCert) {
-        const certNumber = generateCertificateNumber(quiz.course.slug);
-
-        [certificate] = await db
-          .insert(certificates)
-          .values({
-            id: crypto.randomUUID(),
-            userId: session.user.id,
-            courseId: quiz.course.id,
-            quizAttemptId: attempt.id,
-            certificateNumber: certNumber,
-            score: String(scorePercent.toFixed(2)),
-            pdfUrl: getCertificatePdfPath(certNumber),
-          })
-          .returning();
+        for (let i = 0; i < MAX_CERTIFICATE_INSERT_RETRIES; i++) {
+          const certNumber = generateCertificateNumber(quiz.course.slug);
+          try {
+            [certificate] = await db
+              .insert(certificates)
+              .values({
+                id: crypto.randomUUID(),
+                userId: session.user.id,
+                courseId: quiz.course.id,
+                quizAttemptId: attempt.id,
+                certificateNumber: certNumber,
+                score: String(scorePercent.toFixed(2)),
+                pdfUrl: getCertificatePdfPath(certNumber),
+              })
+              .returning();
+            break;
+          } catch (insertError) {
+            if (isCertificateNumberConflict(insertError) && i < MAX_CERTIFICATE_INSERT_RETRIES - 1) {
+              continue;
+            }
+            throw insertError;
+          }
+        }
       }
     }
 
@@ -157,7 +234,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     });
   } catch (error) {
     if (error instanceof Response) throw error;
-    console.error("Failed to submit quiz:", error);
+    logError("quiz.submit.failed", error, { quizId });
     return NextResponse.json({ error: "Failed to submit quiz" }, { status: 500 });
   }
 }

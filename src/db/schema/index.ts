@@ -33,3 +33,6 @@ export {
 
 // Sidebar content tables
 export { sidebarItems } from "./sidebar-content";
+
+// Audit log tables
+export { adminAuditLogs, adminAuditLogsRelations } from "./admin-audit-logs";

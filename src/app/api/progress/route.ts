@@ -1,10 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { videoProgress, videos, courses } from "@/db/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, inArray } from "drizzle-orm";
 import { requireMember } from "@/lib/auth-helpers";
-import { hasPaidCourseAccess } from "@/lib/course-access";
+import { hasCourseLearningAccess } from "@/lib/course-entitlement";
 import crypto from "crypto";
+
+function isTrackableVideoSource(url: string | null): boolean {
+  const value = (url || "").trim().toLowerCase();
+  if (!value) return false;
+  if (value.startsWith("blob:")) return true;
+  const normalized = value.split("?")[0];
+  return normalized.endsWith(".mp4") || normalized.endsWith(".webm") || normalized.endsWith(".ogg");
+}
 
 // GET /api/progress?courseSlug=xxx — Get user's progress for a course
 export async function GET(request: NextRequest) {
@@ -35,27 +43,24 @@ export async function GET(request: NextRequest) {
     if (!course) {
       return NextResponse.json({ error: "Course not found" }, { status: 404 });
     }
-    const isPaidCourse = Number(course.price || 0) > 0;
-    if (isPaidCourse) {
-      const hasAccess = await hasPaidCourseAccess(session.user.id, course.slug);
-      if (!hasAccess) {
-        return NextResponse.json({ error: "Premium access required for this course" }, { status: 403 });
-      }
+    const hasAccess = await hasCourseLearningAccess({
+      userId: session.user.id,
+      courseSlug: course.slug,
+      price: course.price,
+    });
+    if (!hasAccess) {
+      return NextResponse.json({ error: "Active access is required for this course" }, { status: 403 });
     }
 
     // Get all video IDs for this course
     const videoIds = course.modules.flatMap((m) => m.videos.map((v) => v.id));
 
     // Get user's progress for these videos
-    const progress = await db.query.videoProgress.findMany({
-      where: and(
-        eq(videoProgress.userId, session.user.id),
-        // We'll filter in JS since IN with Drizzle needs special handling
-      ),
-    });
-
-    // Filter to only this course's videos
-    const courseProgress = progress.filter((p) => videoIds.includes(p.videoId));
+    const courseProgress = videoIds.length
+      ? await db.query.videoProgress.findMany({
+          where: and(eq(videoProgress.userId, session.user.id), inArray(videoProgress.videoId, videoIds)),
+        })
+      : [];
 
     // Build a map of videoId → progress
     const progressMap: Record<string, typeof courseProgress[number]> = {};
@@ -110,19 +115,32 @@ export async function POST(request: NextRequest) {
     if (!video) {
       return NextResponse.json({ error: "Video not found" }, { status: 404 });
     }
-    const isPaidCourse = Number(video.module.course.price || 0) > 0;
-    if (isPaidCourse) {
-      const hasAccess = await hasPaidCourseAccess(session.user.id, video.module.course.slug);
-      if (!hasAccess) {
-        return NextResponse.json({ error: "Premium access required for this course" }, { status: 403 });
-      }
+    const hasAccess = await hasCourseLearningAccess({
+      userId: session.user.id,
+      courseSlug: video.module.course.slug,
+      price: video.module.course.price,
+    });
+    if (!hasAccess) {
+      return NextResponse.json({ error: "Active access is required for this course" }, { status: 403 });
     }
 
+    const isTrackable = isTrackableVideoSource(video.url);
+    const duration = Math.max(video.duration || 0, 0);
+    const requestedPosition = Number(lastPosition ?? 0);
+    const sanitizedRequestedPosition = Number.isFinite(requestedPosition)
+      ? Math.max(0, Math.min(Math.floor(requestedPosition), duration))
+      : 0;
+    const pctFromPosition = duration > 0 ? (sanitizedRequestedPosition / duration) * 100 : 0;
+    const clientPct = Number(watchedPct ?? 0);
+    const sanitizedClientPct = Number.isFinite(clientPct) ? Math.max(0, Math.min(clientPct, 100)) : 0;
     const minPct = video.module.course.minWatchPct;
-    const pct = parseFloat(watchedPct || "0");
-    const isCompleted = pct >= minPct;
 
-    // Check if progress exists
+    // For untrackable sources (youtube/pdf/audio), we still allow manual progress input from client.
+    const desiredPct = isTrackable ? pctFromPosition : Math.max(pctFromPosition, sanitizedClientPct);
+
+    let effectivePct = desiredPct;
+    let effectivePosition = sanitizedRequestedPosition;
+
     const existing = await db.query.videoProgress.findFirst({
       where: and(
         eq(videoProgress.userId, session.user.id),
@@ -131,13 +149,23 @@ export async function POST(request: NextRequest) {
     });
 
     if (existing) {
-      // Only update if new progress is higher (no going backwards)
       const existingPct = parseFloat(String(existing.watchedPct));
+      // Anti-cheat guard for trackable sources: cap forward jump to 3 minutes per save.
+      if (isTrackable && effectivePosition > existing.lastPosition + 180) {
+        effectivePosition = Math.min(existing.lastPosition + 180, duration);
+        effectivePct = duration > 0 ? (effectivePosition / duration) * 100 : effectivePct;
+      }
+      effectivePct = Math.max(existingPct, effectivePct);
+    }
+
+    const isCompleted = effectivePct >= minPct;
+
+    if (existing) {
       const [updated] = await db
         .update(videoProgress)
         .set({
-          watchedPct: pct > existingPct ? String(pct) : String(existingPct),
-          lastPosition: lastPosition ?? existing.lastPosition,
+          watchedPct: String(effectivePct),
+          lastPosition: Math.max(existing.lastPosition, effectivePosition),
           isCompleted: existing.isCompleted || isCompleted,
           updatedAt: new Date(),
         })
@@ -153,8 +181,8 @@ export async function POST(request: NextRequest) {
           id: crypto.randomUUID(),
           userId: session.user.id,
           videoId,
-          watchedPct: String(pct),
-          lastPosition: lastPosition ?? 0,
+          watchedPct: String(effectivePct),
+          lastPosition: effectivePosition,
           isCompleted,
         })
         .returning();

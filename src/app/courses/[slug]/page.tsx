@@ -46,7 +46,9 @@ type CourseDetail = {
   totalVideos: number;
   totalDuration: number;
   totalModules: number;
+  isPaidOffering?: boolean;
   hasPremiumAccess?: boolean;
+  hasMainAccess?: boolean;
 };
 
 function formatDuration(seconds: number): string {
@@ -87,7 +89,7 @@ type PageProps = {
 };
 
 export default function CourseDetailPage({ params }: PageProps) {
-  const { data: session } = useSession();
+  const { data: session, isPending } = useSession();
   const router = useRouter();
   const [slug, setSlug] = useState<string>("");
   const [course, setCourse] = useState<CourseDetail | null>(null);
@@ -95,13 +97,53 @@ export default function CourseDetailPage({ params }: PageProps) {
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set());
   const [buying, setBuying] = useState(false);
   const [checkoutError, setCheckoutError] = useState("");
+  const [accessChecked, setAccessChecked] = useState(false);
 
   useEffect(() => {
     params.then((p) => setSlug(p.slug));
   }, [params]);
 
   useEffect(() => {
-    if (!slug) return;
+    if (!slug || isPending) return;
+
+    const role = (session?.user as Record<string, unknown> | undefined)?.role as string | undefined;
+    const isAdmin = role === "ADMIN" || role === "SUPER_ADMIN";
+    if (isAdmin) {
+      setAccessChecked(true);
+      return;
+    }
+
+    if (!session) {
+      router.replace("/pricing");
+      return;
+    }
+
+    let cancelled = false;
+    async function ensureMainAccess() {
+      try {
+        const res = await fetch("/api/access/main");
+        if (!res.ok) {
+          router.replace("/pricing");
+          return;
+        }
+        const data = await res.json();
+        if (!data.hasMainAccess) {
+          router.replace("/pricing");
+          return;
+        }
+        if (!cancelled) setAccessChecked(true);
+      } catch {
+        router.replace("/pricing");
+      }
+    }
+    void ensureMainAccess();
+    return () => {
+      cancelled = true;
+    };
+  }, [slug, isPending, session, router]);
+
+  useEffect(() => {
+    if (!slug || !accessChecked) return;
 
     async function fetchCourse() {
       try {
@@ -121,7 +163,7 @@ export default function CourseDetailPage({ params }: PageProps) {
       }
     }
     fetchCourse();
-  }, [slug]);
+  }, [slug, accessChecked]);
 
   const toggleModule = (moduleId: string) => {
     setExpandedModules((prev) => {
@@ -135,7 +177,7 @@ export default function CourseDetailPage({ params }: PageProps) {
     });
   };
 
-  if (loading) {
+  if (isPending || !accessChecked || loading) {
     return (
       <div className={styles.detailContainer}>
         <div style={{ textAlign: "center", padding: "4rem 0", color: "var(--text-muted)", gridColumn: "1/-1" }}>
@@ -159,11 +201,13 @@ export default function CourseDetailPage({ params }: PageProps) {
   }
 
   const quiz = course.quiz?.[0];
-  const isPaidCourse = Number(course.price || 0) > 0;
+  const isPaidCourse = Boolean(course.isPaidOffering ?? Number(course.price || 0) > 0);
   const hasPremiumAccess = Boolean(course.hasPremiumAccess);
+  const hasMainAccess = course.hasMainAccess !== false;
+  const hasCourseAccess = isPaidCourse ? hasPremiumAccess : hasMainAccess;
 
-  const handleBuyPremium = async () => {
-    if (!isPaidCourse || buying) return;
+  const handleCheckout = async (mode: "PREMIUM" | "LIFETIME") => {
+    if ((mode === "PREMIUM" && !isPaidCourse) || buying) return;
     setCheckoutError("");
 
     if (!session) {
@@ -173,14 +217,16 @@ export default function CourseDetailPage({ params }: PageProps) {
 
     setBuying(true);
     try {
-      const res = await fetch("/api/payments/premium-checkout", {
+      const endpoint = mode === "PREMIUM" ? "/api/payments/premium-checkout" : "/api/payments/checkout";
+      const payload = mode === "PREMIUM" ? { courseSlug: course.slug } : { tier: "LIFETIME" };
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ courseSlug: course.slug }),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error || "Failed to create premium checkout");
+        throw new Error(data.error || "Failed to create checkout");
       }
       if (!data.paymentId) {
         throw new Error("Payment reference tidak tersedia.");
@@ -191,7 +237,7 @@ export default function CourseDetailPage({ params }: PageProps) {
       }
     } catch (error) {
       console.error(error);
-      setCheckoutError(error instanceof Error ? error.message : "Gagal membuat checkout premium. Coba lagi.");
+      setCheckoutError(error instanceof Error ? error.message : "Gagal membuat checkout. Coba lagi.");
     } finally {
       setBuying(false);
     }
@@ -286,97 +332,111 @@ export default function CourseDetailPage({ params }: PageProps) {
 
       {/* Sidebar */}
       <div className={styles.sidebar}>
-        {/* Enroll Card */}
-        <div className={styles.enrollCard}>
-          <div className={`${styles.priceTag} ${isPaidCourse ? styles.pricePaid : styles.priceFree}`}>
-            {isPaidCourse ? `Rp${formatPrice(course.price)}` : "Included"}
-          </div>
-          <p className={styles.priceSubtext}>
-            {isPaidCourse
-              ? hasPremiumAccess
-                ? "Akses premium kamu sudah aktif untuk konten ini."
-                : "Konten premium berbayar terpisah dari paket one-time access."
-              : "Akses penuh sudah termasuk dalam pembelian sekali bayar."}
-          </p>
-          {checkoutError ? (
-            <p className={styles.checkoutError} role="alert">
-              {checkoutError}
+        <div className={styles.sidebarInner}>
+          {/* Enroll Card */}
+          <div className={styles.enrollCard}>
+            <div className={`${styles.priceTag} ${isPaidCourse ? styles.pricePaid : styles.priceFree}`}>
+              {isPaidCourse ? `Rp${formatPrice(course.price)}` : "Included"}
+            </div>
+            <p className={styles.priceSubtext}>
+              {isPaidCourse
+                ? hasPremiumAccess
+                  ? "Akses premium kamu sudah aktif untuk konten ini."
+                  : "Konten premium berbayar terpisah dari paket one-time access."
+                : hasMainAccess
+                  ? "Akses penuh sudah termasuk dalam pembelian sekali bayar."
+                  : "Akses konten ini membutuhkan aktivasi one-time access terlebih dulu."}
             </p>
-          ) : null}
-          {isPaidCourse && !hasPremiumAccess ? (
-            <button
-              type="button"
-              onClick={handleBuyPremium}
-              className={styles.enrollBtn}
-              style={{ width: "100%" }}
-              disabled={buying}
-            >
-              {buying ? "Memproses..." : "Beli Akses Premium"}
-            </button>
-          ) : (
-            <Link
-              href={`/my-courses/${course.slug}`}
-              className={styles.enrollBtn}
-              style={{ display: "block", textDecoration: "none" }}
-            >
-              Start Course
-            </Link>
+            {checkoutError ? (
+              <p className={styles.checkoutError} role="alert">
+                {checkoutError}
+              </p>
+            ) : null}
+            {isPaidCourse && !hasPremiumAccess ? (
+              <button
+                type="button"
+                onClick={() => handleCheckout("PREMIUM")}
+                className={styles.enrollBtn}
+                style={{ width: "100%" }}
+                disabled={buying}
+              >
+                {buying ? "Memproses..." : "Beli Akses Premium"}
+              </button>
+            ) : !isPaidCourse && !hasMainAccess ? (
+              <button
+                type="button"
+                onClick={() => handleCheckout("LIFETIME")}
+                className={styles.enrollBtn}
+                style={{ width: "100%" }}
+                disabled={buying}
+              >
+                {buying ? "Memproses..." : "Aktifkan Akses Member"}
+              </button>
+            ) : (
+              <Link
+                href={`/my-courses/${course.slug}`}
+                className={styles.enrollBtn}
+                style={{ display: "block", textDecoration: "none" }}
+              >
+                Start Course
+              </Link>
+            )}
+            <ul className={styles.courseInfoList}>
+              <li className={styles.courseInfoItem}>
+                <span className={styles.courseInfoIcon}>🎬</span>
+                <span>{course.totalVideos} video lessons</span>
+              </li>
+              <li className={styles.courseInfoItem}>
+                <span className={styles.courseInfoIcon}>⏱️</span>
+                <span>{formatDuration(course.totalDuration)} total</span>
+              </li>
+              <li className={styles.courseInfoItem}>
+                <span className={styles.courseInfoIcon}>📊</span>
+                <span>{course.level} level</span>
+              </li>
+              <li className={styles.courseInfoItem}>
+                <span className={styles.courseInfoIcon}>📝</span>
+                <span>{quiz ? "Quiz & Certificate tersedia" : "No quiz"}</span>
+              </li>
+              <li className={styles.courseInfoItem}>
+                <span className={styles.courseInfoIcon}>♾️</span>
+                <span>{hasCourseAccess ? "Full lifetime access" : "Akses setelah pembelian"}</span>
+              </li>
+            </ul>
+          </div>
+
+          {/* Quiz Info */}
+          {quiz && (
+            <div className={styles.quizInfoCard}>
+              <div className={styles.quizInfoTitle}>📝 Final Quiz</div>
+              <div className={styles.quizInfoItem}>
+                <span>Passing Grade</span>
+                <span style={{ fontWeight: 600, color: "var(--text-main)" }}>{quiz.passingGrade}%</span>
+              </div>
+              <div className={styles.quizInfoItem}>
+                <span>Time Limit</span>
+                <span style={{ fontWeight: 600, color: "var(--text-main)" }}>{quiz.timeLimit} min</span>
+              </div>
+              <div className={styles.quizInfoItem}>
+                <span>Max Attempts</span>
+                <span style={{ fontWeight: 600, color: "var(--text-main)" }}>{quiz.maxAttempts}</span>
+              </div>
+            </div>
           )}
-          <ul className={styles.courseInfoList}>
-            <li className={styles.courseInfoItem}>
-              <span className={styles.courseInfoIcon}>🎬</span>
-              <span>{course.totalVideos} video lessons</span>
-            </li>
-            <li className={styles.courseInfoItem}>
-              <span className={styles.courseInfoIcon}>⏱️</span>
-              <span>{formatDuration(course.totalDuration)} total</span>
-            </li>
-            <li className={styles.courseInfoItem}>
-              <span className={styles.courseInfoIcon}>📊</span>
-              <span>{course.level} level</span>
-            </li>
-            <li className={styles.courseInfoItem}>
-              <span className={styles.courseInfoIcon}>📝</span>
-              <span>{quiz ? "Quiz & Certificate tersedia" : "No quiz"}</span>
-            </li>
-            <li className={styles.courseInfoItem}>
-              <span className={styles.courseInfoIcon}>♾️</span>
-              <span>{isPaidCourse && !hasPremiumAccess ? "Akses setelah pembelian" : "Full lifetime access"}</span>
-            </li>
-          </ul>
+
+          {/* Instructor */}
+          {course.createdBy && (
+            <div className={styles.instructorCard}>
+              <div className={styles.instructorAvatar}>
+                {course.createdBy.name?.charAt(0)?.toUpperCase() || "?"}
+              </div>
+              <div>
+                <div className={styles.instructorName}>{course.createdBy.name}</div>
+                <div className={styles.instructorRole}>Instructor</div>
+              </div>
+            </div>
+          )}
         </div>
-
-        {/* Quiz Info */}
-        {quiz && (
-          <div className={styles.quizInfoCard}>
-            <div className={styles.quizInfoTitle}>📝 Final Quiz</div>
-            <div className={styles.quizInfoItem}>
-              <span>Passing Grade</span>
-              <span style={{ fontWeight: 600, color: "var(--text-main)" }}>{quiz.passingGrade}%</span>
-            </div>
-            <div className={styles.quizInfoItem}>
-              <span>Time Limit</span>
-              <span style={{ fontWeight: 600, color: "var(--text-main)" }}>{quiz.timeLimit} min</span>
-            </div>
-            <div className={styles.quizInfoItem}>
-              <span>Max Attempts</span>
-              <span style={{ fontWeight: 600, color: "var(--text-main)" }}>{quiz.maxAttempts}</span>
-            </div>
-          </div>
-        )}
-
-        {/* Instructor */}
-        {course.createdBy && (
-          <div className={styles.instructorCard}>
-            <div className={styles.instructorAvatar}>
-              {course.createdBy.name?.charAt(0)?.toUpperCase() || "?"}
-            </div>
-            <div>
-              <div className={styles.instructorName}>{course.createdBy.name}</div>
-              <div className={styles.instructorRole}>Instructor</div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

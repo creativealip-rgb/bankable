@@ -33,24 +33,69 @@ type AdminStats = {
     status: string;
     progressCount: number;
   }[];
+  memberGrowth: {
+    filters: {
+      range: string;
+      role: string;
+      memberStatus: string;
+    };
+    totals: {
+      registered: number;
+      becameMember: number;
+      conversionRate: number;
+      paidMember: number;
+      freeOnly: number;
+    };
+    timeline: {
+      periodKey: string;
+      periodLabel: string;
+      registered: number;
+      becameMember: number;
+      conversionRate: number;
+    }[];
+    recentConversions: {
+      userId: string;
+      name: string;
+      email: string;
+      role: string;
+      tier: string;
+      registeredAt: string;
+      becameMemberAt: string;
+    }[];
+  };
+  revenue: {
+    memberSignup: number;
+    premiumWebinar: number;
+    total: number;
+    memberSignupTransactions: number;
+    premiumWebinarTransactions: number;
+  };
 };
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [range, setRange] = useState("30D");
+  const [role, setRole] = useState("MEMBER");
+  const [memberStatus, setMemberStatus] = useState("ALL");
 
   useEffect(() => {
-    fetch("/api/admin/stats")
+    const params = new URLSearchParams({
+      range,
+      role,
+      memberStatus,
+    });
+    fetch(`/api/admin/stats?${params.toString()}`)
       .then((r) => r.json())
       .then((data) => setStats(data))
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, []);
+  }, [range, role, memberStatus]);
 
   if (loading) {
     return (
       <div className="admin-empty">
-        <div className="admin-loading-spinner" style={{ margin: "0 auto 1rem" }} />
+        <div className="admin-loading-spinner admin-loading-compact" />
         Loading analytics...
       </div>
     );
@@ -60,6 +105,7 @@ export default function AdminDashboard() {
 
   const maxCategoryCount = Math.max(...(stats.coursesByCategory.map(c => c.count)), 1);
   const maxCourseProgress = Math.max(...(stats.topCourses.map(c => c.progressCount)), 1);
+  const idr = new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 });
 
   return (
     <>
@@ -91,6 +137,93 @@ export default function AdminDashboard() {
         </div>
       </div>
 
+      <div className="admin-section">
+        <div className="admin-section-header">
+          <h3 className="admin-section-title">Signup → Member Conversion</h3>
+          <div className="admin-toolbar">
+            <select className="admin-search-input" value={range} onChange={(event) => setRange(event.target.value)}>
+              <option value="7D">7 hari</option>
+              <option value="30D">30 hari</option>
+              <option value="90D">90 hari</option>
+              <option value="180D">180 hari</option>
+              <option value="ALL">Semua waktu</option>
+            </select>
+            <select className="admin-search-input" value={role} onChange={(event) => setRole(event.target.value)}>
+              <option value="ALL">Semua role</option>
+              <option value="MEMBER">MEMBER</option>
+              <option value="ADMIN">ADMIN</option>
+              <option value="SUPER_ADMIN">SUPER_ADMIN</option>
+            </select>
+            <select className="admin-search-input" value={memberStatus} onChange={(event) => setMemberStatus(event.target.value)}>
+              <option value="ALL">Semua status</option>
+              <option value="PAID_MEMBER">Sudah jadi member</option>
+              <option value="FREE_ONLY">Belum jadi member</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="admin-stats-grid admin-stats-grid-3">
+          <div className="admin-stat-card">
+            <div className="admin-stat-label">User Daftar</div>
+            <div className="admin-stat-value">{stats.memberGrowth.totals.registered}</div>
+          </div>
+          <div className="admin-stat-card">
+            <div className="admin-stat-label">Jadi Member</div>
+            <div className="admin-stat-value admin-kpi-success">{stats.memberGrowth.totals.becameMember}</div>
+          </div>
+          <div className="admin-stat-card">
+            <div className="admin-stat-label">Conversion Rate</div>
+            <div className="admin-stat-value admin-kpi-secondary">{stats.memberGrowth.totals.conversionRate}%</div>
+          </div>
+        </div>
+
+        <div className="admin-stats-grid admin-stats-grid-3">
+          <div className="admin-stat-card">
+            <div className="admin-stat-label">Pendapatan Member</div>
+            <div className="admin-stat-value">{idr.format(stats.revenue.memberSignup)}</div>
+            <div className="admin-stat-change positive">{stats.revenue.memberSignupTransactions} transaksi</div>
+          </div>
+          <div className="admin-stat-card">
+            <div className="admin-stat-label">Pendapatan Webinar Premium</div>
+            <div className="admin-stat-value">{idr.format(stats.revenue.premiumWebinar)}</div>
+            <div className="admin-stat-change positive">{stats.revenue.premiumWebinarTransactions} transaksi</div>
+          </div>
+          <div className="admin-stat-card">
+            <div className="admin-stat-label">Total Pendapatan</div>
+            <div className="admin-stat-value admin-kpi-success">{idr.format(stats.revenue.total)}</div>
+          </div>
+        </div>
+
+        <div className="admin-table-wrapper">
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>Periode</th>
+                <th>User Daftar</th>
+                <th>Jadi Member</th>
+                <th>Conversion</th>
+              </tr>
+            </thead>
+            <tbody>
+              {stats.memberGrowth.timeline.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="admin-table-empty">Belum ada data pada filter ini.</td>
+                </tr>
+              ) : (
+                stats.memberGrowth.timeline.map((item) => (
+                  <tr key={item.periodKey}>
+                    <td>{item.periodLabel}</td>
+                    <td>{item.registered}</td>
+                    <td>{item.becameMember}</td>
+                    <td>{item.conversionRate}%</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       {/* Charts Row */}
       <div className="admin-chart-row">
         <div className="admin-section">
@@ -110,7 +243,7 @@ export default function AdminDashboard() {
             </div>
           ))}
           {stats.coursesByCategory.length === 0 && (
-            <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>No data yet</p>
+            <p className="admin-note">No data yet</p>
           )}
         </div>
 
@@ -131,7 +264,7 @@ export default function AdminDashboard() {
             </div>
           ))}
           {stats.topCourses.length === 0 && (
-            <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>No activity yet</p>
+            <p className="admin-note">No activity yet</p>
           )}
         </div>
       </div>
@@ -142,21 +275,13 @@ export default function AdminDashboard() {
           <div className="admin-section-header">
             <h3 className="admin-section-title">Users by Role</h3>
           </div>
-          <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+          <div className="admin-chip-grid">
             {stats.usersByRole.map((item) => (
-              <div key={item.role} style={{
-                padding: "1rem 1.5rem",
-                borderRadius: "12px",
-                background: "rgba(255,255,255,0.9)",
-                border: "1px solid rgba(63,63,70,0.3)",
-                textAlign: "center",
-                flex: "1",
-                minWidth: "100px"
-              }}>
-                <div style={{ fontSize: "1.5rem", fontWeight: 700, fontFamily: "var(--font-display)" }}>
+              <div key={item.role} className="admin-chip-card">
+                <div className="admin-chip-value">
                   {item.count}
                 </div>
-                <div className={`admin-badge-status ${item.role.toLowerCase()}`} style={{ marginTop: "0.5rem" }}>
+                <div className={`admin-badge-status admin-chip-badge ${item.role.toLowerCase()}`}>
                   {item.role}
                 </div>
               </div>
@@ -168,21 +293,13 @@ export default function AdminDashboard() {
           <div className="admin-section-header">
             <h3 className="admin-section-title">Course Status</h3>
           </div>
-          <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+          <div className="admin-chip-grid">
             {stats.coursesByStatus.map((item) => (
-              <div key={item.status} style={{
-                padding: "1rem 1.5rem",
-                borderRadius: "12px",
-                background: "rgba(255,255,255,0.9)",
-                border: "1px solid rgba(63,63,70,0.3)",
-                textAlign: "center",
-                flex: "1",
-                minWidth: "100px"
-              }}>
-                <div style={{ fontSize: "1.5rem", fontWeight: 700, fontFamily: "var(--font-display)" }}>
+              <div key={item.status} className="admin-chip-card">
+                <div className="admin-chip-value">
                   {item.count}
                 </div>
-                <div className={`admin-badge-status ${item.status.toLowerCase()}`} style={{ marginTop: "0.5rem" }}>
+                <div className={`admin-badge-status admin-chip-badge ${item.status.toLowerCase()}`}>
                   {item.status}
                 </div>
               </div>
@@ -210,24 +327,74 @@ export default function AdminDashboard() {
               {stats.recentUsers.map((user) => (
                 <tr key={user.id}>
                   <td>
-                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                      <div className="admin-user-avatar" style={{ width: 28, height: 28, fontSize: "0.7rem" }}>
+                    <div className="admin-inline-row">
+                      <div className="admin-user-avatar admin-user-avatar-sm">
                         {user.name.charAt(0).toUpperCase()}
                       </div>
                       {user.name}
                     </div>
                   </td>
-                  <td style={{ color: "var(--text-muted)" }}>{user.email}</td>
+                  <td className="admin-email-cell">{user.email}</td>
                   <td>
                     <span className={`admin-badge-status ${user.role.toLowerCase()}`}>
                       {user.role}
                     </span>
                   </td>
-                  <td style={{ color: "var(--text-muted)", whiteSpace: "nowrap" }}>
+                  <td className="admin-email-cell">
                     {new Date(user.createdAt).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}
                   </td>
                 </tr>
               ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div className="admin-section">
+        <div className="admin-section-header">
+          <h3 className="admin-section-title">Recent Member Conversions</h3>
+        </div>
+        <div className="admin-table-wrapper">
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Tier</th>
+                <th>Daftar</th>
+                <th>Jadi Member</th>
+              </tr>
+            </thead>
+            <tbody>
+              {stats.memberGrowth.recentConversions.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="admin-table-empty">Belum ada konversi member.</td>
+                </tr>
+              ) : (
+                stats.memberGrowth.recentConversions.map((row) => (
+                  <tr key={row.userId}>
+                    <td>
+                      <div className="admin-inline-row">
+                        <div className="admin-user-avatar admin-user-avatar-sm">{row.name.charAt(0).toUpperCase()}</div>
+                        <div>
+                          <div className="admin-name-strong">{row.name}</div>
+                          <div className="admin-email-cell">{row.email}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <span className={`admin-badge-status ${row.tier === "LIFETIME" || row.tier === "PREMIUM" || row.tier === "BASIC" ? "published" : "archived"}`}>
+                        {row.tier}
+                      </span>
+                    </td>
+                    <td className="admin-email-cell">
+                      {new Date(row.registeredAt).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}
+                    </td>
+                    <td className="admin-email-cell">
+                      {new Date(row.becameMemberAt).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

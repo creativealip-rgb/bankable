@@ -5,6 +5,8 @@
   --surface: #ffffff;
   --surface-hover: #eef4ff;
   --border: #d7e3f6;
+  --line-border: rgba(63, 63, 70, 0.32);
+  --line-subtle: rgba(63, 63, 70, 0.18);
   
   --primary: #2563eb;
   --primary-glow: rgba(37, 99, 235, 0.28);
@@ -17,6 +19,9 @@
   --success: #34d399;
   --warning: #facc15;
   --danger: #f87171;
+  --success-ink: #065f46;
+  --warning-ink: #854d0e;
+  --danger-ink: #991b1b;
 
   --font-sans: 'Inter', sans-serif;
   --font-display: 'Outfit', sans-serif;
@@ -151,6 +156,17 @@ button {
 
 .animate-fadeIn {
   animation: fadeIn 0.5s ease-out forwards;
+}
+
+.skeleton {
+  background: linear-gradient(90deg, rgba(148, 163, 184, 0.16) 25%, rgba(148, 163, 184, 0.28) 38%, rgba(148, 163, 184, 0.16) 58%);
+  background-size: 220% 100%;
+  animation: skeleton-shimmer 1.2s ease-in-out infinite;
+}
+
+@keyframes skeleton-shimmer {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
 }
 
 /* ============================================
@@ -492,6 +508,12 @@ main {
    RESPONSIVE
    ============================================ */
 @media (max-width: 768px) {
+  .btn-primary,
+  .btn-secondary {
+    padding: 11px 18px;
+    font-size: 0.86rem;
+  }
+
   .nav-container {
     padding: 0.7rem 0.85rem;
   }
@@ -657,7 +679,7 @@ main {
 
   .btn-primary,
   .btn-secondary {
-    padding: 12px 20px;
-    font-size: 0.9rem;
+    padding: 10px 16px;
+    font-size: 0.82rem;
   }
 }

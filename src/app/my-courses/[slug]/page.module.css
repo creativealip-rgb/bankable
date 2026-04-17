@@ -1,41 +1,53 @@
 .courseContainer {
   display: flex;
   min-height: calc(100vh - 80px);
-  max-width: 1600px;
+  max-width: 1460px;
   margin: 0 auto;
-  border-left: 1px solid rgba(63, 63, 70, 0.3);
-  border-right: 1px solid rgba(63, 63, 70, 0.3);
+  border-left: 1px solid var(--line-subtle);
+  border-right: 1px solid var(--line-subtle);
   background: var(--background);
+  align-items: flex-start;
 }
 
 .mainContent {
   flex: 1;
-  padding: 2rem;
-  overflow-y: auto;
+  padding: 1.25rem;
+  overflow-y: visible;
   min-width: 0;
 }
 
 .sidebar {
-  width: 350px;
-  border-left: 1px solid rgba(63, 63, 70, 0.3);
+  width: 320px;
+  border-left: 1px solid var(--line-subtle);
+  flex-shrink: 0;
+  position: relative;
+}
+
+.sidebarInner {
   background: var(--surface);
   display: flex;
   flex-direction: column;
-  flex-shrink: 0;
+  position: fixed;
+  top: 88px;
+  right: max(0px, calc((100vw - 1460px) / 2));
+  width: 320px;
+  height: calc(100vh - 96px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .videoWrapper {
   width: 100%;
   aspect-ratio: 16/9;
   background: #0f172a;
-  border-radius: 16px;
+  border-radius: 12px;
   overflow: hidden;
-  margin-bottom: 2rem;
+  margin-bottom: 1.25rem;
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(63, 63, 70, 0.3);
+  border: 1px solid var(--line-subtle);
   box-shadow: 0 10px 26px rgba(42, 74, 122, 0.2);
 }
 
@@ -46,13 +58,38 @@
 }
 
 .playerActions {
-  margin: -1.2rem 0 1.6rem;
+  margin: 0.45rem 0 1rem;
   display: flex;
   justify-content: flex-end;
 }
 
+.watchButton {
+  border: none;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 0.86rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: #fff;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  box-shadow: 0 6px 18px rgba(34, 211, 238, 0.28);
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+}
+
+.watchButton:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(34, 211, 238, 0.34);
+}
+
+.watchButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
 .courseHeader {
-  margin-bottom: 2rem;
+  margin-bottom: 1.25rem;
 }
 
 .backDetailLink {
@@ -68,8 +105,8 @@
 
 .courseTitle {
   font-family: var(--font-display);
-  font-size: 2rem;
-  margin-bottom: 0.5rem;
+  font-size: 1.7rem;
+  margin-bottom: 0.35rem;
   letter-spacing: -0.02em;
 }
 
@@ -77,8 +114,9 @@
   list-style: none;
   padding: 0;
   margin: 0;
-  flex: 1;
-  overflow-y: auto;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: visible;
 }
 
 .moduleVideoList {
@@ -88,15 +126,18 @@
 }
 
 .moduleHeader {
-  padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid rgba(63, 63, 70, 0.3);
+  padding: 0.95rem 1rem;
+  border-bottom: 1px solid var(--line-subtle);
   background: rgba(255, 255, 255, 0.9);
+  position: sticky;
+  top: 0;
+  z-index: 2;
 }
 
 .moduleTitle {
   font-family: var(--font-display);
-  font-size: 1rem;
-  margin-bottom: 0.5rem;
+  font-size: 0.94rem;
+  margin-bottom: 0.35rem;
   font-weight: 600;
 }
 
@@ -117,8 +158,8 @@
 }
 
 .videoItem {
-  padding: 0.9rem 1.5rem;
-  border-bottom: 1px solid rgba(63, 63, 70, 0.2);
+  padding: 0.7rem 1rem;
+  border-bottom: 1px solid var(--line-subtle);
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -153,34 +194,34 @@
 
 .videoTitle {
   font-weight: 500;
-  font-size: 0.9rem;
+  font-size: 0.86rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .videoDuration {
-  font-size: 0.75rem;
+  font-size: 0.82rem;
   color: var(--text-muted);
   margin-top: 0.15rem;
 }
 
 .quizSection {
-  padding: 1.5rem;
+  padding: 1rem;
   background: rgba(255, 255, 255, 0.9);
-  border-top: 1px solid rgba(63, 63, 70, 0.3);
+  border-top: 1px solid var(--line-subtle);
   margin-top: auto;
 }
 
 .quizButton {
   width: 100%;
-  padding: 12px;
-  border-radius: 12px;
+  padding: 10px;
+  border-radius: 10px;
   font-weight: 600;
   text-align: center;
   transition: all 0.3s ease;
   display: block;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   letter-spacing: 0.01em;
 }
 
@@ -210,38 +251,68 @@
     border-right: none;
   }
   .mainContent {
-    padding: 1rem;
+    padding: 0.8rem;
     overflow-y: visible;
   }
   .sidebar {
     width: 100%;
     border-left: none;
-    border-top: 1px solid rgba(63, 63, 70, 0.3);
+    border-top: 1px solid var(--line-subtle);
+  }
+  .sidebarInner {
+    position: static;
+    top: auto;
+    right: auto;
+    width: auto;
+    height: auto;
+    overflow: visible;
+  }
+  .moduleHeader {
+    position: static;
   }
   .courseTitle {
-    font-size: 1.5rem;
+    font-size: 1.3rem;
   }
   .videoWrapper {
     border-radius: 12px;
-    margin-bottom: 1.5rem;
+    margin-bottom: 0.9rem;
   }
   .playerActions {
-    margin: -0.7rem 0 1.2rem;
+    margin: 0.6rem 0 0.8rem;
     justify-content: center;
+  }
+
+  .watchButton {
+    min-width: 220px;
   }
 }
 
 @media (max-width: 480px) {
   .mainContent {
-    padding: 0.75rem;
+    padding: 0.65rem;
   }
   .courseTitle {
-    font-size: 1.3rem;
+    font-size: 1.15rem;
   }
   .videoItem {
-    padding: 0.75rem 1rem;
+    padding: 0.62rem 0.82rem;
   }
   .moduleHeader {
-    padding: 1rem;
+    padding: 0.72rem 0.82rem;
+  }
+  .videoTitle {
+    font-size: 0.82rem;
+  }
+  .videoDuration {
+    font-size: 0.76rem;
+  }
+  .quizSection {
+    padding: 0.82rem;
+  }
+
+  .watchButton {
+    width: 100%;
+    font-size: 0.82rem;
+    padding: 9px 12px;
   }
 }

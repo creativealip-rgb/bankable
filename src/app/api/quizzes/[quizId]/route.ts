@@ -3,6 +3,7 @@ import { db } from "@/db";
 import { quizzes, videoProgress } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { requireMember } from "@/lib/auth-helpers";
+import { hasCourseLearningAccess } from "@/lib/course-entitlement";
 
 type RouteParams = { params: Promise<{ quizId: string }> };
 
@@ -33,6 +34,18 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
     if (!quiz) {
       return NextResponse.json({ error: "Quiz not found" }, { status: 404 });
+    }
+    if (quiz.course.status !== "PUBLISHED") {
+      return NextResponse.json({ error: "Quiz not found" }, { status: 404 });
+    }
+
+    const hasAccess = await hasCourseLearningAccess({
+      userId: session.user.id,
+      courseSlug: quiz.course.slug,
+      price: quiz.course.price,
+    });
+    if (!hasAccess) {
+      return NextResponse.json({ error: "Active access is required for this course" }, { status: 403 });
     }
 
     // Check if all videos are completed

@@ -15,13 +15,24 @@ type AdminCert = {
 export default function AdminCertificatesPage() {
   const [items, setItems] = useState<AdminCert[]>([]);
   const [loading, setLoading] = useState(true);
+  const [q, setQ] = useState("");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
-    fetch("/api/admin/certificates")
+    const params = new URLSearchParams({
+      page: String(page),
+      pageSize: "20",
+    });
+    if (q) params.set("q", q);
+    fetch(`/api/admin/certificates?${params}`)
       .then((r) => r.json())
-      .then((data) => setItems(data))
+      .then((data) => {
+        setItems(Array.isArray(data.items) ? data.items : []);
+        setTotalPages(Math.max(1, Number(data.pagination?.totalPages || 1)));
+      })
       .finally(() => setLoading(false));
-  }, []);
+  }, [page, q]);
 
   return (
     <>
@@ -31,6 +42,18 @@ export default function AdminCertificatesPage() {
       </div>
 
       <div className="admin-section">
+        <div className="admin-toolbar admin-toolbar-spaced">
+          <input
+            className="admin-search-input"
+            placeholder="Search certificate number..."
+            value={q}
+            onChange={(e) => {
+              setLoading(true);
+              setPage(1);
+              setQ(e.target.value);
+            }}
+          />
+        </div>
         {loading ? (
           <div className="admin-empty">Loading certificates...</div>
         ) : (
@@ -49,7 +72,7 @@ export default function AdminCertificatesPage() {
               <tbody>
                 {items.length === 0 ? (
                   <tr>
-                    <td colSpan={6} style={{ textAlign: "center", color: "var(--text-muted)", padding: "2rem" }}>
+                    <td colSpan={6} className="admin-table-empty">
                       No certificates yet
                     </td>
                   </tr>
@@ -62,7 +85,7 @@ export default function AdminCertificatesPage() {
                       <td>{Number(item.score).toFixed(0)}%</td>
                       <td>{new Date(item.issuedAt).toLocaleDateString("id-ID")}</td>
                       <td>
-                        <div style={{ display: "flex", gap: "0.5rem" }}>
+                        <div className="admin-row-actions">
                           <Link href={`/verify/${item.certificateNumber}`} className="admin-filter-btn active">
                             Verify
                           </Link>
@@ -78,6 +101,31 @@ export default function AdminCertificatesPage() {
             </table>
           </div>
         )}
+        <div className="admin-pagination">
+          <button
+            className="admin-filter-btn"
+            onClick={() => {
+              setLoading(true);
+              setPage((p) => Math.max(1, p - 1));
+            }}
+            disabled={page <= 1}
+          >
+            ← Prev
+          </button>
+          <span className="admin-pagination-label">
+            Page {page} / {totalPages}
+          </span>
+          <button
+            className="admin-filter-btn"
+            onClick={() => {
+              setLoading(true);
+              setPage((p) => Math.min(totalPages, p + 1));
+            }}
+            disabled={page >= totalPages}
+          >
+            Next →
+          </button>
+        </div>
       </div>
     </>
   );

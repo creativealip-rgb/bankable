@@ -3,13 +3,16 @@ import { db } from "@/db";
 import { videoProgress, certificates, courses } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { requireMember } from "@/lib/auth-helpers";
-import { hasPaidCourseAccess } from "@/lib/course-access";
+import { getPaidCourseAccessSlugs } from "@/lib/course-access";
+import { hasMainCatalogAccess } from "@/lib/course-entitlement";
 
 // GET /api/dashboard — Dashboard stats for member
 export async function GET() {
   try {
     const session = await requireMember();
     const userId = session.user.id;
+    const hasMainAccess = await hasMainCatalogAccess(userId);
+    const paidAccessSlugs = await getPaidCourseAccessSlugs(userId);
 
     // Get all user's video progress
     const allProgress = await db.query.videoProgress.findMany({
@@ -78,8 +81,10 @@ export async function GET() {
     for (const c of publishedCourses) {
       const isPaidCourse = Number(c.price || 0) > 0;
       if (isPaidCourse) {
-        const hasAccess = await hasPaidCourseAccess(userId, c.slug);
+        const hasAccess = paidAccessSlugs.has(c.slug);
         if (!hasAccess) continue;
+      } else if (!hasMainAccess) {
+        continue;
       }
 
       const totalVids = courseVideoCount.get(c.id) || 1;

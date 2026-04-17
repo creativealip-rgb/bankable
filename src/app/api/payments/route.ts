@@ -13,18 +13,25 @@ function parsePayload(payload: unknown): Record<string, unknown> {
 
 function inferItemInfo(tier: string, payload: unknown) {
   const info = parsePayload(payload);
+  const paymentProofUrl = typeof info.paymentProofUrl === "string" ? info.paymentProofUrl : null;
+  const paymentProofSubmittedAt =
+    typeof info.paymentProofSubmittedAt === "string" ? info.paymentProofSubmittedAt : null;
   if (tier === "PREMIUM") {
     const slug = typeof info.courseSlug === "string" ? info.courseSlug : null;
     return {
       itemType: "PREMIUM_COURSE",
       itemTitle: slug ? `Premium: ${slug.replace(/-/g, " ")}` : "Premium Course Access",
       itemSlug: slug,
+      paymentProofUrl,
+      paymentProofSubmittedAt,
     };
   }
   return {
     itemType: "LIFETIME",
     itemTitle: "One-time Lifetime Access",
     itemSlug: null,
+    paymentProofUrl,
+    paymentProofSubmittedAt,
   };
 }
 

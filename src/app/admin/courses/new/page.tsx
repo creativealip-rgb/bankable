@@ -17,12 +17,20 @@ type ModuleInput = {
   videos: VideoInput[];
 };
 
+type UploadFeedback = {
+  kind: "info" | "success" | "error";
+  text: string;
+};
+
 const categories = ["Business", "Programming", "Design", "Audio/Video", "Marketing", "Personal Growth"];
 const levels = ["BEGINNER", "INTERMEDIATE", "ADVANCED"];
+const MAX_UPLOAD_SIZE_BYTES = 500 * 1024 * 1024;
 
 export default function NewCoursePage() {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState<Record<string, boolean>>({});
+  const [uploadFeedback, setUploadFeedback] = useState<Record<string, UploadFeedback>>({});
 
   // Course details
   const [title, setTitle] = useState("");
@@ -87,15 +95,46 @@ export default function NewCoursePage() {
   };
 
   const uploadVideoFile = async (mIndex: number, vIndex: number, file: File) => {
-    const form = new FormData();
-    form.set("file", file);
-    const res = await fetch("/api/admin/uploads/video", { method: "POST", body: form });
-    if (!res.ok) {
-      alert("Upload failed");
+    const key = `${mIndex}-${vIndex}`;
+    if (file.size > MAX_UPLOAD_SIZE_BYTES) {
+      setUploadFeedback((prev) => ({
+        ...prev,
+        [key]: { kind: "error", text: "Ukuran file melebihi batas 500MB." },
+      }));
       return;
     }
-    const data = await res.json();
-    updateVideo(mIndex, vIndex, "url", data.url);
+
+    setUploading((prev) => ({ ...prev, [key]: true }));
+    setUploadFeedback((prev) => ({
+      ...prev,
+      [key]: { kind: "info", text: `Uploading ${file.name}...` },
+    }));
+
+    const form = new FormData();
+    form.set("file", file);
+    try {
+      const res = await fetch("/api/admin/uploads/video", { method: "POST", body: form });
+      const data = await res.json();
+      if (!res.ok) {
+        setUploadFeedback((prev) => ({
+          ...prev,
+          [key]: { kind: "error", text: data.error || "Upload failed." },
+        }));
+        return;
+      }
+      updateVideo(mIndex, vIndex, "url", data.url);
+      setUploadFeedback((prev) => ({
+        ...prev,
+        [key]: { kind: "success", text: `Upload berhasil: ${data.name}` },
+      }));
+    } catch {
+      setUploadFeedback((prev) => ({
+        ...prev,
+        [key]: { kind: "error", text: "Upload gagal. Coba lagi." },
+      }));
+    } finally {
+      setUploading((prev) => ({ ...prev, [key]: false }));
+    }
   };
 
   const removeVideo = (mIndex: number, vIndex: number) => {
@@ -302,77 +341,97 @@ export default function NewCoursePage() {
 
         {modules.map((mod, mIndex) => (
           <div key={mIndex} className={styles.moduleItem}>
-              <div className={styles.moduleHeader}>
-                <div className={styles.moduleNumber}>{mIndex + 1}</div>
-                {type === "MULTI" && (
-                  <div style={{ display: "flex", gap: "0.25rem" }}>
-                    <button type="button" className={styles.removeBtn} onClick={() => moveModule(mIndex, mIndex - 1)}>↑</button>
-                    <button type="button" className={styles.removeBtn} onClick={() => moveModule(mIndex, mIndex + 1)}>↓</button>
-                  </div>
-                )}
-                <input
-                  type="text"
-                  className={styles.moduleInput}
+            <div className={styles.moduleHeader}>
+              <div className={styles.moduleNumber}>{mIndex + 1}</div>
+              <input
+                type="text"
+                className={styles.moduleInput}
                 value={mod.title}
                 onChange={(e) => updateModuleTitle(mIndex, e.target.value)}
                 placeholder="Module title"
               />
-              {type === "MULTI" && modules.length > 1 && (
-                <button type="button" className={styles.removeBtn} onClick={() => removeModule(mIndex)}>
-                  ✕
-                </button>
-              )}
+              {type === "MULTI" ? (
+                <div className={styles.moduleActions}>
+                  <button type="button" className={styles.removeBtn} onClick={() => moveModule(mIndex, mIndex - 1)}>↑</button>
+                  <button type="button" className={styles.removeBtn} onClick={() => moveModule(mIndex, mIndex + 1)}>↓</button>
+                  {modules.length > 1 ? (
+                    <button type="button" className={styles.removeBtn} onClick={() => removeModule(mIndex)}>
+                      ✕
+                    </button>
+                  ) : null}
+                </div>
+              ) : null}
             </div>
 
             {mod.videos.map((video, vIndex) => (
               <div key={vIndex} className={styles.videoItem}>
-                <span style={{ fontSize: "0.8rem", color: "var(--text-muted)", width: "20px" }}>
-                  {vIndex + 1}.
-                </span>
-                <input
-                  type="text"
-                  className={styles.videoInput}
-                  value={video.title}
-                  onChange={(e) => updateVideo(mIndex, vIndex, "title", e.target.value)}
-                  placeholder="Video title"
-                />
-                <input
-                  type="text"
-                  className={`${styles.videoInput} ${styles.urlInput}`}
-                  value={video.url}
-                  onChange={(e) => updateVideo(mIndex, vIndex, "url", e.target.value)}
-                  placeholder="Video URL"
-                />
-                <input
-                  type="text"
-                  className={`${styles.videoInput} ${styles.urlInput}`}
-                  value={video.subtitleUrl}
-                  onChange={(e) => updateVideo(mIndex, vIndex, "subtitleUrl", e.target.value)}
-                  placeholder="Subtitle URL (.vtt)"
-                />
-                <input
-                  type="number"
-                  className={`${styles.videoInput} ${styles.durationInput}`}
-                  value={video.duration}
-                  onChange={(e) => updateVideo(mIndex, vIndex, "duration", parseInt(e.target.value) || 0)}
-                  placeholder="Secs"
-                  title="Duration in seconds"
-                />
-                <input
-                  type="file"
-                  accept="video/*"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) uploadVideoFile(mIndex, vIndex, file);
-                  }}
-                />
-                <button type="button" className={styles.removeBtn} onClick={() => moveVideo(mIndex, vIndex, vIndex - 1)}>↑</button>
-                <button type="button" className={styles.removeBtn} onClick={() => moveVideo(mIndex, vIndex, vIndex + 1)}>↓</button>
-                {mod.videos.length > 1 && (
-                  <button type="button" className={styles.removeBtn} onClick={() => removeVideo(mIndex, vIndex)}>
-                    ✕
-                  </button>
-                )}
+                <span className={styles.videoIndex}>{vIndex + 1}.</span>
+                <div className={styles.videoFields}>
+                  <input
+                    type="text"
+                    className={styles.videoInput}
+                    value={video.title}
+                    onChange={(e) => updateVideo(mIndex, vIndex, "title", e.target.value)}
+                    placeholder="Video title"
+                  />
+                  <input
+                    type="text"
+                    className={styles.videoInput}
+                    value={video.url}
+                    onChange={(e) => updateVideo(mIndex, vIndex, "url", e.target.value)}
+                    placeholder="Video URL"
+                  />
+                  <input
+                    type="text"
+                    className={styles.videoInput}
+                    value={video.subtitleUrl}
+                    onChange={(e) => updateVideo(mIndex, vIndex, "subtitleUrl", e.target.value)}
+                    placeholder="Subtitle URL (.vtt)"
+                  />
+                  <input
+                    type="number"
+                    className={`${styles.videoInput} ${styles.durationInput}`}
+                    value={video.duration}
+                    onChange={(e) => updateVideo(mIndex, vIndex, "duration", parseInt(e.target.value) || 0)}
+                    placeholder="Duration (seconds)"
+                    title="Duration in seconds"
+                  />
+                  <label className={styles.fileUploadLabel}>
+                    <span>Choose file (max 500MB)</span>
+                    <input
+                      type="file"
+                      accept="video/*"
+                      className={styles.fileInput}
+                      disabled={uploading[`${mIndex}-${vIndex}`]}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) void uploadVideoFile(mIndex, vIndex, file);
+                      }}
+                    />
+                  </label>
+                  {uploadFeedback[`${mIndex}-${vIndex}`] ? (
+                    <p
+                      className={`${styles.uploadFeedback} ${
+                        uploadFeedback[`${mIndex}-${vIndex}`].kind === "error"
+                          ? styles.uploadFeedbackError
+                          : uploadFeedback[`${mIndex}-${vIndex}`].kind === "success"
+                            ? styles.uploadFeedbackSuccess
+                            : ""
+                      }`}
+                    >
+                      {uploadFeedback[`${mIndex}-${vIndex}`].text}
+                    </p>
+                  ) : null}
+                </div>
+                <div className={styles.videoActions}>
+                  <button type="button" className={styles.removeBtn} onClick={() => moveVideo(mIndex, vIndex, vIndex - 1)}>↑</button>
+                  <button type="button" className={styles.removeBtn} onClick={() => moveVideo(mIndex, vIndex, vIndex + 1)}>↓</button>
+                  {mod.videos.length > 1 && (
+                    <button type="button" className={styles.removeBtn} onClick={() => removeVideo(mIndex, vIndex)}>
+                      ✕
+                    </button>
+                  )}
+                </div>
               </div>
             ))}
 

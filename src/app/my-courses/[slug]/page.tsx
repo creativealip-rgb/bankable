@@ -13,7 +13,10 @@ type Course = {
   id: string; title: string; slug: string; description: string | null;
   type: string; minWatchPct: number; modules: Module[]; quiz: Quiz[];
   price?: string | null;
+  isPaidOffering?: boolean;
   hasPremiumAccess?: boolean;
+  hasMainAccess?: boolean;
+  hasCourseAccess?: boolean;
   totalVideos: number; totalDuration: number;
 };
 type VideoProgress = { watchedPct: string; lastPosition: number; isCompleted: boolean };
@@ -112,9 +115,11 @@ export default function CoursePlayerPage({ params }: PageProps) {
         ]);
         if (courseRes.ok) {
           const courseData = await courseRes.json();
-          const isPaidCourse = Number(courseData.price || 0) > 0;
+          const isPaidCourse = Boolean(courseData.isPaidOffering ?? Number(courseData.price || 0) > 0);
           const hasPremiumAccess = Boolean(courseData.hasPremiumAccess);
-          if (isPaidCourse && !hasPremiumAccess) {
+          const hasMainAccess = courseData.hasMainAccess !== false;
+          const hasCourseAccess = Boolean(courseData.hasCourseAccess ?? (isPaidCourse ? hasPremiumAccess : hasMainAccess));
+          if (!hasCourseAccess) {
             setAccessDenied(true);
             return;
           }
@@ -464,7 +469,7 @@ export default function CoursePlayerPage({ params }: PageProps) {
         {activeVideoSource.kind !== "file" && (
           <div className={styles.playerActions}>
             <button
-              className="btn-primary"
+              className={styles.watchButton}
               onClick={handleSimulateWatch}
               disabled={!activeVideoId || !isVideoAccessible(activeVideo!)}
             >
@@ -536,64 +541,66 @@ export default function CoursePlayerPage({ params }: PageProps) {
 
       {/* Sidebar */}
       <div className={styles.sidebar}>
-        <div className={styles.moduleHeader}>
-          <h3 className={styles.moduleTitle}>Course Progress</h3>
-          <div style={{ fontSize: "0.85rem", color: "var(--text-muted)", display: "flex", justifyContent: "space-between" }}>
-            <span>{progress?.completedVideos || 0} / {progress?.totalVideos || allVideos.length} Videos</span>
-            <span>{progress?.overallProgress || 0}%</span>
+        <div className={styles.sidebarInner}>
+          <div className={styles.moduleHeader}>
+            <h3 className={styles.moduleTitle}>Course Progress</h3>
+            <div style={{ fontSize: "0.85rem", color: "var(--text-muted)", display: "flex", justifyContent: "space-between" }}>
+              <span>{progress?.completedVideos || 0} / {progress?.totalVideos || allVideos.length} Videos</span>
+              <span>{progress?.overallProgress || 0}%</span>
+            </div>
+            <div className={styles.progressBar}>
+              <div className={styles.progressFill} style={{ width: `${progress?.overallProgress || 0}%` }}></div>
+            </div>
           </div>
-          <div className={styles.progressBar}>
-            <div className={styles.progressFill} style={{ width: `${progress?.overallProgress || 0}%` }}></div>
-          </div>
-        </div>
 
-        <ul className={styles.moduleList}>
-          {course.modules.map((mod) => (
-            <li key={mod.id} style={{ marginBottom: "0.5rem" }}>
-              <div style={{ padding: "0.5rem 0.75rem", fontSize: "0.8rem", color: "var(--text-muted)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                {mod.title}
-              </div>
-              <ul className={styles.moduleVideoList}>
-                {mod.videos.map((video) => {
-                  const vp = progress?.videoProgress[video.id];
-                  const accessible = isVideoAccessible(video);
-                  const completed = vp?.isCompleted;
-                  return (
-                    <li
-                      key={video.id}
-                      className={`${styles.videoItem} ${activeVideoId === video.id ? styles.active : ""} ${!accessible ? styles.locked : ""}`}
-                      onClick={() => { if (accessible) setActiveVideoId(video.id); }}
-                    >
-                      <div className={styles.videoIcon}>
-                        {completed ? "✅" : !accessible ? "🔒" : "▶️"}
-                      </div>
-                      <div className={styles.videoInfo}>
-                        <div className={styles.videoTitle}>{video.title}</div>
-                        <div className={styles.videoDuration}>
-                          {Math.floor(video.duration / 60)}:{String(video.duration % 60).padStart(2, "0")}
+          <ul className={styles.moduleList}>
+            {course.modules.map((mod) => (
+              <li key={mod.id} style={{ marginBottom: "0.5rem" }}>
+                <div style={{ padding: "0.5rem 0.75rem", fontSize: "0.8rem", color: "var(--text-muted)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                  {mod.title}
+                </div>
+                <ul className={styles.moduleVideoList}>
+                  {mod.videos.map((video) => {
+                    const vp = progress?.videoProgress[video.id];
+                    const accessible = isVideoAccessible(video);
+                    const completed = vp?.isCompleted;
+                    return (
+                      <li
+                        key={video.id}
+                        className={`${styles.videoItem} ${activeVideoId === video.id ? styles.active : ""} ${!accessible ? styles.locked : ""}`}
+                        onClick={() => { if (accessible) setActiveVideoId(video.id); }}
+                      >
+                        <div className={styles.videoIcon}>
+                          {completed ? "✅" : !accessible ? "🔒" : "▶️"}
                         </div>
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
-            </li>
-          ))}
-        </ul>
+                        <div className={styles.videoInfo}>
+                          <div className={styles.videoTitle}>{video.title}</div>
+                          <div className={styles.videoDuration}>
+                            {Math.floor(video.duration / 60)}:{String(video.duration % 60).padStart(2, "0")}
+                          </div>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </li>
+            ))}
+          </ul>
 
-        <div className={styles.quizSection}>
-          <Link
-            href={allCompleted && quizId ? `/my-courses/${slug}/quiz?quizId=${quizId}` : "#"}
-            className={`${styles.quizButton} ${allCompleted ? styles.unlocked : styles.locked}`}
-            onClick={(e) => { if (!allCompleted) e.preventDefault(); }}
-          >
-            {allCompleted ? "Take Final Quiz ✨" : "🔒 Quiz Locked"}
-          </Link>
-          {!allCompleted && (
-            <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", textAlign: "center", marginTop: "0.5rem" }}>
-              Watch all videos to unlock
-            </p>
-          )}
+          <div className={styles.quizSection}>
+            <Link
+              href={allCompleted && quizId ? `/my-courses/${slug}/quiz?quizId=${quizId}` : "#"}
+              className={`${styles.quizButton} ${allCompleted ? styles.unlocked : styles.locked}`}
+              onClick={(e) => { if (!allCompleted) e.preventDefault(); }}
+            >
+              {allCompleted ? "Take Final Quiz ✨" : "🔒 Quiz Locked"}
+            </Link>
+            {!allCompleted && (
+              <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", textAlign: "center", marginTop: "0.5rem" }}>
+                Watch all videos to unlock
+              </p>
+            )}
+          </div>
         </div>
       </div>
     </div>
