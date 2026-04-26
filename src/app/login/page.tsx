@@ -2,12 +2,13 @@
 
 import { useState } from "react";
 import { signIn } from "@/lib/auth-client";
-import Link from "next/link";
+import { useToast } from "../toast-provider";
 import { useRouter, useSearchParams } from "next/navigation";
 import styles from "./page.module.css";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { toast } = useToast();
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -29,13 +30,16 @@ export default function LoginPage() {
       });
 
       if (result.error) {
-        setError(result.error.message || "Login failed");
+        setError(result.error.message || "Email atau password salah");
+        toast(result.error.message || "Gagal masuk. Cek email dan password Anda.", "error");
       } else {
+        toast("Berhasil masuk! Selamat datang kembali.", "success");
         router.push(safeCallbackUrl);
         router.refresh();
       }
     } catch {
-      setError("An unexpected error occurred");
+      setError("Terjadi kesalahan sistem");
+      toast("Terjadi kesalahan sistem. Coba lagi nanti.", "error");
     } finally {
       setLoading(false);
     }
@@ -46,10 +50,10 @@ export default function LoginPage() {
       <div className={styles.authCard}>
         <div className={styles.authHeader}>
           <h1 className={styles.authTitle}>
-            Welcome <span className="gradient-text">Back</span>
+            Selamat <span className="gradient-text">Datang</span>
           </h1>
           <p className={styles.authSubtitle}>
-            Sign in to continue your learning journey
+            Masuk untuk melanjutkan perjalanan belajarmu
           </p>
         </div>
 
@@ -88,13 +92,13 @@ export default function LoginPage() {
             className={`btn-primary ${styles.submitButton}`}
             disabled={loading}
           >
-            {loading ? "Signing in..." : "Sign In"}
+            {loading ? "Sedang masuk..." : "Masuk"}
           </button>
         </form>
 
         <p className={styles.authFooter}>
-          Don&apos;t have an account?{" "}
-          <Link href="/register" className={styles.authLink}>Sign Up</Link>
+          Belum punya akun?{" "}
+          <Link href="/register" className={styles.authLink}>Daftar</Link>
         </p>
       </div>
     </div>

@@ -48,7 +48,7 @@
   align-items: center;
   justify-content: center;
   border: 1px solid var(--line-subtle);
-  box-shadow: 0 10px 26px rgba(42, 74, 122, 0.2);
+  box-shadow: 0 10px 26px rgba(79, 70, 229, 0.2);
 }
 
 .videoPlaceholder {
@@ -72,14 +72,14 @@
   letter-spacing: 0.01em;
   color: #fff;
   background: linear-gradient(135deg, var(--primary), var(--secondary));
-  box-shadow: 0 6px 18px rgba(34, 211, 238, 0.28);
+  box-shadow: 0 6px 18px rgba(79, 70, 229, 0.28);
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
 }
 
 .watchButton:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 10px 24px rgba(34, 211, 238, 0.34);
+  box-shadow: 0 10px 24px rgba(79, 70, 229, 0.34);
 }
 
 .watchButton:disabled {
@@ -169,11 +169,11 @@
 }
 
 .videoItem:hover:not(.locked) {
-  background: rgba(34, 211, 238, 0.08);
+  background: rgba(79, 70, 229, 0.08);
 }
 
 .videoItem.active {
-  background: rgba(34, 211, 238, 0.08);
+  background: rgba(79, 70, 229, 0.08);
   border-left: 3px solid var(--primary);
 }
 

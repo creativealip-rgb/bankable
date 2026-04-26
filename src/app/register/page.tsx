@@ -3,11 +3,13 @@
 import { useState } from "react";
 import { signUp } from "@/lib/auth-client";
 import Link from "next/link";
+import { useToast } from "../toast-provider";
 import styles from "../login/page.module.css";
 import { useRouter } from "next/navigation";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { toast } = useToast();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -21,7 +23,7 @@ export default function RegisterPage() {
     setError("");
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match");
+      setError("Password tidak sama");
       return;
     }
 
@@ -35,9 +37,11 @@ export default function RegisterPage() {
       });
 
       if (result.error) {
-        setError(result.error.message || "Registration failed");
+        setError(result.error.message || "Gagal membuat akun");
+        toast(result.error.message || "Gagal membuat akun. Silakan coba lagi.", "error");
       } else {
-        setPaymentInfo("Akun berhasil dibuat. Mengarahkan ke halaman pembayaran sekali bayar Rp29.000...");
+        toast("Akun berhasil dibuat! Silakan selesaikan pembayaran.", "success");
+        setPaymentInfo("Akun berhasil dibuat. Mengarahkan ke halaman pembayaran...");
         const checkoutRes = await fetch("/api/payments/checkout", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -56,7 +60,7 @@ export default function RegisterPage() {
         router.push(`/payments/${checkout.paymentId}`);
       }
     } catch {
-      setError("An unexpected error occurred");
+      setError("Terjadi kesalahan yang tidak terduga");
     } finally {
       setLoading(false);
     }
@@ -67,7 +71,7 @@ export default function RegisterPage() {
       <div className={styles.authCard}>
         <div className={styles.authHeader}>
           <h1 className={styles.authTitle}>
-            Join <span className="gradient-text">Bankable</span>
+            Gabung <span className="gradient-text">BELAJARIA</span>
           </h1>
           <p className={styles.authSubtitle}>
             Sekali bayar Rp29.000 saat daftar untuk akses semua course, ebook, dan voice SFX
@@ -93,13 +97,13 @@ export default function RegisterPage() {
 
         <form onSubmit={handleSubmit} className={styles.authForm}>
           <div className={styles.formGroup}>
-            <label htmlFor="name" className={styles.label}>Full Name</label>
+            <label htmlFor="name" className={styles.label}>Nama Lengkap</label>
             <input
               id="name"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="John Doe"
+              placeholder="Nama kamu"
               required
               className={styles.input}
             />
@@ -119,7 +123,7 @@ export default function RegisterPage() {
           </div>
 
           <div className={styles.formGroup}>
-            <label htmlFor="password" className={styles.label}>Password</label>
+            <label htmlFor="password" className={styles.label}>Kata Sandi</label>
             <input
               id="password"
               type="password"
@@ -134,7 +138,7 @@ export default function RegisterPage() {
 
           <div className={styles.formGroup}>
             <label htmlFor="confirmPassword" className={styles.label}>
-              Confirm Password
+              Konfirmasi Kata Sandi
             </label>
             <input
               id="confirmPassword"
@@ -158,8 +162,8 @@ export default function RegisterPage() {
         </form>
 
         <p className={styles.authFooter}>
-          Already have an account?{" "}
-          <Link href="/login" className={styles.authLink}>Sign In</Link>
+          Sudah punya akun?{" "}
+          <Link href="/login" className={styles.authLink}>Masuk</Link>
         </p>
       </div>
     </div>

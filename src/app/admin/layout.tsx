@@ -107,7 +107,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="admin-sidebar-header">
           <Link href="/">
             <span className="gradient-text admin-brand">
-              Bankable
+              BELAJARIA
             </span>
           </Link>
           <span className="admin-badge">Admin</span>

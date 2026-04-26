@@ -67,9 +67,9 @@ body:has(.admin-layout) > nav {
   letter-spacing: 0.1em;
   padding: 3px 8px;
   border-radius: 6px;
-  background: rgba(34, 211, 238, 0.1);
+  background: rgba(79, 70, 229, 0.1);
   color: var(--primary);
-  border: 1px solid rgba(34, 211, 238, 0.2);
+  border: 1px solid rgba(79, 70, 229, 0.2);
 }
 
 .admin-nav {
@@ -96,17 +96,17 @@ body:has(.admin-layout) > nav {
 }
 
 .admin-nav-item:hover {
-  background: rgba(37, 99, 235, 0.08);
-  border-color: rgba(37, 99, 235, 0.16);
+  background: rgba(79, 70, 229, 0.08);
+  border-color: rgba(79, 70, 229, 0.16);
   color: var(--text-main);
 }
 
 .admin-nav-item.active {
-  background: rgba(37, 99, 235, 0.12);
+  background: rgba(79, 70, 229, 0.12);
   color: var(--primary);
   font-weight: 600;
-  border-color: rgba(37, 99, 235, 0.22);
-  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.12);
+  border-color: rgba(79, 70, 229, 0.22);
+  box-shadow: 0 4px 16px rgba(79, 70, 229, 0.12);
 }
 
 .admin-nav-item.active::before {
@@ -125,8 +125,8 @@ body:has(.admin-layout) > nav {
   width: 28px;
   height: 28px;
   border-radius: 8px;
-  border: 1px solid rgba(37, 99, 235, 0.16);
-  background: rgba(37, 99, 235, 0.08);
+  border: 1px solid rgba(79, 70, 229, 0.16);
+  background: rgba(79, 70, 229, 0.08);
   color: var(--primary);
   display: inline-flex;
   align-items: center;
@@ -140,13 +140,13 @@ body:has(.admin-layout) > nav {
 }
 
 .admin-nav-item:hover .admin-nav-icon {
-  background: rgba(37, 99, 235, 0.12);
-  border-color: rgba(37, 99, 235, 0.22);
+  background: rgba(79, 70, 229, 0.12);
+  border-color: rgba(79, 70, 229, 0.22);
 }
 
 .admin-nav-item.active .admin-nav-icon {
-  background: linear-gradient(135deg, rgba(37, 99, 235, 0.16), rgba(29, 78, 216, 0.2));
-  border-color: rgba(37, 99, 235, 0.3);
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.16), rgba(67, 56, 202, 0.2));
+  border-color: rgba(79, 70, 229, 0.3);
 }
 
 .admin-sidebar-footer {
@@ -242,7 +242,7 @@ body:has(.admin-layout) main {
 }
 
 .admin-stat-card:hover {
-  border-color: rgba(34, 211, 238, 0.2);
+  border-color: rgba(79, 70, 229, 0.2);
 }
 
 .admin-stat-label {
@@ -325,7 +325,7 @@ body:has(.admin-layout) main {
 }
 
 .admin-table tr:hover {
-  background: rgba(34, 211, 238, 0.07);
+  background: rgba(79, 70, 229, 0.07);
 }
 
 .admin-table tr:last-child td {
@@ -363,15 +363,15 @@ body:has(.admin-layout) main {
 }
 
 .admin-badge-status.admin {
-  background: rgba(192, 132, 252, 0.2);
+  background: rgba(99, 102, 241, 0.2);
   color: var(--secondary);
-  border: 1px solid rgba(192, 132, 252, 0.32);
+  border: 1px solid rgba(99, 102, 241, 0.32);
 }
 
 .admin-badge-status.member {
-  background: rgba(34, 211, 238, 0.2);
+  background: rgba(79, 70, 229, 0.2);
   color: var(--primary);
-  border: 1px solid rgba(34, 211, 238, 0.34);
+  border: 1px solid rgba(79, 70, 229, 0.34);
 }
 
 .admin-badge-status.pending {
@@ -441,8 +441,8 @@ body:has(.admin-layout) main {
 }
 
 .admin-filter-btn.active {
-  background: rgba(34, 211, 238, 0.1);
-  border-color: rgba(34, 211, 238, 0.3);
+  background: rgba(79, 70, 229, 0.1);
+  border-color: rgba(79, 70, 229, 0.3);
   color: var(--primary);
 }
 
@@ -473,7 +473,7 @@ body:has(.admin-layout) main {
 .admin-chart-bar-track {
   flex: 1;
   height: 8px;
-  background: rgba(34, 52, 84, 0.08);
+  background: rgba(79, 70, 229, 0.08);
   border-radius: 4px;
   overflow: hidden;
 }
@@ -772,8 +772,8 @@ body:has(.admin-layout) main {
 .admin-sidebar-guide {
   display: grid;
   gap: 0.22rem;
-  border: 1px dashed rgba(37, 99, 235, 0.28);
-  background: rgba(37, 99, 235, 0.06);
+  border: 1px dashed rgba(79, 70, 229, 0.28);
+  background: rgba(79, 70, 229, 0.06);
   border-radius: 9px;
   padding: 0.55rem 0.62rem;
 }

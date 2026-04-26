@@ -45,7 +45,7 @@ export default function PricingPage() {
   return (
     <div className={styles.page}>
       <section className={styles.hero}>
-        <span className={styles.badge}>Akses Member Bankable</span>
+        <span className={styles.badge}>Akses Member BELAJARIA</span>
         <h1 className={styles.title}>Cukup Rp29.000 untuk mulai belajar dengan alur yang jelas</h1>
         <p className={styles.subtitle}>
           Halaman ini khusus menjelaskan benefit member. Fokusnya: kamu langsung tahu apa yang didapat setelah aktivasi.

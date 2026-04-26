@@ -36,7 +36,7 @@
   width: 64px;
   height: 64px;
   border-radius: 14px;
-  background: linear-gradient(135deg, rgba(34, 211, 238, 0.15), rgba(192, 132, 252, 0.15));
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.15), rgba(99, 102, 241, 0.15));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -44,7 +44,7 @@
   font-weight: 700;
   color: var(--primary);
   flex-shrink: 0;
-  border: 2px solid rgba(34, 211, 238, 0.2);
+  border: 2px solid rgba(79, 70, 229, 0.2);
 }
 
 .avatarInfo {
@@ -72,9 +72,9 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin-top: 0.5rem;
-  background: rgba(34, 211, 238, 0.1);
+  background: rgba(79, 70, 229, 0.1);
   color: var(--primary);
-  border: 1px solid rgba(34, 211, 238, 0.2);
+  border: 1px solid rgba(79, 70, 229, 0.2);
 }
 
 /* Form Fields */
@@ -106,8 +106,8 @@
 
 .formInput:focus {
   outline: none;
-  border-color: rgba(34, 211, 238, 0.5);
-  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.1);
+  border-color: rgba(79, 70, 229, 0.5);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
 }
 
 .formInput:disabled {

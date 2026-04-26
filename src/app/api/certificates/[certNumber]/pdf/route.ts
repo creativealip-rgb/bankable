@@ -56,10 +56,10 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
     y: height - 32,
     width: width - 48,
     height: 8,
-    color: rgb(0.13, 0.84, 0.93),
+    color: rgb(0.31, 0.27, 0.90),
   });
 
-  drawCenteredText(page, "BANKABLE", titleFont, 30, height - 86, rgb(0.13, 0.84, 0.93));
+  drawCenteredText(page, "BELAJARIA", titleFont, 30, height - 86, rgb(0.31, 0.27, 0.90));
   drawCenteredText(page, "Certificate of Completion", bodyFont, 15, height - 118, rgb(0.86, 0.88, 0.92));
   drawCenteredText(page, "This certifies that", bodyFont, 13, height - 168, rgb(0.75, 0.78, 0.83));
   drawCenteredText(page, name, titleFont, 34, height - 212, rgb(1, 1, 1));

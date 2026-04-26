@@ -63,14 +63,26 @@ type SidebarItem = {
 function formatDuration(seconds: number): string {
   const hours = Math.floor(seconds / 3600);
   const mins = Math.floor((seconds % 3600) / 60);
-  if (hours > 0) return `${hours}h ${mins}m`;
-  return `${mins}m`;
+  if (hours > 0) return `${hours} jam ${mins} menit`;
+  return `${mins} menit`;
 }
 
 function getContentIcon(contentType: "EBOOK" | "VIDEO" | "VOICE") {
   if (contentType === "EBOOK") return "📘";
   if (contentType === "VOICE") return "🎧";
   return "🎬";
+}
+
+function getCategoryStyle(category: string): { background: string; icon: string } {
+  const map: Record<string, { background: string; icon: string }> = {
+    Business:        { background: "linear-gradient(135deg, #dbeafe, #bfdbfe)", icon: "💼" },
+    Programming:     { background: "linear-gradient(135deg, #ede9fe, #c4b5fd)", icon: "💻" },
+    Design:          { background: "linear-gradient(135deg, #fce7f3, #f9a8d4)", icon: "🎨" },
+    "Audio/Video":   { background: "linear-gradient(135deg, #fef3c7, #fcd34d)", icon: "🎧" },
+    Marketing:       { background: "linear-gradient(135deg, #d1fae5, #6ee7b7)", icon: "📢" },
+    "Personal Growth":{ background: "linear-gradient(135deg, #ffedd5, #fdba74)", icon: "🌱" },
+  };
+  return map[category] || { background: "linear-gradient(135deg, #ede9fe, #e0e7ff)", icon: "📦" };
 }
 
 export default function CatalogPage() {
@@ -228,7 +240,7 @@ export default function CatalogPage() {
   }, []);
 
   const searchSummary = useMemo(() => {
-    if (loading || !accessReady) return "Loading...";
+    if (loading || !accessReady) return "Memuat...";
     return `${courses.length} konten tersedia`;
   }, [accessReady, courses.length, loading]);
 
@@ -252,7 +264,7 @@ export default function CatalogPage() {
       <aside className={styles.leftSidebar}>
         <div className={styles.leftSidebarInner}>
           <div className={styles.sidebarSection}>
-            <h3 className={styles.sidebarTitle}>Content Type</h3>
+            <h3 className={styles.sidebarTitle}>Tipe Konten</h3>
             <div className={styles.categoryList}>
               {contentTypes.map((type) => (
                 <button
@@ -268,14 +280,14 @@ export default function CatalogPage() {
           </div>
 
           <div className={styles.sidebarSection}>
-            <h3 className={styles.sidebarTitle}>Categories</h3>
+            <h3 className={styles.sidebarTitle}>Kategori</h3>
             <div className={styles.categoryList}>
               <button
                 type="button"
                 className={`${styles.categoryItem} ${selectedCategory === "ALL" ? styles.active : ""}`}
                 onClick={() => applyFilters({ category: "ALL" })}
               >
-                All Courses
+                Semua Konten
               </button>
               {categories.map((category) => (
                 <button
@@ -294,7 +306,7 @@ export default function CatalogPage() {
 
       <main className={styles.mainCatalog}>
         <div className={styles.catalogHeader}>
-          <h1 className={styles.catalogTitle}>Course Library</h1>
+          <h1 className={styles.catalogTitle}>Katalog Konten</h1>
           <p className={styles.catalogMeta}>{searchSummary}</p>
           {error ? <p className={styles.catalogError}>{error}</p> : null}
           <button
@@ -339,7 +351,7 @@ export default function CatalogPage() {
                 <option key={option.value} value={option.value}>{option.label}</option>
               ))}
             </select>
-            <button type="submit" className={styles.filterActionBtn}>Apply</button>
+            <button type="submit" className={styles.filterActionBtn}>Terapkan</button>
             {hasActiveFilters ? (
               <button type="button" className={styles.filterResetBtn} onClick={clearAllFilters}>Reset</button>
             ) : null}
@@ -348,24 +360,42 @@ export default function CatalogPage() {
 
         <div className={styles.assetGrid}>
           {loading ? (
-            <div className={styles.catalogState}>Loading courses...</div>
+            Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className={`${styles.assetCard} ${styles.skeletonCard}`}>
+                <div className={`${styles.assetThumbnail} ${styles.skeletonPulse}`} />
+                <div className={styles.assetInfo}>
+                  <div className={`${styles.skeletonText} ${styles.skeletonPulse}`} style={{ width: "40%", height: "14px" }} />
+                  <div className={`${styles.skeletonText} ${styles.skeletonPulse}`} style={{ width: "80%", height: "20px", marginTop: "8px" }} />
+                  <div className={`${styles.skeletonText} ${styles.skeletonPulse}`} style={{ width: "60%", height: "14px", marginTop: "8px" }} />
+                </div>
+              </div>
+            ))
           ) : courses.length === 0 ? (
-            <div className={styles.catalogState}>No courses found matching your filters.</div>
+            <div className={styles.emptyContainer}>
+              <div className={styles.emptyIcon}>🔍</div>
+              <h3 className={styles.emptyTitle}>Kursus tidak ditemukan</h3>
+              <p className={styles.emptyText}>Maaf, kami tidak menemukan kursus yang sesuai dengan kriteria Anda.</p>
+              <button onClick={clearAllFilters} className="btn-secondary" style={{ marginTop: "1.5rem" }}>
+                Reset Semua Filter
+              </button>
+            </div>
           ) : (
             courses.map((course) => (
               <Link href={`/courses/${course.slug}`} key={course.id} className={styles.assetCard}>
-                <div className={styles.assetThumbnail}>{getContentIcon(course.contentType)}</div>
+                <div className={styles.assetThumbnail} style={{ background: getCategoryStyle(course.category).background }}>
+                  <span style={{ fontSize: "2.8rem" }}>{getCategoryStyle(course.category).icon}</span>
+                </div>
                 <div className={styles.assetInfo}>
                   <div className={styles.assetType}>
-                    {course.contentType}
-                    <span className={styles.assetLevel}>{course.level}</span>
+                    <span>{getContentIcon(course.contentType)} {course.contentType}</span>
+                    <span className={`${styles.assetLevel} ${styles[course.level.toLowerCase()]}`}>{course.level}</span>
                   </div>
                   <div className={styles.assetName}>{course.title}</div>
                   <div className={styles.assetMeta}>
-                    <span>{course.totalModules} Modules • {course.totalVideos} Videos</span>
+                    <span>{course.totalModules} Modul • {course.totalVideos} Video</span>
                     <span>{formatDuration(course.totalDuration)}</span>
                   </div>
-                  <div className={styles.includedTag}>Included in your one-time access</div>
+                  <div className={styles.includedTag}>Termasuk akses member</div>
                 </div>
               </Link>
             ))
@@ -432,7 +462,7 @@ export default function CatalogPage() {
             </div>
 
             <div className={styles.mobileFilterSection}>
-              <h3 className={styles.sidebarTitle}>Content Type</h3>
+              <h3 className={styles.sidebarTitle}>Tipe Konten</h3>
               <div className={styles.categoryList}>
                 {contentTypes.map((type) => (
                   <button
@@ -448,14 +478,14 @@ export default function CatalogPage() {
             </div>
 
             <div className={styles.mobileFilterSection}>
-              <h3 className={styles.sidebarTitle}>Categories</h3>
+              <h3 className={styles.sidebarTitle}>Kategori</h3>
               <div className={styles.categoryList}>
                 <button
                   type="button"
                   className={`${styles.categoryItem} ${selectedCategory === "ALL" ? styles.active : ""}`}
                   onClick={() => applyFilters({ category: "ALL" })}
                 >
-                  All Courses
+                  Semua Konten
                 </button>
                 {categories.map((category) => (
                   <button
@@ -492,7 +522,7 @@ export default function CatalogPage() {
       <aside className={styles.rightSidebar}>
         <div className={styles.rightSidebarInner}>
           <div className={styles.sidebarSection}>
-            <h3 className={styles.sidebarTitle}>Upcoming Webinar</h3>
+            <h3 className={styles.sidebarTitle}>Webinar Mendatang</h3>
             <div className={styles.webinarList}>
               {(webinars.length > 0 ? webinars : upcomingWebinars).map((webinar) => {
                 const dateLabel = "id" in webinar ? webinar.dateLabel : webinar.date;
@@ -516,7 +546,7 @@ export default function CatalogPage() {
           </div>
 
           <div className={styles.sidebarSection}>
-            <h3 className={styles.sidebarTitle}>Premium Paid Video</h3>
+            <h3 className={styles.sidebarTitle}>Video Premium</h3>
             <div className={styles.webinarList}>
               {(premiumItems.length > 0 ? premiumItems : premiumVideos).map((item) => {
                 const subtitle = "id" in item ? item.subtitle : item.note;

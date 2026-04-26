@@ -103,7 +103,7 @@ export default function AdminSettingsPage() {
               value={settings.manualInstructions}
               onChange={(e) => setSettings((prev) => (prev ? { ...prev, manualInstructions: e.target.value } : prev))}
               rows={4}
-              placeholder="Contoh: Transfer ke BCA 123xxx a.n. Bankable, lalu kirim bukti ke WhatsApp admin."
+              placeholder="Contoh: Transfer ke BCA 123xxx a.n. BELAJARIA, lalu kirim bukti ke WhatsApp admin."
               className="admin-search-input admin-input-full admin-textarea"
             />
           </label>

@@ -58,6 +58,7 @@ export default function CoursePlayerPage({ params }: PageProps) {
   const [noteText, setNoteText] = useState("");
   const [showNotes, setShowNotes] = useState(false);
   const [bookmarks, setBookmarks] = useState<number[]>([]);
+  const [activeTab, setActiveTab] = useState<"notes" | "discussion">("notes");
 
   useEffect(() => { params.then((p) => setSlug(p.slug)); }, [params]);
 
@@ -277,10 +278,21 @@ export default function CoursePlayerPage({ params }: PageProps) {
     setBookmarks((prev) => Array.from(new Set([...prev, rounded])).sort((a, b) => a - b));
   };
 
+  const handleDownloadNotes = () => {
+    if (!noteText.trim()) return;
+    const blob = new Blob([`CATATAN BELAJARIA\nKursus: ${course?.title}\nVideo: ${activeVideo?.title}\n\n${noteText}`], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `catatan-${slug}-${activeVideoId}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   useEffect(() => {
     if (!activeVideoId) return;
-    const notesKey = `bankable-notes-${slug}-${activeVideoId}`;
-    const marksKey = `bankable-bookmarks-${slug}-${activeVideoId}`;
+    const notesKey = `belajaria-notes-${slug}-${activeVideoId}`;
+    const marksKey = `belajaria-bookmarks-${slug}-${activeVideoId}`;
     setNoteText(localStorage.getItem(notesKey) || "");
     try {
       setBookmarks(JSON.parse(localStorage.getItem(marksKey) || "[]"));
@@ -296,12 +308,12 @@ export default function CoursePlayerPage({ params }: PageProps) {
 
   useEffect(() => {
     if (!activeVideoId) return;
-    localStorage.setItem(`bankable-notes-${slug}-${activeVideoId}`, noteText);
+    localStorage.setItem(`belajaria-notes-${slug}-${activeVideoId}`, noteText);
   }, [noteText, activeVideoId, slug]);
 
   useEffect(() => {
     if (!activeVideoId) return;
-    localStorage.setItem(`bankable-bookmarks-${slug}-${activeVideoId}`, JSON.stringify(bookmarks));
+    localStorage.setItem(`belajaria-bookmarks-${slug}-${activeVideoId}`, JSON.stringify(bookmarks));
   }, [bookmarks, activeVideoId, slug]);
 
   const allCompleted = progress ? progress.completedVideos >= progress.totalVideos : false;
@@ -313,7 +325,7 @@ export default function CoursePlayerPage({ params }: PageProps) {
     return (
       <div className={styles.courseContainer}>
         <div style={{ textAlign: "center", padding: "4rem 0", color: "var(--text-muted)", width: "100%" }}>
-          Loading course...
+          Memuat kursus...
         </div>
       </div>
     );
@@ -334,7 +346,7 @@ export default function CoursePlayerPage({ params }: PageProps) {
     return (
       <div className={styles.courseContainer}>
         <div style={{ textAlign: "center", padding: "4rem 0", color: "var(--text-muted)", width: "100%" }}>
-          Course not found. <Link href="/courses" style={{ color: "var(--primary)" }}>Back to courses</Link>
+          Kursus tidak ditemukan. <Link href="/courses" style={{ color: "var(--primary)" }}>Kembali ke katalog</Link>
         </div>
       </div>
     );
@@ -345,7 +357,7 @@ export default function CoursePlayerPage({ params }: PageProps) {
       <div className={styles.mainContent}>
         <div className={styles.courseHeader}>
           <Link href={`/courses/${slug}`} className={styles.backDetailLink}>
-            ← Back to detail
+            ← Kembali ke detail
           </Link>
           <h1 className={styles.courseTitle}>{course.title}</h1>
           <p style={{ color: "var(--text-muted)" }}>
@@ -409,7 +421,7 @@ export default function CoursePlayerPage({ params }: PageProps) {
                         {[0.5, 0.75, 1, 1.25, 1.5, 2].map((s) => (
                           <button key={s} onClick={() => changeSpeed(s)}
                             style={{
-                              display: "block", width: "100%", padding: "6px 12px", background: s === playbackSpeed ? "rgba(34,211,238,0.1)" : "none",
+                              display: "block", width: "100%", padding: "6px 12px", background: s === playbackSpeed ? "rgba(79,70,229,0.1)" : "none",
                               border: "none", color: s === playbackSpeed ? "var(--primary)" : "var(--text-main)", fontSize: "0.85rem", cursor: "pointer", textAlign: "left", borderRadius: "4px",
                             }}>
                             {s}x
@@ -429,7 +441,7 @@ export default function CoursePlayerPage({ params }: PageProps) {
             <>
               <iframe
                 src={activeVideoSource.src}
-                title={activeVideo?.title || "YouTube video player"}
+                title={activeVideo?.title || "Video player"}
                 style={{ width: "100%", height: "100%", border: "none" }}
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 allowFullScreen
@@ -460,7 +472,7 @@ export default function CoursePlayerPage({ params }: PageProps) {
                   </p>
                 </div>
               ) : (
-                <p>No video URL configured</p>
+                <p>Belum ada URL video yang dikonfigurasi</p>
               )}
             </div>
           )}
@@ -473,24 +485,37 @@ export default function CoursePlayerPage({ params }: PageProps) {
               onClick={handleSimulateWatch}
               disabled={!activeVideoId || !isVideoAccessible(activeVideo!)}
             >
-              ✅ Mark as Watched (≥ 90%)
+              ✅ Tandai Selesai (≥ 90%)
             </button>
           </div>
         )}
 
-        {/* Notes Section */}
+        {/* Notes & Discussion Section */}
         <div style={{ marginBottom: "2rem" }}>
-          <button
-            onClick={() => setShowNotes(!showNotes)}
-            style={{
-              background: "none", border: "1px solid rgba(63,63,70,0.4)", color: "var(--text-muted)",
-              padding: "8px 16px", borderRadius: "10px", fontSize: "0.85rem", cursor: "pointer",
-              marginBottom: showNotes ? "0.75rem" : 0,
-            }}
-          >
-            📝 {showNotes ? "Hide Notes" : "Show Notes"}
-          </button>
-          {showNotes && (
+          <div style={{ display: "flex", gap: "1rem", borderBottom: "1px solid var(--line-border)", marginBottom: "1rem" }}>
+            <button
+              onClick={() => setActiveTab("notes")}
+              style={{
+                background: "none", border: "none", color: activeTab === "notes" ? "var(--primary)" : "var(--text-muted)",
+                padding: "8px 4px", fontSize: "0.9rem", fontWeight: activeTab === "notes" ? 700 : 500, cursor: "pointer",
+                borderBottom: activeTab === "notes" ? "2px solid var(--primary)" : "none",
+              }}
+            >
+              📝 Catatan
+            </button>
+            <button
+              onClick={() => setActiveTab("discussion")}
+              style={{
+                background: "none", border: "none", color: activeTab === "discussion" ? "var(--primary)" : "var(--text-muted)",
+                padding: "8px 4px", fontSize: "0.9rem", fontWeight: activeTab === "discussion" ? 700 : 500, cursor: "pointer",
+                borderBottom: activeTab === "discussion" ? "2px solid var(--primary)" : "none",
+              }}
+            >
+              💬 Diskusi
+            </button>
+          </div>
+
+          {activeTab === "notes" ? (
             <>
               <div style={{ marginBottom: "0.5rem", display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
                 <button
@@ -498,7 +523,15 @@ export default function CoursePlayerPage({ params }: PageProps) {
                   onClick={addBookmark}
                   style={{ background: "none", border: "1px solid rgba(63,63,70,0.4)", color: "var(--text-muted)", padding: "6px 12px", borderRadius: "8px", cursor: "pointer" }}
                 >
-                  🔖 Add bookmark ({formatTime(currentTime)})
+                  🔖 Tambah penanda ({formatTime(currentTime)})
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDownloadNotes}
+                  disabled={!noteText.trim()}
+                  style={{ background: "none", border: "1px solid rgba(63,63,70,0.4)", color: "var(--text-muted)", padding: "6px 12px", borderRadius: "8px", cursor: "pointer", opacity: !noteText.trim() ? 0.5 : 1 }}
+                >
+                  💾 Download Catatan
                 </button>
                 {bookmarks.map((b) => (
                   <button
@@ -519,22 +552,35 @@ export default function CoursePlayerPage({ params }: PageProps) {
               <textarea
                 value={noteText}
                 onChange={(e) => setNoteText(e.target.value)}
-                placeholder="Take notes while watching..."
+                placeholder="Tulis catatan sambil menonton..."
                 style={{
-                  width: "100%", minHeight: "100px", padding: "12px 16px",
-                  background: "rgba(255,255,255,0.92)", border: "1px solid rgba(63,63,70,0.5)",
+                  width: "100%", minHeight: "120px", padding: "12px 16px",
+                  background: "rgba(255,255,255,0.92)", border: "1px solid var(--line-border)",
                   borderRadius: "12px", color: "var(--text-main)", fontFamily: "var(--font-sans)",
                   fontSize: "0.9rem", resize: "vertical",
                 }}
               />
             </>
+          ) : (
+            <div style={{ padding: "2rem", textAlign: "center", background: "rgba(255,255,255,0.5)", borderRadius: "12px", border: "1px dashed var(--line-border)" }}>
+              <div style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }}>💬</div>
+              <p style={{ fontWeight: 600 }}>Forum Diskusi Pelajar</p>
+              <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "1rem" }}>Tanya jawab dan berbagi ilmu dengan sesama murid.</p>
+              <button 
+                onClick={() => toast("Fitur diskusi akan segera hadir! Nantikan ya.", "info")}
+                className="btn-secondary" 
+                style={{ fontSize: "0.8rem", padding: "8px 16px" }}
+              >
+                Mulai Diskusi
+              </button>
+            </div>
           )}
         </div>
 
         <div className="glass-panel" style={{ padding: "2rem" }}>
-          <h2 style={{ fontFamily: "var(--font-display)", marginBottom: "1rem" }}>Description</h2>
+          <h2 style={{ fontFamily: "var(--font-display)", marginBottom: "1rem" }}>Deskripsi</h2>
           <p style={{ color: "var(--text-muted)", lineHeight: "1.8" }}>
-            {course.description || "No description available."}
+            {course.description || "Belum ada deskripsi."}
           </p>
         </div>
       </div>
@@ -543,9 +589,9 @@ export default function CoursePlayerPage({ params }: PageProps) {
       <div className={styles.sidebar}>
         <div className={styles.sidebarInner}>
           <div className={styles.moduleHeader}>
-            <h3 className={styles.moduleTitle}>Course Progress</h3>
+            <h3 className={styles.moduleTitle}>Progres Kursus</h3>
             <div style={{ fontSize: "0.85rem", color: "var(--text-muted)", display: "flex", justifyContent: "space-between" }}>
-              <span>{progress?.completedVideos || 0} / {progress?.totalVideos || allVideos.length} Videos</span>
+              <span>{progress?.completedVideos || 0} / {progress?.totalVideos || allVideos.length} Video</span>
               <span>{progress?.overallProgress || 0}%</span>
             </div>
             <div className={styles.progressBar}>
@@ -593,11 +639,11 @@ export default function CoursePlayerPage({ params }: PageProps) {
               className={`${styles.quizButton} ${allCompleted ? styles.unlocked : styles.locked}`}
               onClick={(e) => { if (!allCompleted) e.preventDefault(); }}
             >
-              {allCompleted ? "Take Final Quiz ✨" : "🔒 Quiz Locked"}
+              {allCompleted ? "Kerjakan Quiz Akhir ✨" : "🔒 Quiz Terkunci"}
             </Link>
             {!allCompleted && (
               <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", textAlign: "center", marginTop: "0.5rem" }}>
-                Watch all videos to unlock
+                Tonton semua video untuk membuka
               </p>
             )}
           </div>

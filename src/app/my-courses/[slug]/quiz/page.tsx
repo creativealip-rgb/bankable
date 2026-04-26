@@ -406,7 +406,7 @@ export default function QuizPage({ params }: PageProps) {
                     height: "42px",
                     borderRadius: "8px",
                     border: isCurrent ? "2px solid var(--primary)" : "1px solid rgba(63,63,70,0.4)",
-                    background: isAnswered ? "rgba(34,211,238,0.15)" : "rgba(255,255,255,0.86)",
+                    background: isAnswered ? "rgba(79,70,229,0.15)" : "rgba(255,255,255,0.86)",
                     color: isAnswered ? "var(--primary)" : "var(--text-muted)",
                     fontWeight: 600,
                     fontSize: "0.85rem",

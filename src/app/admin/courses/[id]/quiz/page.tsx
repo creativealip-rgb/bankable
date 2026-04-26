@@ -303,7 +303,7 @@ export default function AdminQuizPage({ params }: PageProps) {
                 ))}
                 {newType !== "TRUE_FALSE" && (
                   <button onClick={() => setNewOptions([...newOptions, { text: "", isCorrect: false }])}
-                    style={{ background: "none", border: "1px dashed rgba(34,211,238,0.3)", color: "var(--primary)", padding: "6px 12px", borderRadius: "8px", fontSize: "0.85rem", cursor: "pointer" }}>
+                    style={{ background: "none", border: "1px dashed rgba(79,70,229,0.3)", color: "var(--primary)", padding: "6px 12px", borderRadius: "8px", fontSize: "0.85rem", cursor: "pointer" }}>
                     + Add Option
                   </button>
                 )}

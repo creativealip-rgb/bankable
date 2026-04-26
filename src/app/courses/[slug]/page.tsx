@@ -243,12 +243,24 @@ export default function CourseDetailPage({ params }: PageProps) {
     }
   };
 
+  const handleShare = (platform: "WA" | "COPY") => {
+    const url = typeof window !== "undefined" ? window.location.href : "";
+    const text = `Belajar "${course?.title}" di BELAJARIA seru banget! Cek di sini: ${url}`;
+    
+    if (platform === "WA") {
+      window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
+    } else {
+      navigator.clipboard.writeText(url);
+      alert("Link berhasil disalin ke clipboard!");
+    }
+  };
+
   return (
     <div className={styles.detailContainer}>
       {/* Main Column */}
       <div className={styles.mainColumn}>
         <Link href="/courses" className={styles.backLink}>
-          ← Back to Course Library
+          ← Kembali ke Katalog
         </Link>
 
         {/* Hero / Thumbnail */}
@@ -280,18 +292,18 @@ export default function CourseDetailPage({ params }: PageProps) {
 
         {/* Description */}
         <div className={styles.descSection}>
-          <h2 className={styles.descTitle}>About This Course</h2>
+          <h2 className={styles.descTitle}>Tentang Kursus Ini</h2>
           <p className={styles.descText}>
-            {course.description || "No description available for this course yet. Check back later for updates!"}
+            {course.description || "Belum ada deskripsi untuk kursus ini. Cek kembali nanti untuk pembaruan!"}
           </p>
         </div>
 
         {/* Curriculum */}
         <div className={styles.curriculumSection}>
           <div className={styles.curriculumTitle}>
-            <span>Curriculum</span>
+            <span>Kurikulum</span>
             <span style={{ fontSize: "0.85rem", color: "var(--text-muted)", fontWeight: 400 }}>
-              {course.totalModules} modules • {course.totalVideos} lessons
+              {course.totalModules} modul • {course.totalVideos} materi
             </span>
           </div>
 
@@ -306,7 +318,7 @@ export default function CourseDetailPage({ params }: PageProps) {
                     {isExpanded ? "▾" : "▸"} {mod.title}
                   </span>
                   <span className={styles.moduleStats}>
-                    {mod.videos.length} lessons • {formatDuration(moduleDuration)}
+                    {mod.videos.length} materi • {formatDuration(moduleDuration)}
                   </span>
                 </div>
                 {isExpanded && (
@@ -378,31 +390,43 @@ export default function CourseDetailPage({ params }: PageProps) {
                 className={styles.enrollBtn}
                 style={{ display: "block", textDecoration: "none" }}
               >
-                Start Course
+                Mulai Belajar Sekarang
               </Link>
             )}
             <ul className={styles.courseInfoList}>
               <li className={styles.courseInfoItem}>
                 <span className={styles.courseInfoIcon}>🎬</span>
-                <span>{course.totalVideos} video lessons</span>
+                <span>{course.totalVideos} materi video</span>
               </li>
               <li className={styles.courseInfoItem}>
                 <span className={styles.courseInfoIcon}>⏱️</span>
-                <span>{formatDuration(course.totalDuration)} total</span>
+                <span>Total durasi {formatDuration(course.totalDuration)}</span>
               </li>
               <li className={styles.courseInfoItem}>
                 <span className={styles.courseInfoIcon}>📊</span>
-                <span>{course.level} level</span>
+                <span>Level {course.level}</span>
               </li>
               <li className={styles.courseInfoItem}>
                 <span className={styles.courseInfoIcon}>📝</span>
-                <span>{quiz ? "Quiz & Certificate tersedia" : "No quiz"}</span>
+                <span>{quiz ? "Kuis & Sertifikat tersedia" : "Tidak ada kuis"}</span>
               </li>
               <li className={styles.courseInfoItem}>
                 <span className={styles.courseInfoIcon}>♾️</span>
-                <span>{hasCourseAccess ? "Full lifetime access" : "Akses setelah pembelian"}</span>
+                <span>Akses selamanya</span>
               </li>
             </ul>
+
+            <div className={styles.shareSection}>
+              <p className={styles.shareLabel}>Bagikan kursus ini:</p>
+              <div className={styles.shareBtns}>
+                <button onClick={() => handleShare("WA")} className={styles.shareBtnWa}>
+                  WhatsApp
+                </button>
+                <button onClick={() => handleShare("COPY")} className={styles.shareBtnCopy}>
+                  Salin Link
+                </button>
+              </div>
+            </div>
           </div>
 
           {/* Quiz Info */}

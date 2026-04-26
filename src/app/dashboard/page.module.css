@@ -9,6 +9,28 @@
 
 .header {
   margin-bottom: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.levelBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 4px 12px;
+  border: 1.5px solid;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.5);
+  width: fit-content;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.levelIcon {
+  font-size: 1rem;
 }
 
 .title {
@@ -40,6 +62,124 @@
   font-size: 0.85rem;
 }
 
+/* Resume Hero Section */
+.resumeHero {
+  background: linear-gradient(135deg, #4f46e5, #6366f1);
+  border-radius: 16px;
+  padding: 1.5rem;
+  color: #fff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 10px 25px -5px rgba(79, 70, 229, 0.4);
+}
+
+.resumeHero::before {
+  content: "";
+  position: absolute;
+  top: -20%;
+  right: -5%;
+  width: 150px;
+  height: 150px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  filter: blur(40px);
+}
+
+.resumeContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  z-index: 1;
+}
+
+.resumeBadge {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 4px 10px;
+  border-radius: 99px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  align-self: flex-start;
+}
+
+.resumeTitle {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.resumeModule {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.85);
+  margin-bottom: 0.25rem;
+}
+
+.resumeProgressRow {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.resumeProgressBar {
+  flex: 1;
+  max-width: 240px;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.resumeProgressFill {
+  height: 100%;
+  background: #fff;
+  border-radius: 99px;
+  transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.resumePct {
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.resumeVisual {
+  font-size: 4.5rem;
+  opacity: 0.2;
+  transform: rotate(15deg);
+  margin-left: 1rem;
+  user-select: none;
+}
+
+@media (max-width: 768px) {
+  .resumeHero {
+    padding: 1.25rem;
+    border-radius: 14px;
+  }
+
+  .resumeTitle {
+    font-size: 1.15rem;
+  }
+
+  .resumeModule {
+    font-size: 0.8rem;
+  }
+
+  .resumeVisual {
+    display: none;
+  }
+
+  .resumeProgressBar {
+    max-width: none;
+  }
+}
+
 /* Stats Row */
 .statsGrid {
   display: grid;
@@ -59,14 +199,14 @@
 }
 
 .statCard:hover {
-  border-color: rgba(34, 211, 238, 0.2);
+  border-color: rgba(79, 70, 229, 0.2);
   transform: translateY(-2px);
 }
 
 .statIcon {
   font-size: 1.35rem;
   padding: 0.6rem;
-  background: linear-gradient(135deg, rgba(34, 211, 238, 0.08), rgba(192, 132, 252, 0.08));
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.08), rgba(99, 102, 241, 0.08));
   border-radius: 14px;
   border: 1px solid rgba(255, 255, 255, 0.04);
 }
@@ -138,7 +278,7 @@
 }
 
 .courseItem:hover {
-  background: rgba(34, 211, 238, 0.08);
+  background: rgba(79, 70, 229, 0.08);
 }
 
 .courseInfo {
@@ -239,16 +379,49 @@
   margin-top: 0.2rem;
 }
 
-.emptyState {
-  padding: 1.25rem 0;
-  color: var(--text-muted);
+.emptyContainer {
   text-align: center;
-  font-size: 0.84rem;
+  padding: 3rem 1rem;
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: 14px;
+  border: 1px dashed var(--line-border);
 }
 
-.inlineLink {
-  color: var(--primary);
-  font-weight: 600;
+.emptyIcon {
+  font-size: 2.8rem;
+  margin-bottom: 0.75rem;
+}
+
+.emptyText {
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  max-width: 240px;
+  margin: 0 auto;
+}
+
+/* Skeletons */
+.skeletonPulse {
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.04) 25%,
+    rgba(0, 0, 0, 0.08) 37%,
+    rgba(0, 0, 0, 0.04) 63%
+  );
+  background-size: 400% 100%;
+  animation: skeleton-loading 1.4s ease infinite;
+}
+
+@keyframes skeleton-loading {
+  0% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.skeletonText {
+  border-radius: 4px;
+}
+
+.headerSkeleton {
+  margin-bottom: 2rem;
 }
 
 /* Responsive */

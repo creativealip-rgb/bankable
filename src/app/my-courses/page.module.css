@@ -46,13 +46,13 @@
 }
 
 .filterTab:hover {
-  border-color: rgba(34, 211, 238, 0.3);
+  border-color: rgba(79, 70, 229, 0.3);
   color: var(--text-main);
 }
 
 .filterTab.active {
-  background: rgba(34, 211, 238, 0.1);
-  border-color: rgba(34, 211, 238, 0.35);
+  background: rgba(79, 70, 229, 0.1);
+  border-color: rgba(79, 70, 229, 0.35);
   color: var(--primary);
   font-weight: 600;
 }
@@ -75,13 +75,13 @@
 
 .courseCard:hover {
   transform: translateY(-4px);
-  border-color: rgba(34, 211, 238, 0.3);
-  box-shadow: 0 12px 28px rgba(42, 74, 122, 0.18), 0 0 15px rgba(34, 211, 238, 0.06);
+  border-color: rgba(79, 70, 229, 0.3);
+  box-shadow: 0 12px 28px rgba(79, 70, 229, 0.18), 0 0 15px rgba(79, 70, 229, 0.06);
 }
 
 .courseThumb {
   aspect-ratio: 16/10;
-  background: linear-gradient(135deg, #e0f2fe, #dbeafe);
+  background: linear-gradient(135deg, #ede9fe, #e0e7ff);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -162,8 +162,8 @@
   font-weight: 700;
   font-size: 0.8rem;
   color: var(--primary);
-  background: rgba(34, 211, 238, 0.14);
-  border: 1px solid rgba(34, 211, 238, 0.26);
+  background: rgba(79, 70, 229, 0.14);
+  border: 1px solid rgba(79, 70, 229, 0.26);
   border-radius: 999px;
   padding: 2px 8px;
 }

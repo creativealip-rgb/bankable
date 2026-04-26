@@ -49,11 +49,11 @@ export default function DashboardPage() {
           setDashboard(data);
         } else {
           const data = await res.json();
-          setError(data.error || "Failed to load dashboard.");
+          setError(data.error || "Gagal memuat dashboard.");
         }
       } catch (fetchError) {
-        console.error("Failed to fetch dashboard:", fetchError);
-        setError("Failed to load dashboard.");
+        console.error("Gagal mengambil dashboard:", fetchError);
+        setError("Gagal memuat dashboard.");
       } finally {
         setLoading(false);
       }
@@ -61,11 +61,28 @@ export default function DashboardPage() {
     fetchDashboard();
   }, []);
 
+  const getStudentLevel = (count: number) => {
+    if (count >= 50) return { name: "Maestro", color: "#f59e0b", icon: "💎" };
+    if (count >= 20) return { name: "Cendekiawan", color: "#818cf8", icon: "🎓" };
+    if (count >= 5) return { name: "Pelajar Aktif", color: "#10b981", icon: "🌱" };
+    return { name: "Pemula", color: "#94a3b8", icon: "🥚" };
+  };
+
   if (loading) {
     return (
       <div className={styles.dashboardContainer}>
-        <div style={{ textAlign: "center", padding: "4rem 0", color: "var(--text-muted)" }}>
-          Loading dashboard...
+        <div className={styles.headerSkeleton}>
+          <div className={`${styles.skeletonPulse} ${styles.skeletonText}`} style={{ width: "40%", height: "2.5rem" }} />
+          <div className={`${styles.skeletonPulse} ${styles.skeletonText}`} style={{ width: "20%", height: "1.2rem", marginTop: "1rem" }} />
+        </div>
+        <div className={styles.statsGrid}>
+          {[1, 2, 3].map(i => (
+            <div key={i} className={`${styles.statCard} ${styles.skeletonPulse}`} style={{ height: "80px" }} />
+          ))}
+        </div>
+        <div className={styles.contentGrid} style={{ marginTop: "2rem" }}>
+          <div className={`${styles.sectionBox} ${styles.skeletonPulse}`} style={{ height: "300px" }} />
+          <div className={`${styles.sectionBox} ${styles.skeletonPulse}`} style={{ height: "300px" }} />
         </div>
       </div>
     );
@@ -77,35 +94,66 @@ export default function DashboardPage() {
     <div className={styles.dashboardContainer}>
       <div className={styles.header}>
         <h1 className={styles.title}>
-          Welcome back, {session?.user?.name || "Learner"}!
+          Selamat datang kembali, {session?.user?.name || "Pelajar"}!
         </h1>
-        <p className={styles.subtitle}>Here is your learning overview.</p>
-        <Link href="/payments" className={styles.paymentLink}>
-          Cek progres pembayaran &rarr;
-        </Link>
+        <div className={styles.levelBadge} style={{ borderColor: getStudentLevel(stats?.totalVideosWatched || 0).color, color: getStudentLevel(stats?.totalVideosWatched || 0).color }}>
+          <span className={styles.levelIcon}>{getStudentLevel(stats?.totalVideosWatched || 0).icon}</span>
+          Level: {getStudentLevel(stats?.totalVideosWatched || 0).name}
+        </div>
         {error && <p className={styles.errorText}>{error}</p>}
       </div>
+
+      {dashboard?.continueLearning && dashboard.continueLearning.length > 0 && (
+        <div className={styles.resumeHero}>
+          <div className={styles.resumeContent}>
+            <span className={styles.resumeBadge}>Lanjutkan Belajar</span>
+            <h2 className={styles.resumeTitle}>{dashboard.continueLearning[0].title}</h2>
+            <p className={styles.resumeModule}>
+              Terakhir: {dashboard.continueLearning[0].lastModule}
+            </p>
+            <div className={styles.resumeProgressRow}>
+              <div className={styles.resumeProgressBar}>
+                <div 
+                  className={styles.resumeProgressFill} 
+                  style={{ width: `${dashboard.continueLearning[0].progressPct}%` }}
+                ></div>
+              </div>
+              <span className={styles.resumePct}>{dashboard.continueLearning[0].progressPct}%</span>
+            </div>
+            <Link 
+              href={`/my-courses/${dashboard.continueLearning[0].slug}`} 
+              className="btn-primary"
+              style={{ alignSelf: "flex-start", marginTop: "0.5rem" }}
+            >
+              Lanjutkan Sekarang &rarr;
+            </Link>
+          </div>
+          <div className={styles.resumeVisual}>
+            🎬
+          </div>
+        </div>
+      )}
 
       <div className={styles.statsGrid}>
         <div className={styles.statCard}>
           <div className={styles.statIcon}>🎬</div>
           <div>
             <div className={styles.statValue}>{stats?.coursesInProgress || 0}</div>
-            <div className={styles.statLabel}>In Progress</div>
+            <div className={styles.statLabel}>Sedang Dipelajari</div>
           </div>
         </div>
         <div className={styles.statCard}>
           <div className={styles.statIcon}>✅</div>
           <div>
             <div className={styles.statValue}>{stats?.coursesCompleted || 0}</div>
-            <div className={styles.statLabel}>Completed</div>
+            <div className={styles.statLabel}>Selesai</div>
           </div>
         </div>
         <div className={styles.statCard}>
           <div className={styles.statIcon}>🏆</div>
           <div>
             <div className={styles.statValue}>{stats?.certificatesEarned || 0}</div>
-            <div className={styles.statLabel}>Certificates</div>
+            <div className={styles.statLabel}>Sertifikat</div>
           </div>
         </div>
       </div>
@@ -114,8 +162,8 @@ export default function DashboardPage() {
         {/* Left Column: Progress */}
         <div className={styles.sectionBox}>
           <div className={styles.sectionHeader}>
-            <h2 className={styles.sectionTitle}>Continue Learning</h2>
-            <Link href="/courses" className={styles.sectionLink}>Browse Catalog &rarr;</Link>
+            <h2 className={styles.sectionTitle}>Lanjutkan Belajar</h2>
+            <Link href="/courses" className={styles.sectionLink}>Lihat Katalog &rarr;</Link>
           </div>
 
           {dashboard?.continueLearning && dashboard.continueLearning.length > 0 ? (
@@ -134,8 +182,10 @@ export default function DashboardPage() {
               </Link>
             ))
           ) : (
-            <div className={styles.emptyState}>
-              No courses in progress yet. <Link href="/courses" className={styles.inlineLink}>Start learning!</Link>
+            <div className={styles.emptyContainer}>
+              <div className={styles.emptyIcon}>🎓</div>
+              <p className={styles.emptyText}>Belum ada kursus yang sedang dipelajari.</p>
+              <Link href="/courses" className="btn-secondary" style={{ marginTop: "1rem" }}>Mulai belajar!</Link>
             </div>
           )}
         </div>
@@ -143,7 +193,7 @@ export default function DashboardPage() {
         {/* Right Column: Certificates */}
         <div className={styles.sectionBox}>
           <div className={styles.sectionHeader}>
-            <h2 className={styles.sectionTitle}>My Certificates</h2>
+            <h2 className={styles.sectionTitle}>Sertifikat Saya</h2>
           </div>
 
           <div className={styles.certGrid}>
@@ -154,7 +204,7 @@ export default function DashboardPage() {
                   <div className={styles.certInfo}>
                     <div className={styles.certTitle}>{cert.course.title}</div>
                     <div className={styles.certMeta}>
-                      Score: {parseFloat(cert.score).toFixed(0)}% • {new Date(cert.issuedAt).toLocaleDateString("id-ID", { month: "short", year: "numeric" })}
+                      Skor: {parseFloat(cert.score).toFixed(0)}% • {new Date(cert.issuedAt).toLocaleDateString("id-ID", { month: "short", year: "numeric" })}
                     </div>
                     <div className={styles.certNumber}>
                       {cert.certificateNumber}
@@ -163,8 +213,9 @@ export default function DashboardPage() {
                 </div>
               ))
             ) : (
-              <div className={styles.emptyState}>
-                No certificates yet. Complete a course to earn one!
+              <div className={styles.emptyContainer} style={{ padding: "2rem 1rem" }}>
+                <div className={styles.emptyIcon} style={{ fontSize: "2rem" }}>📜</div>
+                <p className={styles.emptyText}>Belum ada sertifikat. Selesaikan kursus untuk mendapatkannya!</p>
               </div>
             )}
           </div>

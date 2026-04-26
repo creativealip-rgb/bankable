@@ -34,11 +34,11 @@ export default function MyCoursesPage() {
           setCourses(data.continueLearning || []);
         } else {
           const data = await res.json();
-          setError(data.error || "Failed to load your courses.");
+          setError(data.error || "Gagal memuat kursus Anda.");
         }
       } catch (fetchError) {
-        console.error("Failed to fetch my courses:", fetchError);
-        setError("Failed to load your courses.");
+        console.error("Gagal mengambil kursus:", fetchError);
+        setError("Gagal memuat kursus Anda.");
       } finally {
         setLoading(false);
       }
@@ -46,16 +46,16 @@ export default function MyCoursesPage() {
     fetchMyCourses();
   }, []);
 
-  function getCategoryIcon(category: string): string {
-    switch (category) {
-      case "Business": return "💼";
-      case "Programming": return "💻";
-      case "Design": return "🎨";
-      case "Audio/Video": return "🎬";
-      case "Marketing": return "📈";
-      case "Personal Growth": return "🌱";
-      default: return "📚";
-    }
+  function getCategoryStyle(category: string): { background: string; icon: string } {
+    const map: Record<string, { background: string; icon: string }> = {
+      Business:        { background: "linear-gradient(135deg, #dbeafe, #bfdbfe)", icon: "💼" },
+      Programming:     { background: "linear-gradient(135deg, #ede9fe, #c4b5fd)", icon: "💻" },
+      Design:          { background: "linear-gradient(135deg, #fce7f3, #f9a8d4)", icon: "🎨" },
+      "Audio/Video":   { background: "linear-gradient(135deg, #fef3c7, #fcd34d)", icon: "🎬" },
+      Marketing:       { background: "linear-gradient(135deg, #d1fae5, #6ee7b7)", icon: "📢" },
+      "Personal Growth":{ background: "linear-gradient(135deg, #ffedd5, #fdba74)", icon: "🌱" },
+    };
+    return map[category] || { background: "linear-gradient(135deg, #ede9fe, #e0e7ff)", icon: "📚" };
   }
 
   const filteredCourses = courses.filter((c) => {
@@ -67,7 +67,7 @@ export default function MyCoursesPage() {
   if (loading) {
     return (
       <div className={styles.myCoursesContainer}>
-        <div className={styles.loadingState}>Loading your courses...</div>
+        <div className={styles.loadingState}>Memuat kursus Anda...</div>
       </div>
     );
   }
@@ -75,9 +75,9 @@ export default function MyCoursesPage() {
   return (
     <div className={styles.myCoursesContainer}>
       <div className={styles.header}>
-        <h1 className={styles.title}>My Courses</h1>
+        <h1 className={styles.title}>Kursus Saya</h1>
         <p className={styles.subtitle}>
-          Welcome back, {session?.user?.name || "Learner"}! Continue where you left off.
+          Selamat datang kembali, {session?.user?.name || "Pelajar"}! Lanjutkan belajarmu.
         </p>
         {error && <p className={styles.errorText}>{error}</p>}
       </div>
@@ -89,7 +89,7 @@ export default function MyCoursesPage() {
             className={`${styles.filterTab} ${filter === f ? styles.active : ""}`}
             onClick={() => setFilter(f)}
           >
-            {f === "all" ? "All Courses" : f === "in-progress" ? "In Progress" : "Completed"}
+            {f === "all" ? "Semua Kursus" : f === "in-progress" ? "Sedang Dipelajari" : "Selesai"}
           </button>
         ))}
       </div>
@@ -100,20 +100,20 @@ export default function MyCoursesPage() {
             <div className={styles.emptyIcon}>📚</div>
             <div className={styles.emptyText}>
               {filter === "completed"
-                ? "You haven't completed any courses yet."
+                ? "Anda belum menyelesaikan kursus apa pun."
                 : filter === "in-progress"
-                ? "No courses in progress."
-                : "You haven't enrolled in any courses yet."}
+                ? "Tidak ada kursus yang sedang dipelajari."
+                : "Anda belum terdaftar di kursus apa pun."}
             </div>
             <Link href="/courses" className="btn-primary">
-              Browse Course Catalog
+              Lihat Katalog Kursus
             </Link>
           </div>
         ) : (
           filteredCourses.map((course) => (
             <Link href={`/my-courses/${course.slug}`} key={course.id} className={styles.courseCard}>
-              <div className={styles.courseThumb}>
-                {getCategoryIcon(course.category)}
+              <div className={styles.courseThumb} style={{ background: getCategoryStyle(course.category).background }}>
+                <span style={{ fontSize: "2.8rem" }}>{getCategoryStyle(course.category).icon}</span>
                 <div className={styles.progressOverlay}>
                   <div
                     className={styles.progressStrike}
@@ -125,20 +125,20 @@ export default function MyCoursesPage() {
                 <div className={styles.courseTop}>
                   <div className={styles.courseCategory}>{course.category}</div>
                   {course.progressPct >= 100 ? (
-                    <span className={styles.completeBadge}>Complete</span>
+                    <span className={styles.completeBadge}>Selesai</span>
                   ) : (
                     <span className={styles.progressText}>{course.progressPct}%</span>
                   )}
                 </div>
                 <div className={styles.courseName}>{course.title}</div>
                 <div className={styles.lastLesson}>
-                  {course.lastModule ? `Last: ${course.lastModule}` : "Start learning now"}
+                  {course.lastModule ? `Terakhir: ${course.lastModule}` : "Mulai belajar sekarang"}
                 </div>
                 <div className={styles.courseStats}>
                   <span>
-                    {course.completedVideos}/{course.totalVideos} videos
+                    {course.completedVideos}/{course.totalVideos} video
                   </span>
-                  <span>{Math.max(course.progressPct, 0)}% progress</span>
+                  <span>progres {Math.max(course.progressPct, 0)}%</span>
                 </div>
               </div>
             </Link>

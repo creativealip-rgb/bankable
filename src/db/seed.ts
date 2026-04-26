@@ -8,7 +8,7 @@ import { eq } from "drizzle-orm";
 import "dotenv/config";
 
 async function main() {
-  console.log("🌱 Seeding Bankable database...\n");
+  console.log("🌱 Seeding BELAJARIA database...\n");
 
   // --- Users ---
   let adminId: string = crypto.randomUUID();
@@ -23,22 +23,22 @@ async function main() {
   await db.insert(users).values([
     {
       id: adminId,
-      name: "Admin Bankable",
-      email: "admin@bankable.local",
+      name: "Admin BELAJARIA",
+      email: "admin@belajaria.local",
       emailVerified: true,
       role: "ADMIN",
     },
     {
       id: memberId,
       name: "Member Demo",
-      email: "member@bankable.local",
+      email: "member@belajaria.local",
       emailVerified: true,
       role: "MEMBER",
     },
     {
       id: admin2Id,
-      name: "Admin Bankable 2",
-      email: "admin2@bankable.local",
+      name: "Admin BELAJARIA 2",
+      email: "admin2@belajaria.local",
       emailVerified: true,
       role: "ADMIN",
     },
@@ -47,17 +47,17 @@ async function main() {
   const [adminUser] = await db
     .select({ id: users.id })
     .from(users)
-    .where(eq(users.email, "admin@bankable.local"))
+    .where(eq(users.email, "admin@belajaria.local"))
     .limit(1);
   const [admin2User] = await db
     .select({ id: users.id })
     .from(users)
-    .where(eq(users.email, "admin2@bankable.local"))
+    .where(eq(users.email, "admin2@belajaria.local"))
     .limit(1);
   const [memberUser] = await db
     .select({ id: users.id })
     .from(users)
-    .where(eq(users.email, "member@bankable.local"))
+    .where(eq(users.email, "member@belajaria.local"))
     .limit(1);
   if (!adminUser || !admin2User || !memberUser) {
     throw new Error("Seed users not found after insert");
@@ -91,9 +91,9 @@ async function main() {
     },
   ]).onConflictDoNothing();
 
-  console.log("  ✅ Admin: admin@bankable.local / admin123");
-  console.log("  ✅ Admin 2: admin2@bankable.local / password123");
-  console.log("  ✅ Member: member@bankable.local / member123\n");
+  console.log("  ✅ Admin: admin@belajaria.local / admin123");
+  console.log("  ✅ Admin 2: admin2@belajaria.local / password123");
+  console.log("  ✅ Member: member@belajaria.local / member123\n");
 
   // --- Memberships ---
   console.log("Creating memberships...");
@@ -536,8 +536,8 @@ async function main() {
 
   console.log("🎉 Seeding complete!");
   console.log("\nLogin credentials:");
-  console.log("  Admin:  admin@bankable.local  / admin123");
-  console.log("  Member: member@bankable.local / member123");
+  console.log("  Admin:  admin@belajaria.local  / admin123");
+  console.log("  Member: member@belajaria.local / member123");
 }
 
 main().catch((e) => {

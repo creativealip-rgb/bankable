@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSession } from "@/lib/auth-client";
 import { NavAuth } from "./nav-auth";
+import { ThemeToggle } from "./theme-toggle";
 
 type NavItem = {
   href: string;
@@ -21,16 +22,27 @@ export function MainNav() {
   const { data: session, isPending } = useSession();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
+  const [searchValue, setSearchValue] = useState("");
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchValue.trim()) {
+      router.push(`/courses?search=${encodeURIComponent(searchValue.trim())}`);
+      setSearchValue("");
+      setMobileMenuOpen(false);
+    }
+  };
 
   const links = useMemo<NavItem[]>(() => {
-    const publicLinks: NavItem[] = [{ href: "/courses", label: "Courses" }, { href: "/pricing", label: "Pricing" }];
+    const publicLinks: NavItem[] = [{ href: "/courses", label: "Katalog" }, { href: "/pricing", label: "Harga" }];
 
     if (!session) return publicLinks;
 
     return [
-      { href: "/courses", label: "Courses" },
-      { href: "/my-courses", label: "My Courses" },
-      { href: "/payments", label: "Payments" },
+      { href: "/courses", label: "Katalog" },
+      { href: "/my-courses", label: "Kursus Saya" },
+      { href: "/payments", label: "Pembayaran" },
       { href: "/dashboard", label: "Dashboard" },
     ];
   }, [session]);
@@ -60,8 +72,27 @@ export function MainNav() {
       <div className="nav-container" ref={navRef}>
         <div className="logo">
           <Link href="/" className="brand-link" onClick={() => setMobileMenuOpen(false)}>
-            <span className="gradient-text brand-wordmark">Bankable</span>
+            <span className="gradient-text brand-wordmark">BELAJARIA</span>
           </Link>
+        </div>
+
+        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+          <ThemeToggle />
+          <form className="nav-global-search" onSubmit={handleSearch}>
+            <div className="nav-search-wrapper">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="nav-search-icon">
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+              <input
+                type="text"
+                placeholder="Cari kursus..."
+                value={searchValue}
+                onChange={(e) => setSearchValue(e.target.value)}
+                className="nav-search-input"
+              />
+            </div>
+          </form>
         </div>
 
         <div className="nav-right">

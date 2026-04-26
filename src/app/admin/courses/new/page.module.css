@@ -78,8 +78,8 @@
 .formSelect:focus,
 .formTextarea:focus {
   outline: none;
-  border-color: rgba(34, 211, 238, 0.5);
-  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.1);
+  border-color: rgba(79, 70, 229, 0.5);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
 }
 
 .formTextarea {
@@ -127,13 +127,13 @@
 }
 
 .typeOption:hover {
-  border-color: rgba(34, 211, 238, 0.3);
-  background: rgba(34, 211, 238, 0.03);
+  border-color: rgba(79, 70, 229, 0.3);
+  background: rgba(79, 70, 229, 0.03);
 }
 
 .typeOptionActive {
-  border-color: rgba(34, 211, 238, 0.5);
-  background: rgba(34, 211, 238, 0.06);
+  border-color: rgba(79, 70, 229, 0.5);
+  background: rgba(79, 70, 229, 0.06);
 }
 
 .typeOptionIcon {
@@ -172,7 +172,7 @@
   width: 27px;
   height: 27px;
   border-radius: 8px;
-  background: linear-gradient(135deg, rgba(34, 211, 238, 0.15), rgba(192, 132, 252, 0.15));
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.15), rgba(99, 102, 241, 0.15));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -202,7 +202,7 @@
 
 .moduleInput:focus {
   outline: none;
-  border-color: rgba(34, 211, 238, 0.4);
+  border-color: rgba(79, 70, 229, 0.4);
 }
 
 .removeBtn {
@@ -262,7 +262,7 @@
 
 .videoInput:focus {
   outline: none;
-  border-color: rgba(34, 211, 238, 0.3);
+  border-color: rgba(79, 70, 229, 0.3);
 }
 
 .durationInput {
@@ -312,7 +312,7 @@
 .addBtn {
   padding: 6px 12px;
   border-radius: 9px;
-  border: 1px dashed rgba(34, 211, 238, 0.3);
+  border: 1px dashed rgba(79, 70, 229, 0.3);
   background: transparent;
   color: var(--primary);
   font-size: 0.78rem;
@@ -323,8 +323,8 @@
 }
 
 .addBtn:hover {
-  background: rgba(34, 211, 238, 0.05);
-  border-color: rgba(34, 211, 238, 0.5);
+  background: rgba(79, 70, 229, 0.05);
+  border-color: rgba(79, 70, 229, 0.5);
 }
 
 /* Submit Area */
@@ -372,7 +372,7 @@
 }
 
 .draftBtn:hover {
-  background: rgba(34, 211, 238, 0.08);
+  background: rgba(79, 70, 229, 0.08);
 }
 
 .draftBtn:disabled {

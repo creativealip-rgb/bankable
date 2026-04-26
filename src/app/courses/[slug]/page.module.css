@@ -18,7 +18,7 @@
 .heroSection {
   border-radius: 20px;
   overflow: hidden;
-  background: linear-gradient(135deg, #e0f2fe, #dbeafe);
+  background: linear-gradient(135deg, #ede9fe, #e0e7ff);
   border: 1px solid var(--line-border);
   position: relative;
 }
@@ -58,15 +58,15 @@
 }
 
 .typeSingle {
-  background: rgba(34, 211, 238, 0.15);
+  background: rgba(79, 70, 229, 0.15);
   color: var(--primary);
-  border: 1px solid rgba(34, 211, 238, 0.25);
+  border: 1px solid rgba(79, 70, 229, 0.25);
 }
 
 .typeMulti {
-  background: rgba(192, 132, 252, 0.15);
+  background: rgba(99, 102, 241, 0.15);
   color: var(--secondary);
-  border: 1px solid rgba(192, 132, 252, 0.25);
+  border: 1px solid rgba(99, 102, 241, 0.25);
 }
 
 .courseTitle {
@@ -140,7 +140,7 @@
 }
 
 .moduleCard:hover {
-  border-color: rgba(34, 211, 238, 0.2);
+  border-color: rgba(79, 70, 229, 0.2);
 }
 
 .moduleHeader {
@@ -185,7 +185,7 @@
 }
 
 .videoPreviewItem:hover {
-  background: rgba(34, 211, 238, 0.08);
+  background: rgba(79, 70, 229, 0.08);
 }
 
 .videoPreviewIcon {
@@ -282,7 +282,7 @@
 
 .enrollBtn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px var(--primary-glow), 0 0 40px rgba(34, 211, 238, 0.1);
+  box-shadow: 0 8px 25px var(--primary-glow), 0 0 40px rgba(79, 70, 229, 0.1);
 }
 
 .enrollBtn:active {
@@ -308,6 +308,55 @@
 
 .courseInfoItem:last-child {
   border-bottom: none;
+}
+
+.shareSection {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--line-border);
+}
+
+.shareLabel {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 0.75rem;
+}
+
+.shareBtns {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.shareBtnWa, .shareBtnCopy {
+  flex: 1;
+  padding: 8px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.shareBtnWa {
+  background: #25d366;
+  color: white;
+  border: none;
+}
+
+.shareBtnWa:hover {
+  background: #128c7e;
+}
+
+.shareBtnCopy {
+  background: var(--background);
+  color: var(--text-main);
+  border: 1px solid var(--line-border);
+}
+
+.shareBtnCopy:hover {
+  background: var(--line-subtle);
 }
 
 .courseInfoIcon {
@@ -361,7 +410,7 @@
 .instructorAvatar {
   width: 48px;
   height: 48px;
-  background: linear-gradient(135deg, rgba(34, 211, 238, 0.15), rgba(192, 132, 252, 0.15));
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.15), rgba(99, 102, 241, 0.15));
   border-radius: 14px;
   display: flex;
   align-items: center;

@@ -58,10 +58,10 @@ export function NavAuth({ onNavigate, drawerMode = false }: NavAuthProps) {
 
           <div className="nav-drawer-account-links">
             <Link href="/profile" onClick={() => onNavigate?.()} className="nav-user-menu-link">
-              Profile
+              Profil
             </Link>
             <Link href="/certificates" onClick={() => onNavigate?.()} className="nav-user-menu-link">
-              Certificates
+              Sertifikat
             </Link>
             {isAdmin && (
               <Link href="/admin" onClick={() => onNavigate?.()} className="nav-user-menu-link nav-user-menu-link-admin">
@@ -78,7 +78,7 @@ export function NavAuth({ onNavigate, drawerMode = false }: NavAuthProps) {
               }}
               className="nav-user-logout"
             >
-              Logout
+              Keluar
             </button>
           </div>
         </div>
@@ -108,8 +108,8 @@ export function NavAuth({ onNavigate, drawerMode = false }: NavAuthProps) {
             </div>
 
             {[
-              { href: "/profile", label: "Profile" },
-              { href: "/certificates", label: "Certificates" },
+              { href: "/profile", label: "Profil" },
+              { href: "/certificates", label: "Sertifikat" },
             ].map((item) => (
               <Link
                 key={item.href}
@@ -155,7 +155,7 @@ export function NavAuth({ onNavigate, drawerMode = false }: NavAuthProps) {
               className="nav-user-logout"
               role="menuitem"
             >
-              Logout
+              Keluar
             </button>
           </div>
         )}
@@ -165,8 +165,8 @@ export function NavAuth({ onNavigate, drawerMode = false }: NavAuthProps) {
 
   return (
     <div className="nav-auth-guest">
-      <Link href="/login" onClick={() => onNavigate?.()} className="nav-login-link">Login</Link>
-      <Link href="/register" onClick={() => onNavigate?.()} className="btn-primary nav-join-link">Join Now</Link>
+      <Link href="/login" onClick={() => onNavigate?.()} className="nav-login-link">Masuk</Link>
+      <Link href="/register" onClick={() => onNavigate?.()} className="btn-primary nav-join-link">Daftar</Link>
     </div>
   );
 }

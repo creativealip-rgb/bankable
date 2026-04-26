@@ -2,13 +2,13 @@ import { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Bankable Learning Platform",
-    short_name: "Bankable",
+    name: "BELAJARIA Learning Platform",
+    short_name: "BELAJARIA",
     description: "Membership learning platform for digital assets and courses",
     start_url: "/",
     display: "standalone",
-    background_color: "#f6fbff",
-    theme_color: "#22d3ee",
+    background_color: "#f5f3ff",
+    theme_color: "#4F46E5",
     icons: [
       {
         src: "/favicon.ico",
