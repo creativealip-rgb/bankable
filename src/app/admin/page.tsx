@@ -69,6 +69,11 @@ type AdminStats = {
     total: number;
     memberSignupTransactions: number;
     premiumWebinarTransactions: number;
+    timeline: {
+      periodKey: string;
+      periodLabel: string;
+      revenue: number;
+    }[];
   };
 };
 
@@ -116,24 +121,39 @@ export default function AdminDashboard() {
 
       {/* Stats Overview */}
       <div className="admin-stats-grid">
-        <div className="admin-stat-card">
-          <div className="admin-stat-label">Total Users</div>
-          <div className="admin-stat-value">{stats.overview.totalUsers}</div>
-          <div className="admin-stat-change positive">
-            +{stats.overview.newUsersLast7Days} past 7 days
+        <div className="admin-stat-card premium-users">
+          <div className="admin-stat-icon">👥</div>
+          <div className="admin-stat-content">
+            <div className="admin-stat-label">Total Users</div>
+            <div className="admin-stat-value">{stats.overview.totalUsers}</div>
+            <div className="admin-stat-change positive">
+              +{stats.overview.newUsersLast7Days} 7 hari terakhir
+            </div>
           </div>
         </div>
-        <div className="admin-stat-card">
-          <div className="admin-stat-label">Total Courses</div>
-          <div className="admin-stat-value">{stats.overview.totalCourses}</div>
+        <div className="admin-stat-card premium-courses">
+          <div className="admin-stat-icon">📚</div>
+          <div className="admin-stat-content">
+            <div className="admin-stat-label">Total Courses</div>
+            <div className="admin-stat-value">{stats.overview.totalCourses}</div>
+            <div className="admin-stat-change">Aktif & Publik</div>
+          </div>
         </div>
-        <div className="admin-stat-card">
-          <div className="admin-stat-label">Certificates Issued</div>
-          <div className="admin-stat-value">{stats.overview.totalCertificates}</div>
+        <div className="admin-stat-card premium-certs">
+          <div className="admin-stat-icon">🏆</div>
+          <div className="admin-stat-content">
+            <div className="admin-stat-label">Certificates</div>
+            <div className="admin-stat-value">{stats.overview.totalCertificates}</div>
+            <div className="admin-stat-change">Lulus Kuis</div>
+          </div>
         </div>
-        <div className="admin-stat-card">
-          <div className="admin-stat-label">Active Sessions</div>
-          <div className="admin-stat-value">{stats.overview.activeSessions}</div>
+        <div className="admin-stat-card premium-active">
+          <div className="admin-stat-icon">⚡</div>
+          <div className="admin-stat-content">
+            <div className="admin-stat-label">Active Sessions</div>
+            <div className="admin-stat-value">{stats.overview.activeSessions}</div>
+            <div className="admin-stat-change positive">Sedang Belajar</div>
+          </div>
         </div>
       </div>
 
@@ -178,19 +198,20 @@ export default function AdminDashboard() {
         </div>
 
         <div className="admin-stats-grid admin-stats-grid-3">
-          <div className="admin-stat-card">
+          <div className="admin-stat-card revenue-card">
             <div className="admin-stat-label">Pendapatan Member</div>
             <div className="admin-stat-value">{idr.format(stats.revenue.memberSignup)}</div>
             <div className="admin-stat-change positive">{stats.revenue.memberSignupTransactions} transaksi</div>
           </div>
-          <div className="admin-stat-card">
-            <div className="admin-stat-label">Pendapatan Webinar Premium</div>
+          <div className="admin-stat-card revenue-card">
+            <div className="admin-stat-label">Webinar Premium</div>
             <div className="admin-stat-value">{idr.format(stats.revenue.premiumWebinar)}</div>
             <div className="admin-stat-change positive">{stats.revenue.premiumWebinarTransactions} transaksi</div>
           </div>
-          <div className="admin-stat-card">
+          <div className="admin-stat-card revenue-card total">
             <div className="admin-stat-label">Total Pendapatan</div>
-            <div className="admin-stat-value admin-kpi-success">{idr.format(stats.revenue.total)}</div>
+            <div className="admin-stat-value">{idr.format(stats.revenue.total)}</div>
+            <div className="admin-stat-change positive">Semua Transaksi</div>
           </div>
         </div>
 
@@ -221,6 +242,33 @@ export default function AdminDashboard() {
               )}
             </tbody>
           </table>
+        </div>
+
+        <div className="admin-section">
+          <div className="admin-section-header">
+            <h3 className="admin-section-title">Revenue Timeline</h3>
+          </div>
+          <div className="admin-revenue-chart">
+            {stats.revenue.timeline.length === 0 ? (
+              <p className="admin-note">No revenue data for this period</p>
+            ) : (
+              stats.revenue.timeline.map((item) => (
+                <div key={item.periodKey} className="admin-revenue-bar-item">
+                  <div className="admin-revenue-bar-wrapper">
+                    <div 
+                      className="admin-revenue-bar-fill" 
+                      style={{ height: `${(item.revenue / (Math.max(...stats.revenue.timeline.map(t => t.revenue), 1))) * 100}%` }}
+                    >
+                      <div className="admin-revenue-bar-tooltip">
+                        {idr.format(item.revenue)}
+                      </div>
+                    </div>
+                  </div>
+                  <span className="admin-revenue-bar-label">{item.periodLabel}</span>
+                </div>
+              ))
+            )}
+          </div>
         </div>
       </div>
 

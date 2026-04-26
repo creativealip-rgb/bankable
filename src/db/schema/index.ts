@@ -39,3 +39,9 @@ export { adminAuditLogs, adminAuditLogsRelations } from "./admin-audit-logs";
 
 // System settings
 export { systemSettings } from "./settings";
+ 
+// Learning Path tables
+export { learningPaths, learningPathsRelations, learningPathCourses, learningPathCoursesRelations } from "./learning-paths";
+ 
+// Notification tables
+export { notifications, notificationsRelations } from "./notifications";

@@ -111,6 +111,7 @@ export default function CourseDetailPage({ params }: PageProps) {
   const [userRating, setUserRating] = useState(5);
   const [userReview, setUserReview] = useState("");
   const [submittingReview, setSubmittingReview] = useState(false);
+  const [showTeaser, setShowTeaser] = useState(false);
 
 
   useEffect(() => {
@@ -344,6 +345,12 @@ export default function CourseDetailPage({ params }: PageProps) {
                   {course.level}
                 </span>
               </div>
+              <button 
+                className={styles.teaserBtn}
+                onClick={() => setShowTeaser(true)}
+              >
+                <span className={styles.teaserIcon}>▶</span> Lihat Cuplikan Kursus
+              </button>
             </div>
           </div>
         </div>
@@ -395,71 +402,12 @@ export default function CourseDetailPage({ params }: PageProps) {
                   </ul>
                 )}
               </div>
-            );
-          })}
-        </div>
+        );
+      })}
+    </div>
+  </div>
 
-        {/* Reviews Section */}
-        <div className={styles.reviewsSection}>
-          <h2 className={styles.descTitle}>Ulasan Alumni</h2>
-          
-          {hasCourseAccess && (
-            <div className={styles.reviewForm}>
-              <h3 style={{ fontSize: "1rem", marginBottom: "0.75rem" }}>Berikan Ulasan Kamu</h3>
-              <form onSubmit={handleSubmitReview}>
-                <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1rem" }}>
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <button
-                      key={star}
-                      type="button"
-                      onClick={() => setUserRating(star)}
-                      style={{ background: "none", border: "none", fontSize: "1.5rem", cursor: "pointer", color: star <= userRating ? "#f59e0b" : "#cbd5e1" }}
-                    >
-                      ★
-                    </button>
-                  ))}
-                </div>
-                <textarea
-                  value={userReview}
-                  onChange={(e) => setUserReview(e.target.value)}
-                  placeholder="Ceritakan pengalaman belajar kamu di kursus ini..."
-                  className={styles.reviewTextarea}
-                />
-                <button type="submit" className="btn-primary" disabled={submittingReview} style={{ marginTop: "0.5rem" }}>
-                  {submittingReview ? "Mengirim..." : "Kirim Ulasan"}
-                </button>
-              </form>
-            </div>
-          )}
-
-          <div className={styles.reviewsList}>
-            {reviews.length === 0 ? (
-              <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>Belum ada ulasan untuk kursus ini.</p>
-            ) : (
-              reviews.map((r) => (
-                <div key={r.id} className={styles.reviewItem}>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                      <div className={styles.reviewAvatar}>
-                        {r.user.name.charAt(0).toUpperCase()}
-                      </div>
-                      <span style={{ fontWeight: 600, fontSize: "0.9rem" }}>{r.user.name}</span>
-                    </div>
-                    <span style={{ color: "#f59e0b", fontWeight: 700 }}>{"★".repeat(r.rating)}</span>
-                  </div>
-                  <p style={{ fontSize: "0.88rem", color: "var(--text-main)", lineHeight: 1.5 }}>{r.review}</p>
-                  <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "0.5rem" }}>
-                    {new Date(r.createdAt).toLocaleDateString("id-ID")}
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-      </div>
-
-
-      {/* Sidebar */}
+  {/* Sidebar */}
       <div className={styles.sidebar}>
         <div className={styles.sidebarInner}>
           {/* Enroll Card */}
@@ -579,6 +527,104 @@ export default function CourseDetailPage({ params }: PageProps) {
           )}
         </div>
       </div>
+
+      {/* Reviews Section - Moved here for grid positioning */}
+      <div className={styles.reviewsSection}>
+        <h2 className={styles.descTitle}>Ulasan Alumni</h2>
+        
+        {hasCourseAccess && (
+          <div className={styles.reviewForm}>
+            <h3 style={{ fontSize: "1rem", marginBottom: "0.75rem" }}>Berikan Ulasan Kamu</h3>
+            <form onSubmit={handleSubmitReview}>
+              <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1rem" }}>
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    type="button"
+                    onClick={() => setUserRating(star)}
+                    style={{ background: "none", border: "none", fontSize: "1.5rem", cursor: "pointer", color: star <= userRating ? "#f59e0b" : "#cbd5e1" }}
+                  >
+                    ★
+                  </button>
+                ))}
+              </div>
+              <textarea
+                value={userReview}
+                onChange={(e) => setUserReview(e.target.value)}
+                placeholder="Ceritakan pengalaman belajar kamu di kursus ini..."
+                className={styles.reviewTextarea}
+              />
+              <button type="submit" className="btn-primary" disabled={submittingReview} style={{ marginTop: "0.5rem" }}>
+                {submittingReview ? "Mengirim..." : "Kirim Ulasan"}
+              </button>
+            </form>
+          </div>
+        )}
+
+        <div className={styles.reviewsList}>
+          {reviews.length === 0 ? (
+            <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>Belum ada ulasan untuk kursus ini.</p>
+          ) : (
+            reviews.map((r) => (
+              <div key={r.id} className={styles.reviewItem}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                    <div className={styles.reviewAvatar}>
+                      {r.user.name.charAt(0).toUpperCase()}
+                    </div>
+                    <span style={{ fontWeight: 600, fontSize: "0.9rem" }}>{r.user.name}</span>
+                  </div>
+                  <span style={{ color: "#f59e0b", fontWeight: 700 }}>{"★".repeat(r.rating)}</span>
+                </div>
+                <p style={{ fontSize: "0.88rem", color: "var(--text-main)", lineHeight: 1.5 }}>{r.review}</p>
+                <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "0.5rem" }}>
+                  {new Date(r.createdAt).toLocaleDateString("id-ID")}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+
+      {/* Sticky Enrollment Bar (Mobile Only) */}
+      {!hasCourseAccess && (
+        <div className={styles.stickyBar}>
+          <div className={styles.stickyBarInner}>
+            <div className={styles.stickyPriceInfo}>
+              <div className={styles.stickyPrice}>
+                {isPaidCourse ? `Rp${formatPrice(course.price)}` : "Free Access"}
+              </div>
+              <div className={styles.stickyTitle}>{course.title}</div>
+            </div>
+            <button 
+              className={styles.stickyEnrollBtn}
+              onClick={() => handleCheckout(isPaidCourse ? "PREMIUM" : "LIFETIME")}
+              disabled={buying}
+            >
+              {buying ? "..." : isPaidCourse ? "Beli Sekarang" : "Daftar Sekarang"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Video Teaser Modal */}
+      {showTeaser && (
+        <div className={styles.modalOverlay} onClick={() => setShowTeaser(false)}>
+          <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
+            <button className={styles.modalClose} onClick={() => setShowTeaser(false)}>×</button>
+            <div className={styles.videoPlaceholder}>
+              <div className={styles.previewNotice}>
+                <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>🎬</div>
+                <h3>Video Teaser Sedang Disiapkan</h3>
+                <p>Fitur preview video akan segera hadir untuk memberikan gambaran kualitas materi kami.</p>
+                <button className="btn-primary" onClick={() => setShowTeaser(false)} style={{ marginTop: "1.5rem" }}>
+                  Tutup Preview
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

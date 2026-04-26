@@ -23,7 +23,7 @@
   padding: 4px 12px;
   border: 1.5px solid;
   border-radius: 99px;
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--line-subtle);
   width: fit-content;
   text-transform: uppercase;
   letter-spacing: 0.02em;
@@ -371,7 +371,7 @@
   padding: 0.75rem;
   border: 1px solid var(--line-subtle);
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.88);
+  background: var(--surface);
   display: flex;
   align-items: center;
   gap: 1rem;
@@ -412,7 +412,7 @@
 .emptyContainer {
   text-align: center;
   padding: 3rem 1rem;
-  background: rgba(255, 255, 255, 0.4);
+  background: var(--line-subtle);
   border-radius: 14px;
   border: 1px dashed var(--line-border);
 }
@@ -433,9 +433,9 @@
 .skeletonPulse {
   background: linear-gradient(
     90deg,
-    rgba(0, 0, 0, 0.04) 25%,
-    rgba(0, 0, 0, 0.08) 37%,
-    rgba(0, 0, 0, 0.04) 63%
+    var(--line-subtle) 25%,
+    var(--line-border) 37%,
+    var(--line-subtle) 63%
   );
   background-size: 400% 100%;
   animation: skeleton-loading 1.4s ease infinite;

@@ -58,16 +58,20 @@ export function NavAuth({ onNavigate, drawerMode = false }: NavAuthProps) {
 
           <div className="nav-drawer-account-links">
             <Link href="/profile" onClick={() => onNavigate?.()} className="nav-user-menu-link">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="nav-icon"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
               Profil
             </Link>
             <Link href="/certificates" onClick={() => onNavigate?.()} className="nav-user-menu-link">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="nav-icon"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /><path d="M12 8v4" /><path d="M12 16h.01" /></svg>
               Sertifikat
             </Link>
             {isAdmin && (
               <Link href="/admin" onClick={() => onNavigate?.()} className="nav-user-menu-link nav-user-menu-link-admin">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="nav-icon"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
                 Admin Panel
               </Link>
             )}
+            <div className="nav-user-divider"></div>
             <button
               type="button"
               onClick={async () => {
@@ -76,8 +80,9 @@ export function NavAuth({ onNavigate, drawerMode = false }: NavAuthProps) {
                 router.push("/");
                 router.refresh();
               }}
-              className="nav-user-logout"
+              className="nav-user-logout-drawer"
             >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="nav-icon"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
               Keluar
             </button>
           </div>

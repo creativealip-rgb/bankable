@@ -4,6 +4,9 @@
   padding: 1.25rem;
   display: grid;
   grid-template-columns: 1fr 380px;
+  grid-template-areas: 
+    "main sidebar"
+    "reviews sidebar";
   gap: 1rem;
   align-items: start;
 }
@@ -90,6 +93,43 @@
   display: flex;
   align-items: center;
   gap: 0.4rem;
+}
+
+.teaserBtn {
+  margin-top: 1.5rem;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 12px 24px;
+  border-radius: 12px;
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  transition: all 0.3s ease;
+  width: fit-content;
+}
+
+.teaserBtn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-2px);
+}
+
+.teaserIcon {
+  background: #fff;
+  color: var(--primary);
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 0.7rem;
+  padding-left: 2px;
 }
 
 /* Description */
@@ -204,6 +244,7 @@
 
 /* Sidebar */
 .sidebar {
+  grid-area: sidebar;
   align-self: flex-start;
   position: relative;
 }
@@ -477,6 +518,10 @@
 @media (max-width: 1024px) {
   .detailContainer {
     grid-template-columns: 1fr;
+    grid-template-areas: 
+      "main"
+      "sidebar"
+      "reviews";
   }
   .sidebar {
     align-self: auto;
@@ -538,6 +583,7 @@
 }
 /* Reviews Section */
 .reviewsSection {
+  grid-area: reviews;
   background: var(--surface);
   border: 1px solid var(--line-border);
   border-radius: 14px;
@@ -593,4 +639,157 @@
   justify-content: center;
   font-size: 0.8rem;
   font-weight: 700;
+}
+
+/* Modal Teaser */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(8px);
+  z-index: 3000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.modalContent {
+  background: var(--surface);
+  width: 100%;
+  max-width: 900px;
+  border-radius: 24px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--line-border);
+}
+
+.modalClose {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.25rem;
+  width: 36px;
+  height: 36px;
+  background: rgba(0, 0, 0, 0.5);
+  border: none;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 1.5rem;
+  cursor: pointer;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.videoPlaceholder {
+  width: 100%;
+  aspect-ratio: 16/9;
+  background: #0f172a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+
+.previewNotice {
+  text-align: center;
+  padding: 2rem;
+}
+
+.previewNotice h3 {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+  font-family: var(--font-display);
+}
+
+.previewNotice p {
+  color: #94a3b8;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+/* Sticky Enrollment Bar */
+.stickyBar {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(16px);
+  border-top: 1px solid var(--line-border);
+  padding: 0.85rem 1.25rem;
+  z-index: 1000;
+  box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.05);
+  animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[data-theme='dark'] .stickyBar {
+  background: rgba(30, 41, 59, 0.95);
+}
+
+.stickyBarInner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.stickyPriceInfo {
+  display: flex;
+  flex-direction: column;
+}
+
+.stickyPrice {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--primary);
+  line-height: 1.1;
+}
+
+.stickyTitle {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
+}
+
+.stickyEnrollBtn {
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  color: #fff;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  box-shadow: 0 4px 15px var(--primary-glow);
+  cursor: pointer;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+@media (max-width: 1024px) {
+  .stickyBar {
+    display: block;
+    /* Space for bottom nav */
+    bottom: 64px; 
+  }
+}
+
+@media (max-width: 768px) {
+  .modalContent {
+    max-width: 100%;
+    border-radius: 0;
+  }
 }

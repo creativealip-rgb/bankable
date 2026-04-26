@@ -90,50 +90,56 @@ export default function VerifyCertificatePage({ params }: PageProps) {
 
   return (
     <div className={styles.verifyContainer}>
-      <div className={styles.certDisplay}>
-        <div className={`${styles.certBrand} gradient-text`}>B A N K A B L E</div>
-        <div className={styles.certLabel}>Certificate of Completion</div>
-
-        <p style={{ color: "var(--text-muted)", fontSize: "0.95rem" }}>This certifies that</p>
-        <div className={styles.certRecipient}>{cert.recipientName}</div>
-
-        <div className={styles.certCourse}>
-          has successfully completed the course
-          <span className={styles.certCourseName}>&quot;{cert.courseName}&quot;</span>
-        </div>
-
-        <div className={styles.certMeta}>
-          <div className={styles.certMetaItem}>
-            <div className={styles.certMetaLabel}>Score</div>
-            <div className={styles.certMetaValue}>{cert.score}%</div>
-          </div>
-          <div className={styles.certMetaItem}>
-            <div className={styles.certMetaLabel}>Date</div>
-            <div className={styles.certMetaValue}>
-              {new Date(cert.issuedAt).toLocaleDateString("id-ID", {
-                day: "numeric",
-                month: "long",
-                year: "numeric",
-              })}
+      <div className={styles.certificate}>
+        <div className={styles.outerBorder}>
+          <div className={styles.innerBorder}>
+            <div className={styles.watermark}>BELAJARIA</div>
+            
+            <div className={styles.header}>
+              <div className={styles.logo}>BELAJARIA</div>
+              <div className={styles.title}>Verification of Completion</div>
             </div>
-          </div>
-        </div>
 
-        <div className={styles.certId}>{cert.certificateNumber}</div>
-
-        <div>
-          <span className={styles.verifiedBadge}>✓ Verified Certificate</span>
-        </div>
-        {qrDataUrl && (
-          <div style={{ marginTop: "1rem", textAlign: "center" }}>
-            <Image src={qrDataUrl} alt="Certificate QR verification" width={120} height={120} />
-            <div style={{ marginTop: "0.75rem" }}>
-              <a href={cert.pdfPath} className="btn-primary" style={{ textDecoration: "none" }}>
-                Download PDF
-              </a>
+            <div className={styles.content}>
+              <p className={styles.present}>This is to certify that the record for</p>
+              <h1 className={styles.userName}>{cert.recipientName}</h1>
+              <p className={styles.desc}>
+                is a verified completion of the professional course:
+              </p>
+              <h2 className={styles.courseTitle}>{cert.courseName}</h2>
+              <div className={styles.scoreRow}>
+                <span>Final Score: <strong>{cert.score}%</strong></span>
+                <span className={styles.separator}>•</span>
+                <span>Date: <strong>{new Date(cert.issuedAt).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}</strong></span>
+              </div>
             </div>
+
+            <div className={styles.footer}>
+              <div className={styles.seal}>
+                <div className={styles.sealCircle}>
+                  <span>VERIFIED</span>
+                  <span>RECORD</span>
+                </div>
+              </div>
+              
+              <div className={styles.meta}>
+                <p>Certificate ID: {cert.certificateNumber}</p>
+                <div className={styles.verifiedBadge}>✓ Authentic Certificate</div>
+              </div>
+            </div>
+
+            {qrDataUrl && (
+              <div className={styles.qrSection}>
+                <Image src={qrDataUrl} alt="Certificate QR verification" width={100} height={100} className={styles.qrImage} />
+                <div className={styles.downloadSection}>
+                  <a href={cert.pdfPath} className="btn-primary" style={{ textDecoration: "none", fontSize: "0.85rem", padding: "8px 20px" }}>
+                    Download Official PDF
+                  </a>
+                </div>
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

@@ -6,7 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 const NAV_ITEMS = [
   { href: "/admin", label: "Dashboard", icon: "dashboard" },
@@ -81,6 +81,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const router = useRouter();
   const role = (session?.user as Record<string, unknown> | undefined)?.role as string | undefined;
   const hasAdminAccess = role === "ADMIN" || role === "SUPER_ADMIN";
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
     if (!isPending && (!session || !hasAdminAccess)) {
@@ -102,22 +103,40 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   return (
-    <div className="admin-layout">
-      <aside className="admin-sidebar">
+    <div className={`admin-layout ${isSidebarOpen ? "sidebar-open" : ""}`}>
+      {/* Mobile Overlay */}
+      {isSidebarOpen && (
+        <div 
+          className="admin-sidebar-overlay" 
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
+      <aside className={`admin-sidebar ${isSidebarOpen ? "active" : ""}`}>
         <div className="admin-sidebar-header">
-          <Link href="/">
+          <Link href="/" onClick={() => setIsSidebarOpen(false)}>
             <span className="gradient-text admin-brand">
               BELAJARIA
             </span>
           </Link>
-          <span className="admin-badge">Admin</span>
+          <button 
+            className="admin-sidebar-close-btn"
+            onClick={() => setIsSidebarOpen(false)}
+            aria-label="Close Navigation"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
         </div>
 
         <nav className="admin-nav">
+          <div className="admin-nav-label">Menu Utama</div>
           {NAV_ITEMS.map((item) => (
             <Link
               key={item.href}
               href={item.href}
+              onClick={() => setIsSidebarOpen(false)}
               className={`admin-nav-item ${
                 item.href === "/admin"
                   ? pathname === "/admin" ? "active" : ""
@@ -133,23 +152,43 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </nav>
 
         <div className="admin-sidebar-footer">
-          <div className="admin-user-info">
+          <div className="admin-user-profile">
             <div className="admin-user-avatar">
               {session.user.name?.charAt(0).toUpperCase()}
             </div>
-            <div>
-              <div className="admin-user-meta-name">{session.user.name}</div>
-              <div className="admin-user-meta-email">{session.user.email}</div>
+            <div className="admin-user-details">
+              <div className="admin-user-name">{session.user.name}</div>
+              <div className="admin-user-role">Administrator</div>
             </div>
           </div>
-          <Link href="/" className="admin-back-link">
-            ← Back to site
+          <Link href="/" className="admin-back-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 16, height: 16 }}>
+              <path d="M10 19l-7-7m0 0l7-7m-7 7h18" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            Kembali ke Situs
           </Link>
         </div>
       </aside>
 
       <main className="admin-main">
-        {children}
+        <header className="admin-content-header">
+          <button 
+            className="admin-hamburger-btn"
+            onClick={() => setIsSidebarOpen(true)}
+            aria-label="Open Navigation"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M4 6h16M4 12h16M4 18h16" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+          <div className="admin-header-title">
+            <h1>Panel Kontrol</h1>
+            <p>Kelola konten dan pantau perkembangan platform</p>
+          </div>
+        </header>
+        <div className="admin-page-content">
+          {children}
+        </div>
       </main>
     </div>
   );

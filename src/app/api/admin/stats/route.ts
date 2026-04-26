@@ -239,6 +239,7 @@ export async function GET(request: Request) {
     let premiumWebinarRevenue = 0;
     let memberSignupTransactions = 0;
     let premiumWebinarTransactions = 0;
+    const revenueTimelineMap = new Map<string, number>();
 
     for (const payment of paidPayments) {
       if (!payment.user || !matchesRole(payment.user.role)) continue;
@@ -259,7 +260,18 @@ export async function GET(request: Request) {
         memberSignupRevenue += amount;
         memberSignupTransactions += 1;
       }
+
+      const key = formatBucket(eventDate);
+      revenueTimelineMap.set(key, (revenueTimelineMap.get(key) || 0) + amount);
     }
+
+    const revenueTimeline = [...revenueTimelineMap.entries()]
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([key, value]) => ({
+        periodKey: key,
+        periodLabel: bucketLabel(key),
+        revenue: Number(value.toFixed(2)),
+      }));
 
     const revenue = {
       memberSignup: Number(memberSignupRevenue.toFixed(2)),
@@ -267,6 +279,7 @@ export async function GET(request: Request) {
       total: Number((memberSignupRevenue + premiumWebinarRevenue).toFixed(2)),
       memberSignupTransactions,
       premiumWebinarTransactions,
+      timeline: revenueTimeline,
     };
 
     return NextResponse.json({

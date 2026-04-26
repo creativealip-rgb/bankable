@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import styles from "./page.module.css";
 import Link from "next/link";
+import Image from "next/image";
 import { useSession } from "@/lib/auth-client";
 
 type Course = {
@@ -240,7 +241,11 @@ export default function CatalogPage() {
   }, []);
 
   const searchSummary = useMemo(() => {
-    if (loading || !accessReady) return "Memuat...";
+    if (loading || !accessReady) {
+      return (
+        <div className={`${styles.skeletonText} ${styles.skeletonPulse}`} style={{ width: "120px", height: "1.2rem", borderRadius: "6px" }} />
+      );
+    }
     return `${courses.length} konten tersedia`;
   }, [accessReady, courses.length, loading]);
 
@@ -307,7 +312,7 @@ export default function CatalogPage() {
       <main className={styles.mainCatalog}>
         <div className={styles.catalogHeader}>
           <h1 className={styles.catalogTitle}>Katalog Konten</h1>
-          <p className={styles.catalogMeta}>{searchSummary}</p>
+          <div className={styles.catalogMeta}>{searchSummary}</div>
           {error ? <p className={styles.catalogError}>{error}</p> : null}
           <button
             type="button"
@@ -362,11 +367,24 @@ export default function CatalogPage() {
           {loading ? (
             Array.from({ length: 6 }).map((_, i) => (
               <div key={i} className={`${styles.assetCard} ${styles.skeletonCard}`}>
-                <div className={`${styles.assetThumbnail} ${styles.skeletonPulse}`} />
-                <div className={styles.assetInfo}>
-                  <div className={`${styles.skeletonText} ${styles.skeletonPulse}`} style={{ width: "40%", height: "14px" }} />
-                  <div className={`${styles.skeletonText} ${styles.skeletonPulse}`} style={{ width: "80%", height: "20px", marginTop: "8px" }} />
-                  <div className={`${styles.skeletonText} ${styles.skeletonPulse}`} style={{ width: "60%", height: "14px", marginTop: "8px" }} />
+                <div className={`${styles.skeletonThumbnail} ${styles.skeletonPulse}`}></div>
+                <div className={styles.skeletonInfo}>
+                  <div
+                    className={`${styles.skeletonText} ${styles.skeletonPulse}`}
+                    style={{ width: "40%", height: "0.8rem" }}
+                  ></div>
+                  <div
+                    className={`${styles.skeletonText} ${styles.skeletonPulse}`}
+                    style={{ width: "100%", height: "1.2rem", marginTop: "0.4rem" }}
+                  ></div>
+                  <div
+                    className={`${styles.skeletonText} ${styles.skeletonPulse}`}
+                    style={{ width: "80%", height: "1.2rem", marginTop: "0.2rem" }}
+                  ></div>
+                  <div
+                    className={`${styles.skeletonText} ${styles.skeletonPulse}`}
+                    style={{ width: "100%", height: "2.5rem", marginTop: "0.8rem", borderRadius: "8px" }}
+                  ></div>
                 </div>
               </div>
             ))
@@ -382,8 +400,18 @@ export default function CatalogPage() {
           ) : (
             courses.map((course) => (
               <Link href={`/courses/${course.slug}`} key={course.id} className={styles.assetCard}>
-                <div className={styles.assetThumbnail} style={{ background: getCategoryStyle(course.category).background }}>
-                  <span style={{ fontSize: "2.8rem" }}>{getCategoryStyle(course.category).icon}</span>
+                <div className={styles.assetThumbnail} style={{ background: course.thumbnail ? 'none' : getCategoryStyle(course.category).background }}>
+                  {course.thumbnail ? (
+                    <Image 
+                      src={course.thumbnail} 
+                      alt={course.title} 
+                      fill 
+                      sizes="(max-width: 768px) 100vw, 300px"
+                      className={styles.thumbnailImage}
+                    />
+                  ) : (
+                    <span style={{ fontSize: "2.8rem" }}>{getCategoryStyle(course.category).icon}</span>
+                  )}
                 </div>
                 <div className={styles.assetInfo}>
                   <div className={styles.assetType}>
@@ -402,6 +430,8 @@ export default function CatalogPage() {
           )}
         </div>
       </main>
+
+      {/* Sidebar */}
 
       {mobileFiltersOpen ? (
         <div className={styles.mobileFilterOverlay} onClick={() => setMobileFiltersOpen(false)}>
@@ -532,13 +562,15 @@ export default function CatalogPage() {
                 const targetHref = href || "/courses/live-webinar-ai-for-umkm-webinar";
 
                 return (
-                  <Link key={webinar.title} href={targetHref} className={styles.webinarCardLink}>
-                    <div className={styles.webinarCard}>
-                      <div className={styles.webinarDate}>📅 {dateLabel || "Soon"}</div>
-                      <div className={styles.webinarTitle}>{webinar.title}</div>
-                      <div className={styles.webinarSpeaker}>{subtitle || "-"}</div>
-                      {ctaLabel && <span className={styles.webinarBtn}>{ctaLabel}</span>}
-                    </div>
+                  <Link 
+                    key={"id" in webinar ? webinar.id : webinar.title} 
+                    href={targetHref} 
+                    className={styles.webinarCard}
+                  >
+                    <div className={styles.webinarDate}>📅 {dateLabel || "Soon"}</div>
+                    <div className={styles.webinarTitle}>{webinar.title}</div>
+                    <div className={styles.webinarSpeaker}>{subtitle || "-"}</div>
+                    {ctaLabel && <span className={styles.webinarBtn}>{ctaLabel}</span>}
                   </Link>
                 );
               })}
@@ -556,14 +588,16 @@ export default function CatalogPage() {
                 const targetHref = href || "/courses/mentoring-rekaman-closing-sales-premium";
 
                 return (
-                  <Link key={item.title} href={targetHref} className={styles.webinarCardLink}>
-                    <div className={styles.webinarCard}>
-                      <div className={styles.webinarDate}>💎</div>
-                      <div className={styles.webinarTitle}>{item.title}</div>
-                      <div className={styles.webinarSpeaker}>{subtitle || "-"}</div>
-                      <div className={styles.premiumPrice}>{price || "-"}</div>
-                      {ctaLabel && <span className={styles.webinarBtn}>{ctaLabel}</span>}
-                    </div>
+                  <Link 
+                    key={"id" in item ? item.id : item.title} 
+                    href={targetHref} 
+                    className={styles.webinarCard}
+                  >
+                    <div className={styles.webinarDate}>💎</div>
+                    <div className={styles.webinarTitle}>{item.title}</div>
+                    <div className={styles.webinarSpeaker}>{subtitle || "-"}</div>
+                    <div className={styles.premiumPrice}>{price || "-"}</div>
+                    {ctaLabel && <span className={styles.webinarBtn}>{ctaLabel}</span>}
                   </Link>
                 );
               })}

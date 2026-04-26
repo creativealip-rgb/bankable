@@ -448,13 +448,24 @@ export default function CoursePlayerPage({ params }: PageProps) {
     <div className={styles.courseContainer}>
       <div className={styles.mainContent}>
         <div className={styles.courseHeader}>
-          <Link href={`/courses/${slug}`} className={styles.backDetailLink}>
-            ← Kembali ke detail
-          </Link>
+          <div className={styles.playerTopInfo}>
+            <Link href={`/courses/${slug}`} className={styles.backDetailLink}>
+              ← Kembali ke detail
+            </Link>
+            <div className={styles.progressSummary}>
+              <span className={styles.progressText}>
+                {progress?.completedVideos || 0} / {progress?.totalVideos || allVideos.length} Selesai
+              </span>
+              <div className={styles.miniProgressBar}>
+                <div className={styles.miniProgressFill} style={{ width: `${progress?.overallProgress || 0}%` }}></div>
+              </div>
+            </div>
+          </div>
           <h1 className={styles.courseTitle}>{course.title}</h1>
-          <p style={{ color: "var(--text-muted)" }}>
-            {activeModule?.title} — {activeVideo?.title}
-          </p>
+          <div className={styles.activeMateriInfo}>
+            <span className={styles.moduleTag}>{activeModule?.title}</span>
+            <span className={styles.videoTag}>{activeVideo?.title}</span>
+          </div>
         </div>
 
         {/* Video Player */}
@@ -477,80 +488,86 @@ export default function CoursePlayerPage({ params }: PageProps) {
                   <track kind="subtitles" src={activeVideo.subtitleUrl} srcLang="id" label="Indonesia" default />
                 )}
               </video>
-              {/* Custom Controls */}
-              <div style={{
-                position: "absolute", bottom: 0, left: 0, right: 0,
-                background: "linear-gradient(transparent, rgba(15,23,42,0.82))",
-                padding: "1rem", display: "flex", flexDirection: "column", gap: "0.5rem",
-              }}>
-                {/* Seek Bar */}
-                <input type="range" min={0} max={duration || 1} step={0.1} value={currentTime}
-                  onChange={handleSeek}
-                  style={{ width: "100%", accentColor: "var(--primary)", height: "4px", cursor: "pointer" }} />
-                <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", fontSize: "0.85rem" }}>
-                  <button onClick={togglePlayPause} style={{ background: "none", border: "none", color: "#fff", fontSize: "1.2rem", cursor: "pointer" }}>
-                    {isPlaying ? "⏸" : "▶️"}
-                  </button>
-                  <span style={{ color: "rgba(255,255,255,0.7)" }}>
-                    {formatTime(currentTime)} / {formatTime(duration)}
-                  </span>
-                  <input type="range" min={0} max={1} step={0.05} value={volume} onChange={handleVolumeChange}
-                    style={{ width: "80px", accentColor: "var(--primary)", cursor: "pointer" }} />
-                  <span style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.8rem" }}>
-                    {Math.round(volume * 100)}%
-                  </span>
-                  <div style={{ position: "relative", marginLeft: "auto" }}>
-                    <button onClick={() => setShowSpeedMenu(!showSpeedMenu)}
-                      style={{ background: "rgba(255,255,255,0.1)", border: "none", color: "#fff", padding: "4px 8px", borderRadius: "4px", cursor: "pointer", fontSize: "0.8rem" }}>
-                      {playbackSpeed}x
-                    </button>
-                    {showSpeedMenu && (
-                      <div style={{
-                        position: "absolute", bottom: "100%", right: 0, background: "var(--surface)",
-                        border: "1px solid var(--border)", borderRadius: "8px", padding: "0.25rem", minWidth: "80px",
-                        marginBottom: "4px", zIndex: 10,
-                      }}>
-                        {[0.5, 0.75, 1, 1.25, 1.5, 2].map((s) => (
-                          <button key={s} onClick={() => changeSpeed(s)}
-                            style={{
-                              display: "block", width: "100%", padding: "6px 12px", background: s === playbackSpeed ? "rgba(79,70,229,0.1)" : "none",
-                              border: "none", color: s === playbackSpeed ? "var(--primary)" : "var(--text-main)", fontSize: "0.85rem", cursor: "pointer", textAlign: "left", borderRadius: "4px",
-                            }}>
-                            {s}x
-                          </button>
-                        ))}
-                      </div>
-                    )}
+              
+              {/* Premium Floating Controls */}
+              <div className={styles.playerControlsOverlay}>
+                <div className={styles.controlsTop}>
+                  <div className={styles.videoTitleFloating}>{activeVideo?.title}</div>
+                </div>
+                
+                <div className={styles.controlsBottom}>
+                  <div className={styles.progressBarWrapper}>
+                    <input 
+                      type="range" min={0} max={duration || 1} step={0.1} value={currentTime}
+                      onChange={handleSeek}
+                      className={styles.playerSeekBar}
+                    />
+                    <div className={styles.seekProgress} style={{ width: `${(currentTime / (duration || 1)) * 100}%` }}></div>
                   </div>
-                  <button onClick={toggleFullscreen}
-                    style={{ background: "none", border: "none", color: "#fff", fontSize: "1.1rem", cursor: "pointer" }}>
-                    ⛶
-                  </button>
+                  
+                  <div className={styles.controlsRow}>
+                    <div className={styles.controlsLeft}>
+                      <button onClick={togglePlayPause} className={styles.playBtn}>
+                        {isPlaying ? "⏸" : "▶"}
+                      </button>
+                      <div className={styles.timeInfo}>
+                        <span>{formatTime(currentTime)}</span>
+                        <span className={styles.timeDivider}>/</span>
+                        <span>{formatTime(duration)}</span>
+                      </div>
+                      <div className={styles.volumeWrapper}>
+                        <button className={styles.volumeIcon}>
+                          {volume === 0 ? "🔇" : volume < 0.5 ? "🔉" : "🔊"}
+                        </button>
+                        <input 
+                          type="range" min={0} max={1} step={0.05} value={volume} 
+                          onChange={handleVolumeChange}
+                          className={styles.volumeSlider}
+                        />
+                      </div>
+                    </div>
+
+                    <div className={styles.controlsRight}>
+                      <div className={styles.speedControl}>
+                        <button onClick={() => setShowSpeedMenu(!showSpeedMenu)} className={styles.speedBtn}>
+                          {playbackSpeed}x
+                        </button>
+                        {showSpeedMenu && (
+                          <div className={styles.speedMenu}>
+                            {[0.5, 0.75, 1, 1.25, 1.5, 2].map((s) => (
+                              <button key={s} onClick={() => changeSpeed(s)} className={s === playbackSpeed ? styles.activeSpeed : ""}>
+                                {s}x
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <button onClick={toggleFullscreen} className={styles.fullscreenBtn}>⛶</button>
+                    </div>
+                  </div>
                 </div>
               </div>
             </>
           ) : activeVideoSource.kind === "youtube" ? (
-            <>
-              <iframe
-                src={activeVideoSource.src}
-                title={activeVideo?.title || "Video player"}
-                style={{ width: "100%", height: "100%", border: "none" }}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-              />
-            </>
+            <iframe
+              src={(activeVideoSource as any).src || ""}
+              title={activeVideo?.title || "Video player"}
+              style={{ width: "100%", height: "100%", border: "none" }}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+            />
           ) : activeVideoSource.kind === "audio" ? (
             <div className={styles.videoPlaceholder}>
               <div style={{ textAlign: "center", width: "100%", maxWidth: "640px", padding: "1rem" }}>
                 <p style={{ marginBottom: "0.75rem", fontSize: "1rem" }}>🎧 {activeVideo?.title || "Audio Lesson"}</p>
-                <audio controls style={{ width: "100%" }} src={activeVideoSource.src}>
+                <audio controls style={{ width: "100%" }} src={(activeVideoSource as any).src || ""}>
                   Browser tidak mendukung audio player.
                 </audio>
               </div>
             </div>
           ) : activeVideoSource.kind === "pdf" ? (
             <iframe
-              src={activeVideoSource.src}
+              src={(activeVideoSource as any).src || ""}
               title={activeVideo?.title || "PDF Viewer"}
               style={{ width: "100%", height: "100%", border: "none", background: "var(--surface)" }}
             />
@@ -560,7 +577,7 @@ export default function CoursePlayerPage({ params }: PageProps) {
                 <div style={{ textAlign: "center" }}>
                   <p style={{ marginBottom: "1rem" }}>🎬 {activeVideo?.title || "Video"}</p>
                   <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "1.5rem" }}>
-                    Format video belum didukung: {activeVideoSource.src}
+                    Format video belum didukung: {(activeVideoSource as any).src}
                   </p>
                 </div>
               ) : (
@@ -575,7 +592,7 @@ export default function CoursePlayerPage({ params }: PageProps) {
             <button
               className={styles.watchButton}
               onClick={handleSimulateWatch}
-              disabled={!activeVideoId || !isVideoAccessible(activeVideo!)}
+              disabled={!activeVideoId || !activeVideo || !isVideoAccessible(activeVideo)}
             >
               ✅ Tandai Selesai (≥ 90%)
             </button>
@@ -769,7 +786,7 @@ export default function CoursePlayerPage({ params }: PageProps) {
           </div>
 
           <ul className={styles.moduleList}>
-            {course.modules.map((mod) => (
+            {course?.modules.map((mod) => (
               <li key={mod.id} style={{ marginBottom: "0.5rem" }}>
                 <div style={{ padding: "0.5rem 0.75rem", fontSize: "0.8rem", color: "var(--text-muted)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>
                   {mod.title}
@@ -786,10 +803,25 @@ export default function CoursePlayerPage({ params }: PageProps) {
                         onClick={() => { if (accessible) setActiveVideoId(video.id); }}
                       >
                         <div className={styles.videoIcon}>
-                          {completed ? "✅" : !accessible ? "🔒" : "▶️"}
+                          {completed ? (
+                            <span className={styles.completedIcon}>✅</span>
+                          ) : activeVideoId === video.id ? (
+                            <div className={styles.playingIndicator}>
+                              <span></span><span></span><span></span>
+                            </div>
+                          ) : !accessible ? (
+                            <span className={styles.lockedIcon}>🔒</span>
+                          ) : (
+                            <span className={styles.waitIcon}>▶️</span>
+                          )}
                         </div>
                         <div className={styles.videoInfo}>
-                          <div className={styles.videoTitle}>{video.title}</div>
+                          <div className={styles.videoTitle}>
+                            {video.title}
+                            {activeVideoId === video.id && (
+                              <span className={styles.nowPlayingTag}>SEDANG DIPELAJARI</span>
+                            )}
+                          </div>
                           <div className={styles.videoDuration}>
                             {Math.floor(video.duration / 60)}:{String(video.duration % 60).padStart(2, "0")}
                           </div>
