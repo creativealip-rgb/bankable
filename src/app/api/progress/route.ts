@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { videoProgress, videos, courses } from "@/db/schema";
+import { videoProgress, videos, courses, users } from "@/db/schema";
 import { eq, and, inArray } from "drizzle-orm";
 import { requireMember } from "@/lib/auth-helpers";
 import { hasCourseLearningAccess } from "@/lib/course-entitlement";
@@ -120,7 +120,7 @@ export async function POST(request: NextRequest) {
       courseSlug: video.module.course.slug,
       price: video.module.course.price,
     });
-    if (!hasAccess) {
+    if (!hasAccess && !video.isPreview) {
       return NextResponse.json({ error: "Active access is required for this course" }, { status: 403 });
     }
 
@@ -172,6 +172,20 @@ export async function POST(request: NextRequest) {
         .where(eq(videoProgress.id, existing.id))
         .returning();
 
+      // Award XP if first time completed
+      if (isCompleted && !existing.isCompleted) {
+        const currentUser = await db.query.users.findFirst({
+          where: eq(users.id, session.user.id),
+        });
+        if (currentUser) {
+          const newXp = (currentUser.xp || 0) + 100;
+          const newLevel = Math.floor(newXp / 1000) + 1;
+          await db.update(users)
+            .set({ xp: newXp, level: newLevel, updatedAt: new Date() })
+            .where(eq(users.id, session.user.id));
+        }
+      }
+
       return NextResponse.json(updated);
     } else {
       // Create new progress entry
@@ -186,6 +200,20 @@ export async function POST(request: NextRequest) {
           isCompleted,
         })
         .returning();
+
+      // Award XP if created as completed
+      if (isCompleted) {
+        const currentUser = await db.query.users.findFirst({
+          where: eq(users.id, session.user.id),
+        });
+        if (currentUser) {
+          const newXp = (currentUser.xp || 0) + 100;
+          const newLevel = Math.floor(newXp / 1000) + 1;
+          await db.update(users)
+            .set({ xp: newXp, level: newLevel, updatedAt: new Date() })
+            .where(eq(users.id, session.user.id));
+        }
+      }
 
       return NextResponse.json(created, { status: 201 });
     }

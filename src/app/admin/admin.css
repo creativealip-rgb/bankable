@@ -39,7 +39,7 @@ body:has(.admin-layout) > nav {
 /* Sidebar */
 .admin-sidebar {
   width: 248px;
-  background: linear-gradient(180deg, #ffffff, #f5f9ff);
+  background: var(--surface);
   border-right: 1px solid var(--line-border);
   display: flex;
   flex-direction: column;
@@ -155,7 +155,7 @@ body:has(.admin-layout) > nav {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  background: rgba(255, 255, 255, 0.82);
+  background: var(--surface);
 }
 
 .admin-user-info {
@@ -402,7 +402,7 @@ body:has(.admin-layout) main {
 }
 
 .admin-search-input {
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--surface);
   border: 1px solid var(--line-border);
   border-radius: 9px;
   padding: 0.5rem 0.7rem;
@@ -427,7 +427,7 @@ body:has(.admin-layout) main {
   border-radius: 9px;
   font-size: 0.84rem;
   font-weight: 500;
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--surface);
   border: 1px solid var(--line-border);
   color: var(--text-muted);
   cursor: pointer;
@@ -661,7 +661,7 @@ body:has(.admin-layout) main {
 
 .admin-quick-card {
   padding: 0.9rem;
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--surface);
   border-radius: 10px;
   border: 1px solid var(--line-border);
   margin-bottom: 0.9rem;
@@ -733,7 +733,7 @@ body:has(.admin-layout) main {
 .admin-chip-card {
   padding: 0.75rem 0.85rem;
   border-radius: 10px;
-  background: rgba(255,255,255,0.9);
+  background: var(--surface);
   border: 1px solid var(--line-border);
   text-align: center;
   flex: 1;

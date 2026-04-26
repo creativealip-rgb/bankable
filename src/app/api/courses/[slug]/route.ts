@@ -58,16 +58,14 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const hasMainAccess = isPaidCourse ? true : (session ? await hasMainCatalogAccess(session.user.id) : false);
     const hasCourseAccess = isPaidCourse ? hasPremiumAccess : hasMainAccess;
 
-    const sanitizedModules = hasCourseAccess
-      ? course.modules
-      : course.modules.map((mod) => ({
-          ...mod,
-          videos: mod.videos.map((video) => ({
-            ...video,
-            url: null,
-            subtitleUrl: null,
-          })),
-        }));
+    const sanitizedModules = course.modules.map((mod) => ({
+      ...mod,
+      videos: mod.videos.map((video) => ({
+        ...video,
+        url: hasCourseAccess || video.isPreview ? video.url : null,
+        subtitleUrl: hasCourseAccess || video.isPreview ? video.subtitleUrl : null,
+      })),
+    }));
 
     // Compute totals
     const totalVideos = sanitizedModules.reduce((sum, mod) => sum + mod.videos.length, 0);

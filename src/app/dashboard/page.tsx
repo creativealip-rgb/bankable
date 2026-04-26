@@ -12,6 +12,10 @@ type DashboardData = {
     certificatesEarned: number;
     totalVideosWatched: number;
   };
+  user?: {
+    xp: number;
+    level: number;
+  };
   continueLearning: {
     id: string;
     title: string;
@@ -61,12 +65,16 @@ export default function DashboardPage() {
     fetchDashboard();
   }, []);
 
-  const getStudentLevel = (count: number) => {
-    if (count >= 50) return { name: "Maestro", color: "#f59e0b", icon: "💎" };
-    if (count >= 20) return { name: "Cendekiawan", color: "#818cf8", icon: "🎓" };
-    if (count >= 5) return { name: "Pelajar Aktif", color: "#10b981", icon: "🌱" };
+  const getLevelInfo = (level: number) => {
+    if (level >= 10) return { name: "Maestro", color: "#f59e0b", icon: "💎" };
+    if (level >= 5) return { name: "Cendekiawan", color: "#818cf8", icon: "🎓" };
+    if (level >= 2) return { name: "Pelajar Aktif", color: "#10b981", icon: "🌱" };
     return { name: "Pemula", color: "#94a3b8", icon: "🥚" };
   };
+
+  const levelInfo = getLevelInfo(dashboard?.user?.level || 1);
+  const xpInLevel = (dashboard?.user?.xp || 0) % 1000;
+  const xpProgress = Math.round((xpInLevel / 1000) * 100);
 
   if (loading) {
     return (
@@ -96,9 +104,18 @@ export default function DashboardPage() {
         <h1 className={styles.title}>
           Selamat datang kembali, {session?.user?.name || "Pelajar"}!
         </h1>
-        <div className={styles.levelBadge} style={{ borderColor: getStudentLevel(stats?.totalVideosWatched || 0).color, color: getStudentLevel(stats?.totalVideosWatched || 0).color }}>
-          <span className={styles.levelIcon}>{getStudentLevel(stats?.totalVideosWatched || 0).icon}</span>
-          Level: {getStudentLevel(stats?.totalVideosWatched || 0).name}
+        <div className={styles.levelBadge} style={{ borderColor: levelInfo.color, color: levelInfo.color }}>
+          <span className={styles.levelIcon}>{levelInfo.icon}</span>
+          Level {dashboard?.user?.level || 1}: {levelInfo.name}
+        </div>
+        <div className={styles.xpTracker}>
+          <div className={styles.xpLabel}>
+            <span>{xpInLevel} / 1000 XP</span>
+            <span>Next Level</span>
+          </div>
+          <div className={styles.xpBar}>
+            <div className={styles.xpFill} style={{ width: `${xpProgress}%`, background: levelInfo.color }}></div>
+          </div>
         </div>
         {error && <p className={styles.errorText}>{error}</p>}
       </div>

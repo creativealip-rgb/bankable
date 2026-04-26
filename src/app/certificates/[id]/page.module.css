@@ -1,0 +1,152 @@
+.container {
+  min-height: 100vh;
+  background: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 4rem 1rem;
+}
+
+.certificate {
+  width: 100%;
+  max-width: 800px;
+  background: white;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+  position: relative;
+}
+
+.border {
+  border: 15px solid #1e293b;
+  padding: 3rem;
+  height: 100%;
+  border-image: linear-gradient(135deg, #4f46e5, #6366f1) 30;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.header {
+  margin-bottom: 3rem;
+}
+
+.logo {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #4f46e5;
+  letter-spacing: 2px;
+  margin-bottom: 0.5rem;
+}
+
+.title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #1e293b;
+  letter-spacing: 4px;
+}
+
+.content {
+  margin-bottom: 3rem;
+}
+
+.present {
+  font-size: 1.1rem;
+  color: #64748b;
+  margin-bottom: 1rem;
+}
+
+.userName {
+  font-family: var(--font-display);
+  font-size: 3.5rem;
+  font-weight: 800;
+  color: #1e293b;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid #e2e8f0;
+  padding-bottom: 0.5rem;
+  display: inline-block;
+}
+
+.desc {
+  font-size: 1.1rem;
+  color: #64748b;
+  margin-bottom: 1rem;
+}
+
+.courseTitle {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #4f46e5;
+  margin-bottom: 1rem;
+}
+
+.score {
+  font-size: 1rem;
+  color: #64748b;
+}
+
+.footer {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-top: auto;
+}
+
+.signature {
+  text-align: center;
+}
+
+.sigLine {
+  width: 200px;
+  border-top: 1px solid #1e293b;
+  margin-bottom: 0.5rem;
+}
+
+.meta {
+  text-align: right;
+  font-size: 0.85rem;
+  color: #94a3b8;
+}
+
+.actions {
+  margin-top: 2rem;
+}
+
+@media print {
+  .container {
+    padding: 0;
+    background: white;
+  }
+  .actions {
+    display: none;
+  }
+  .certificate {
+    box-shadow: none;
+    max-width: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .border {
+    padding: 1.5rem;
+  }
+  .title {
+    font-size: 1.5rem;
+  }
+  .userName {
+    font-size: 2rem;
+  }
+  .courseTitle {
+    font-size: 1.25rem;
+  }
+  .footer {
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+  }
+  .meta {
+    text-align: center;
+  }
+}

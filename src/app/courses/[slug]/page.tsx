@@ -51,6 +51,15 @@ type CourseDetail = {
   hasMainAccess?: boolean;
 };
 
+type Review = {
+  id: string;
+  rating: number;
+  review: string | null;
+  createdAt: string;
+  user: { name: string; image: string | null };
+};
+
+
 function formatDuration(seconds: number): string {
   const hours = Math.floor(seconds / 3600);
   const mins = Math.floor((seconds % 3600) / 60);
@@ -98,6 +107,11 @@ export default function CourseDetailPage({ params }: PageProps) {
   const [buying, setBuying] = useState(false);
   const [checkoutError, setCheckoutError] = useState("");
   const [accessChecked, setAccessChecked] = useState(false);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [userRating, setUserRating] = useState(5);
+  const [userReview, setUserReview] = useState("");
+  const [submittingReview, setSubmittingReview] = useState(false);
+
 
   useEffect(() => {
     params.then((p) => setSlug(p.slug));
@@ -164,6 +178,50 @@ export default function CourseDetailPage({ params }: PageProps) {
     }
     fetchCourse();
   }, [slug, accessChecked]);
+
+  useEffect(() => {
+    if (!slug) return;
+    async function fetchReviews() {
+      try {
+        const res = await fetch(`/api/courses/${slug}/reviews`);
+        if (res.ok) {
+          const data = await res.json();
+          setReviews(data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch reviews:", err);
+      }
+    }
+    fetchReviews();
+  }, [slug]);
+
+  const handleSubmitReview = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (submittingReview || !slug) return;
+    setSubmittingReview(true);
+    try {
+      const res = await fetch(`/api/courses/${slug}/reviews`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rating: userRating, review: userReview }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setReviews([data, ...reviews]);
+        setUserReview("");
+        alert("Terima kasih atas ulasan kamu!");
+      } else {
+        const data = await res.json();
+        alert(data.error || "Gagal mengirim ulasan.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Gagal mengirim ulasan.");
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
+
 
   const toggleModule = (moduleId: string) => {
     setExpandedModules((prev) => {
@@ -340,7 +398,66 @@ export default function CourseDetailPage({ params }: PageProps) {
             );
           })}
         </div>
+
+        {/* Reviews Section */}
+        <div className={styles.reviewsSection}>
+          <h2 className={styles.descTitle}>Ulasan Alumni</h2>
+          
+          {hasCourseAccess && (
+            <div className={styles.reviewForm}>
+              <h3 style={{ fontSize: "1rem", marginBottom: "0.75rem" }}>Berikan Ulasan Kamu</h3>
+              <form onSubmit={handleSubmitReview}>
+                <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1rem" }}>
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => setUserRating(star)}
+                      style={{ background: "none", border: "none", fontSize: "1.5rem", cursor: "pointer", color: star <= userRating ? "#f59e0b" : "#cbd5e1" }}
+                    >
+                      ★
+                    </button>
+                  ))}
+                </div>
+                <textarea
+                  value={userReview}
+                  onChange={(e) => setUserReview(e.target.value)}
+                  placeholder="Ceritakan pengalaman belajar kamu di kursus ini..."
+                  className={styles.reviewTextarea}
+                />
+                <button type="submit" className="btn-primary" disabled={submittingReview} style={{ marginTop: "0.5rem" }}>
+                  {submittingReview ? "Mengirim..." : "Kirim Ulasan"}
+                </button>
+              </form>
+            </div>
+          )}
+
+          <div className={styles.reviewsList}>
+            {reviews.length === 0 ? (
+              <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>Belum ada ulasan untuk kursus ini.</p>
+            ) : (
+              reviews.map((r) => (
+                <div key={r.id} className={styles.reviewItem}>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                      <div className={styles.reviewAvatar}>
+                        {r.user.name.charAt(0).toUpperCase()}
+                      </div>
+                      <span style={{ fontWeight: 600, fontSize: "0.9rem" }}>{r.user.name}</span>
+                    </div>
+                    <span style={{ color: "#f59e0b", fontWeight: 700 }}>{"★".repeat(r.rating)}</span>
+                  </div>
+                  <p style={{ fontSize: "0.88rem", color: "var(--text-main)", lineHeight: 1.5 }}>{r.review}</p>
+                  <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "0.5rem" }}>
+                    {new Date(r.createdAt).toLocaleDateString("id-ID")}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
       </div>
+
 
       {/* Sidebar */}
       <div className={styles.sidebar}>

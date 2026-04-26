@@ -4,6 +4,7 @@ import { useState } from "react";
 import { signIn } from "@/lib/auth-client";
 import { useToast } from "../toast-provider";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import styles from "./page.module.css";
 
 export default function LoginPage() {

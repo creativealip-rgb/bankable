@@ -43,6 +43,10 @@
   --text-muted: #94a3b8;
   --primary: #818cf8;
   --secondary: #6366f1;
+  
+  --success-ink: #6ee7b7;
+  --warning-ink: #fcd34d;
+  --danger-ink: #fca5a5;
 }
 
 /* Dark mode overrides for hardcoded backgrounds */
@@ -931,7 +935,6 @@ main {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-top: 1px solid rgba(0, 0, 0, 0.05);
-  display: flex;
   justify-content: space-around;
   align-items: center;
   z-index: 1000;
@@ -1199,4 +1202,51 @@ main {
     min-width: 0;
     width: 100%;
   }
+}
+
+/* ============================================
+   GLOBAL SKELETON LOADING
+   ============================================ */
+.global-skeleton-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 3rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  width: 100%;
+}
+
+.global-skeleton-pulse {
+  background: linear-gradient(
+    90deg,
+    var(--surface-hover) 25%,
+    var(--border) 37%,
+    var(--surface-hover) 63%
+  );
+  background-size: 400% 100%;
+  animation: global-skeleton-anim 1.4s ease infinite;
+  border-radius: var(--radius);
+}
+
+@keyframes global-skeleton-anim {
+  0% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.global-skeleton-header {
+  height: 140px;
+  width: 100%;
+  border-radius: 20px;
+}
+
+.global-skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.global-skeleton-card {
+  height: 300px;
+  border-radius: 16px;
 }

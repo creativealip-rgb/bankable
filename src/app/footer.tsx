@@ -6,8 +6,8 @@ import { usePathname } from "next/navigation";
 export function Footer() {
   const pathname = usePathname();
 
-  // Don't show footer on admin pages or course player
-  if (pathname.startsWith("/admin") || pathname.match(/^\/my-courses\/[^/]+$/)) {
+  // Don't show footer on admin pages, course player, or catalog pages (which have fixed sidebars)
+  if (pathname.startsWith("/admin") || pathname.match(/^\/my-courses\/[^/]+$/) || pathname.startsWith("/courses")) {
     return null;
   }
 

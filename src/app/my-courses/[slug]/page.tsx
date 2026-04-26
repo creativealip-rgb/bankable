@@ -32,6 +32,15 @@ type VideoSource =
   | { kind: "youtube"; src: string }
   | { kind: "unsupported"; src: string };
 
+type Thread = {
+  id: string;
+  title: string;
+  createdAt: string;
+  createdBy: { id: string; name: string; image: string | null };
+  posts: { id: string; content: string; createdAt: string; user: { name: string; image: string | null } }[];
+};
+
+
 type PageProps = { params: Promise<{ slug: string }> };
 
 export default function CoursePlayerPage({ params }: PageProps) {
@@ -59,6 +68,14 @@ export default function CoursePlayerPage({ params }: PageProps) {
   const [showNotes, setShowNotes] = useState(false);
   const [bookmarks, setBookmarks] = useState<number[]>([]);
   const [activeTab, setActiveTab] = useState<"notes" | "discussion">("notes");
+  const [threads, setThreads] = useState<Thread[]>([]);
+  const [loadingThreads, setLoadingThreads] = useState(false);
+  const [selectedThread, setSelectedThread] = useState<Thread | null>(null);
+  const [newThreadTitle, setNewThreadTitle] = useState("");
+  const [newThreadContent, setNewThreadContent] = useState("");
+  const [replyContent, setReplyContent] = useState("");
+  const [submittingThread, setSubmittingThread] = useState(false);
+
 
   useEffect(() => { params.then((p) => setSlug(p.slug)); }, [params]);
 
@@ -146,6 +163,81 @@ export default function CoursePlayerPage({ params }: PageProps) {
     }
     fetchData();
   }, [slug]);
+
+  const fetchThreads = useCallback(async () => {
+    if (!course?.id) return;
+    setLoadingThreads(true);
+    try {
+      const res = await fetch(`/api/discussions?courseId=${course.id}`);
+      if (res.ok) {
+        const data = await res.json();
+        setThreads(data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch threads:", err);
+    } finally {
+      setLoadingThreads(false);
+    }
+  }, [course?.id]);
+
+  useEffect(() => {
+    if (activeTab === "discussion") {
+      fetchThreads();
+    }
+  }, [activeTab, fetchThreads]);
+
+  const fetchThreadDetails = async (threadId: string) => {
+    try {
+      const res = await fetch(`/api/discussions/${threadId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setSelectedThread(data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch thread details:", err);
+    }
+  };
+
+  const handleCreateThread = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newThreadTitle.trim() || !newThreadContent.trim() || !course?.id) return;
+    setSubmittingThread(true);
+    try {
+      const res = await fetch("/api/discussions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ courseId: course.id, title: newThreadTitle, content: newThreadContent }),
+      });
+      if (res.ok) {
+        setNewThreadTitle("");
+        setNewThreadContent("");
+        fetchThreads();
+      }
+    } catch (err) {
+      console.error("Failed to create thread:", err);
+    } finally {
+      setSubmittingThread(false);
+    }
+  };
+
+  const handleReply = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!replyContent.trim() || !selectedThread) return;
+    try {
+      const res = await fetch(`/api/discussions/${selectedThread.id}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: replyContent }),
+      });
+      if (res.ok) {
+        setReplyContent("");
+        fetchThreadDetails(selectedThread.id);
+      }
+    } catch (err) {
+      console.error("Failed to reply:", err);
+    }
+  };
+
 
   const allVideos = useMemo(() => course?.modules.flatMap((m) => m.videos) || [], [course]);
 
@@ -460,7 +552,7 @@ export default function CoursePlayerPage({ params }: PageProps) {
             <iframe
               src={activeVideoSource.src}
               title={activeVideo?.title || "PDF Viewer"}
-              style={{ width: "100%", height: "100%", border: "none", background: "#fff" }}
+              style={{ width: "100%", height: "100%", border: "none", background: "var(--surface)" }}
             />
           ) : (
             <div className={styles.videoPlaceholder}>
@@ -555,26 +647,103 @@ export default function CoursePlayerPage({ params }: PageProps) {
                 placeholder="Tulis catatan sambil menonton..."
                 style={{
                   width: "100%", minHeight: "120px", padding: "12px 16px",
-                  background: "rgba(255,255,255,0.92)", border: "1px solid var(--line-border)",
+                  background: "var(--surface)", border: "1px solid var(--line-border)",
                   borderRadius: "12px", color: "var(--text-main)", fontFamily: "var(--font-sans)",
                   fontSize: "0.9rem", resize: "vertical",
                 }}
               />
             </>
           ) : (
-            <div style={{ padding: "2rem", textAlign: "center", background: "rgba(255,255,255,0.5)", borderRadius: "12px", border: "1px dashed var(--line-border)" }}>
-              <div style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }}>💬</div>
-              <p style={{ fontWeight: 600 }}>Forum Diskusi Pelajar</p>
-              <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "1rem" }}>Tanya jawab dan berbagi ilmu dengan sesama murid.</p>
-              <button 
-                onClick={() => toast("Fitur diskusi akan segera hadir! Nantikan ya.", "info")}
-                className="btn-secondary" 
-                style={{ fontSize: "0.8rem", padding: "8px 16px" }}
-              >
-                Mulai Diskusi
-              </button>
+            <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+              {selectedThread ? (
+                <div style={{ background: "var(--surface)", borderRadius: "12px", border: "1px solid var(--line-border)", padding: "1rem" }}>
+                  <button 
+                    onClick={() => setSelectedThread(null)}
+                    style={{ background: "none", border: "none", color: "var(--primary)", cursor: "pointer", fontSize: "0.85rem", marginBottom: "1rem", fontWeight: 600 }}
+                  >
+                    ← Kembali ke Daftar Diskusi
+                  </button>
+                  <h3 style={{ fontSize: "1.1rem", marginBottom: "1rem" }}>{selectedThread.title}</h3>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+                    {selectedThread.posts.map((post) => (
+                      <div key={post.id} style={{ borderBottom: "1px solid var(--line-subtle)", paddingBottom: "1rem" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.5rem" }}>
+                          <div style={{ width: "24px", height: "24px", borderRadius: "50%", background: "var(--primary)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.7rem" }}>
+                            {post.user.name.charAt(0).toUpperCase()}
+                          </div>
+                          <span style={{ fontSize: "0.85rem", fontWeight: 600 }}>{post.user.name}</span>
+                          <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>{new Date(post.createdAt).toLocaleDateString()}</span>
+                        </div>
+                        <p style={{ fontSize: "0.9rem", color: "var(--text-main)", whiteSpace: "pre-wrap" }}>{post.content}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <form onSubmit={handleReply} style={{ marginTop: "1.5rem" }}>
+                    <textarea 
+                      value={replyContent}
+                      onChange={(e) => setReplyContent(e.target.value)}
+                      placeholder="Tulis balasan..."
+                      style={{ width: "100%", minHeight: "80px", padding: "0.75rem", borderRadius: "8px", border: "1px solid var(--line-border)", background: "var(--surface)", fontSize: "0.9rem", color: "var(--text-main)", marginBottom: "0.5rem" }}
+                    />
+                    <button type="submit" className="btn-primary" style={{ fontSize: "0.85rem", padding: "8px 16px" }}>Balas</button>
+                  </form>
+                </div>
+              ) : (
+                <>
+                  <div style={{ background: "var(--surface)", borderRadius: "12px", border: "1px solid var(--line-border)", padding: "1rem" }}>
+                    <h3 style={{ fontSize: "0.95rem", marginBottom: "1rem" }}>Mulai Diskusi Baru</h3>
+                    <form onSubmit={handleCreateThread} style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                      <input 
+                        type="text"
+                        value={newThreadTitle}
+                        onChange={(e) => setNewThreadTitle(e.target.value)}
+                        placeholder="Judul diskusi (contoh: Bingung di menit 05:20)"
+                        style={{ width: "100%", padding: "0.75rem", borderRadius: "8px", border: "1px solid var(--line-border)", background: "var(--surface)", fontSize: "0.9rem", color: "var(--text-main)" }}
+                      />
+                      <textarea 
+                        value={newThreadContent}
+                        onChange={(e) => setNewThreadContent(e.target.value)}
+                        placeholder="Apa yang ingin kamu tanyakan atau bahas?"
+                        style={{ width: "100%", minHeight: "80px", padding: "0.75rem", borderRadius: "8px", border: "1px solid var(--line-border)", background: "var(--surface)", fontSize: "0.9rem", color: "var(--text-main)" }}
+                      />
+                      <button type="submit" className="btn-primary" disabled={submittingThread} style={{ alignSelf: "flex-end" }}>
+                        {submittingThread ? "Mengirim..." : "Kirim Diskusi"}
+                      </button>
+                    </form>
+                  </div>
+
+                  <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                    <h3 style={{ fontSize: "0.95rem", marginTop: "0.5rem" }}>Diskusi Terbaru</h3>
+                    {loadingThreads ? (
+                      <p style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>Memuat diskusi...</p>
+                    ) : threads.length === 0 ? (
+                      <p style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>Belum ada diskusi di kursus ini. Jadi yang pertama bertanya!</p>
+                    ) : (
+                      threads.map((thread) => (
+                        <div 
+                          key={thread.id} 
+                          onClick={() => fetchThreadDetails(thread.id)}
+                          style={{ background: "var(--surface)", borderRadius: "10px", border: "1px solid var(--line-border)", padding: "0.85rem", cursor: "pointer", transition: "transform 0.2s" }}
+                        >
+                          <h4 style={{ fontSize: "0.9rem", fontWeight: 600, marginBottom: "0.25rem" }}>{thread.title}</h4>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                              <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>Oleh {thread.createdBy.name}</span>
+                              <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>• {new Date(thread.createdAt).toLocaleDateString()}</span>
+                            </div>
+                            <span style={{ fontSize: "0.75rem", color: "var(--primary)", fontWeight: 600 }}>
+                              {thread.posts?.[0]?.id ? "💬 Terjawab" : "💬 Belum ada balasan"}
+                            </span>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </>
+              )}
             </div>
           )}
+
         </div>
 
         <div className="glass-panel" style={{ padding: "2rem" }}>

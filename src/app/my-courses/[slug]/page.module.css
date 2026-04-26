@@ -32,7 +32,7 @@
   right: max(0px, calc((100vw - 1460px) / 2));
   width: 320px;
   height: calc(100vh - 96px);
-  overflow-y: auto;
+  overflow: hidden; /* Prevent inner container from scrolling */
   overscroll-behavior: contain;
 }
 
@@ -114,9 +114,9 @@
   list-style: none;
   padding: 0;
   margin: 0;
-  flex: 1 1 auto;
+  flex: 1;
+  overflow-y: auto;
   min-height: 0;
-  overflow: visible;
 }
 
 .moduleVideoList {
@@ -128,9 +128,8 @@
 .moduleHeader {
   padding: 0.95rem 1rem;
   border-bottom: 1px solid var(--line-subtle);
-  background: rgba(255, 255, 255, 0.9);
-  position: sticky;
-  top: 0;
+  background: var(--surface);
+  flex-shrink: 0;
   z-index: 2;
 }
 
@@ -208,9 +207,10 @@
 
 .quizSection {
   padding: 1rem;
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--surface);
   border-top: 1px solid var(--line-subtle);
-  margin-top: auto;
+  flex-shrink: 0;
+  z-index: 2;
 }
 
 .quizButton {

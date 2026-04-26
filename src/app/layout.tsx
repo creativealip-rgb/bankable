@@ -10,6 +10,8 @@ export const metadata: Metadata = {
   description: "Dengan Rp29.000 saat daftar, dapatkan akses penuh ke 100 ebook, 100 video course, dan 100 voice SFX.",
 };
 
+import AnnouncementBanner from "@/components/AnnouncementBanner";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -19,6 +21,7 @@ export default function RootLayout({
     <html lang="id" suppressHydrationWarning>
       <body>
         <ToastProvider>
+          <AnnouncementBanner />
           <MainNav />
           <main>
             {children}

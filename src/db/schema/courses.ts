@@ -1,4 +1,4 @@
-import { pgTable, text, integer, timestamp, numeric } from "drizzle-orm/pg-core";
+import { pgTable, text, integer, timestamp, numeric, boolean } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { users } from "./users";
 import { quizzes } from "./quizzes";
@@ -54,6 +54,7 @@ export const videos = pgTable("video", {
   subtitleUrl: text("subtitle_url"),
   duration: integer("duration").notNull().default(0), // in seconds
   order: integer("order").notNull().default(0),
+  isPreview: boolean("is_preview").notNull().default(false),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

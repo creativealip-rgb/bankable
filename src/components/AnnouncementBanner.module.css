@@ -1,0 +1,53 @@
+.banner {
+  background: linear-gradient(90deg, #4f46e5, #6366f1);
+  color: white;
+  padding: 0.5rem 1rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  z-index: 1000;
+  font-size: 0.85rem;
+  font-weight: 600;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.content {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.icon {
+  font-size: 1rem;
+}
+
+.close {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.25rem;
+  cursor: pointer;
+  position: absolute;
+  right: 1rem;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+}
+
+.close:hover {
+  opacity: 1;
+}
+
+@media (max-width: 768px) {
+  .banner {
+    font-size: 0.75rem;
+    padding: 0.4rem 2rem 0.4rem 1rem;
+  }
+}

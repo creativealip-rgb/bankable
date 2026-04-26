@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
-import { videoProgress, certificates, courses } from "@/db/schema";
+import { videoProgress, certificates, courses, users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { requireMember } from "@/lib/auth-helpers";
 import { getPaidCourseAccessSlugs } from "@/lib/course-access";
@@ -127,7 +127,17 @@ export async function GET() {
     const completedCourses = continueLearning.filter((c) => c.progressPct >= 100).length;
     const coursesInProgress = continueLearning.filter((c) => c.progressPct > 0 && c.progressPct < 100).length;
 
+    // User Gamification
+    const user = await db.query.users.findFirst({
+      where: eq(users.id, userId),
+      columns: { xp: true, level: true },
+    });
+
     return NextResponse.json({
+      user: {
+        xp: user?.xp || 0,
+        level: user?.level || 1,
+      },
       stats: {
         coursesInProgress,
         coursesCompleted: completedCourses,

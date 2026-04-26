@@ -1,7 +1,15 @@
 export default function Loading() {
   return (
-    <div style={{ padding: "4rem 1rem", textAlign: "center", color: "var(--text-muted)" }}>
-      Loading...
+    <div className="global-skeleton-container">
+      <div className="global-skeleton-header global-skeleton-pulse"></div>
+      <div className="global-skeleton-grid">
+        <div className="global-skeleton-card global-skeleton-pulse"></div>
+        <div className="global-skeleton-card global-skeleton-pulse"></div>
+        <div className="global-skeleton-card global-skeleton-pulse"></div>
+        <div className="global-skeleton-card global-skeleton-pulse"></div>
+        <div className="global-skeleton-card global-skeleton-pulse"></div>
+        <div className="global-skeleton-card global-skeleton-pulse"></div>
+      </div>
     </div>
   );
 }
