@@ -1,62 +1,71 @@
 import { NextRequest, NextResponse } from "next/server";
 
-type RateLimitBucket = {
-  count: number;
-  resetAt: number;
+const rateLimitMap = new Map<string, { count: number, lastRequest: number }>();
+
+export type RateLimitConfig = {
+  key?: string;
+  namespace?: string;
+  limit: number;
+  windowMs: number;
 };
 
-const buckets = new Map<string, RateLimitBucket>();
-
-export function getClientIp(request: NextRequest): string {
-  const forwarded = request.headers.get("x-forwarded-for");
-  if (forwarded) return forwarded.split(",")[0]?.trim() || "unknown";
-  return request.headers.get("x-real-ip") || "unknown";
-}
-
-export function checkRateLimit(input: {
-  key: string;
-  limit: number;
-  windowMs: number;
-}): { allowed: boolean; retryAfterSec: number } {
+/**
+ * Low-level rate limit check.
+ */
+export function checkRateLimit(config: RateLimitConfig) {
+  const { key, namespace, limit, windowMs } = config;
+  const identifier = namespace ? `${namespace}:${key}` : (key || "global");
+  
   const now = Date.now();
-  const bucket = buckets.get(input.key);
+  const userData = rateLimitMap.get(identifier);
 
-  if (!bucket || bucket.resetAt <= now) {
-    buckets.set(input.key, {
-      count: 1,
-      resetAt: now + input.windowMs,
-    });
-    return { allowed: true, retryAfterSec: Math.ceil(input.windowMs / 1000) };
+  if (!userData) {
+    rateLimitMap.set(identifier, { count: 1, lastRequest: now });
+    return { allowed: true, remaining: limit - 1, retryAfterSec: 0 };
   }
 
-  bucket.count += 1;
-  buckets.set(input.key, bucket);
-
-  if (bucket.count > input.limit) {
-    return { allowed: false, retryAfterSec: Math.max(1, Math.ceil((bucket.resetAt - now) / 1000)) };
+  // Reset window if time passed
+  if (now - userData.lastRequest > windowMs) {
+    userData.count = 1;
+    userData.lastRequest = now;
+    return { allowed: true, remaining: limit - 1, retryAfterSec: 0 };
   }
 
-  return { allowed: true, retryAfterSec: Math.max(1, Math.ceil((bucket.resetAt - now) / 1000)) };
+  if (userData.count >= limit) {
+    const retryAfterSec = Math.ceil((windowMs - (now - userData.lastRequest)) / 1000);
+    return { allowed: false, remaining: 0, retryAfterSec };
+  }
+
+  userData.count += 1;
+  return { allowed: true, remaining: limit - userData.count, retryAfterSec: 0 };
 }
 
-export function enforceRateLimit(request: NextRequest, input: {
-  namespace: string;
-  limit: number;
-  windowMs: number;
-}) {
-  const ip = getClientIp(request);
-  const key = `${input.namespace}:${ip}`;
-  const result = checkRateLimit({ key, limit: input.limit, windowMs: input.windowMs });
-  if (result.allowed) return null;
+/**
+ * Helper to enforce rate limit in Next.js API routes.
+ */
+export function enforceRateLimit(request: NextRequest, config: Omit<RateLimitConfig, "key">) {
+  const ip = request.headers.get("x-forwarded-for") || "anonymous";
+  const result = checkRateLimit({ ...config, key: ip });
 
-  return NextResponse.json(
-    { error: "Too many requests. Please try again shortly." },
-    {
-      status: 429,
-      headers: {
-        "Retry-After": String(result.retryAfterSec),
-      },
-    }
-  );
+  if (!result.allowed) {
+    return NextResponse.json(
+      { error: "Too many requests. Please try again later.", retryAfter: result.retryAfterSec },
+      { 
+        status: 429,
+        headers: {
+          "Retry-After": result.retryAfterSec.toString()
+        }
+      }
+    );
+  }
+
+  return null;
 }
 
+/**
+ * Alias for the simpler version if needed.
+ */
+export function rateLimit(identifier: string, limit: number = 5, windowMs: number = 60000) {
+  const result = checkRateLimit({ key: identifier, limit, windowMs });
+  return { success: result.allowed, remaining: result.remaining };
+}

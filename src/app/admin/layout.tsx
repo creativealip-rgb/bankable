@@ -10,12 +10,13 @@ import { useEffect, useState } from "react";
 
 const NAV_ITEMS = [
   { href: "/admin", label: "Dashboard", icon: "dashboard" },
-  { href: "/admin/courses", label: "Courses", icon: "courses" },
-  { href: "/admin/members", label: "Members", icon: "members" },
-  { href: "/admin/certificates", label: "Certificates", icon: "certificates" },
-  { href: "/admin/payments", label: "Payments", icon: "payments" },
-  { href: "/admin/sidebar-content", label: "Sidebar Content", icon: "sidebar" },
-  { href: "/admin/settings", label: "Settings", icon: "settings" },
+  { href: "/admin/courses", label: "Kursus", icon: "courses" },
+  { href: "/admin/members", label: "Member", icon: "members" },
+  { href: "/admin/certificates", label: "Sertifikat", icon: "certificates" },
+  { href: "/admin/payments", label: "Pembayaran", icon: "payments" },
+  { href: "/admin/sidebar-content", label: "Konten Sidebar", icon: "sidebar" },
+  { href: "/admin/audit-logs", label: "Log Audit", icon: "audit" },
+  { href: "/admin/settings", label: "Pengaturan", icon: "settings" },
 ];
 
 type NavIconKey = (typeof NAV_ITEMS)[number]["icon"];
@@ -68,6 +69,15 @@ function NavIcon({ name }: { name: NavIconKey }) {
       </svg>
     );
   }
+  if (name === "audit") {
+    return (
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden>
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" strokeWidth="1.7" />
+        <path d="M14 2v6h6" stroke="currentColor" strokeWidth="1.7" />
+        <path d="M16 13H8M16 17H8M10 9H8" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+      </svg>
+    );
+  }
   return (
     <svg viewBox="0 0 24 24" fill="none" aria-hidden>
       <path d="M12 8.5V4m0 16v-4.5M8.5 12H4m16 0h-4.5m-6.4-6.4L6.9 7.8m10.2 0 1.9-1.9m-12.1 12.2 1.9-1.9m8.3 1.9-1.9-1.9" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
@@ -93,7 +103,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     return (
       <div className="admin-loading">
         <div className="admin-loading-spinner" />
-        <p>Loading admin panel...</p>
+        <p>Memuat panel admin...</p>
       </div>
     );
   }
@@ -172,19 +182,25 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       <main className="admin-main">
         <header className="admin-content-header">
+          <div className="admin-header-left">
+            <Link href="/" className="admin-mobile-logo">
+              <span className="gradient-text">BELAJARIA</span>
+            </Link>
+            <div className="admin-header-title">
+              <h1>Panel Kontrol</h1>
+              <p>Kelola konten platform</p>
+            </div>
+          </div>
+          
           <button 
             className="admin-hamburger-btn"
             onClick={() => setIsSidebarOpen(true)}
             aria-label="Open Navigation"
           >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <path d="M4 6h16M4 12h16M4 18h16" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
+            <span />
+            <span />
+            <span />
           </button>
-          <div className="admin-header-title">
-            <h1>Panel Kontrol</h1>
-            <p>Kelola konten dan pantau perkembangan platform</p>
-          </div>
         </header>
         <div className="admin-page-content">
           {children}

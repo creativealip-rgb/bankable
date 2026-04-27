@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, boolean, integer } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, boolean, integer, index } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { memberships } from "./memberships";
 import { videoProgress } from "./progress";
@@ -15,9 +15,13 @@ export const users = pgTable("user", {
   role: text("role").notNull().default("MEMBER"), // SUPER_ADMIN, ADMIN, MEMBER
   xp: integer("xp").notNull().default(0),
   level: integer("level").notNull().default(1),
+  currentStreak: integer("current_streak").notNull().default(0),
+  lastLearningDate: timestamp("last_learning_date"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
-});
+}, (table) => ({
+  emailIdx: index("email_idx").on(table.email),
+}));
 
 export const usersRelations = relations(users, ({ many }) => ({
   memberships: many(memberships),
@@ -41,7 +45,9 @@ export const sessions = pgTable("session", {
   userId: text("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
-});
+}, (table) => ({
+  userIdIdx: index("user_id_idx").on(table.userId),
+}));
 
 export const sessionsRelations = relations(sessions, ({ one }) => ({
   user: one(users, { fields: [sessions.userId], references: [users.id] }),

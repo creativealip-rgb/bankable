@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSession, signOut } from "@/lib/auth-client";
+import { useSession, signOut, authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import styles from "./page.module.css";
 
@@ -14,6 +14,10 @@ export default function ProfilePage() {
   const [deleting, setDeleting] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [passwordChanged, setPasswordChanged] = useState(false);
 
   useEffect(() => {
     if (session?.user) {
@@ -40,18 +44,18 @@ export default function ProfilePage() {
         setTimeout(() => setSaved(false), 3000);
       } else {
         const data = await res.json();
-        setError(data.error || "Failed to update profile");
+        setError(data.error || "Gagal memperbarui profil");
       }
     } catch (error) {
       console.error("Failed to update profile:", error);
-      setError("Failed to update profile");
+      setError("Gagal memperbarui profil");
     } finally {
       setSaving(false);
     }
   };
 
   const handleDeleteAccount = async () => {
-    if (!confirm("Delete your account permanently? This action cannot be undone.")) {
+    if (!confirm("Hapus akun Anda secara permanen? Tindakan ini tidak dapat dibatalkan.")) {
       return;
     }
 
@@ -62,7 +66,7 @@ export default function ProfilePage() {
       const res = await fetch("/api/me", { method: "DELETE" });
       if (!res.ok) {
         const data = await res.json();
-        setError(data.error || "Failed to delete account");
+        setError(data.error || "Gagal menghapus akun");
         return;
       }
 
@@ -71,9 +75,38 @@ export default function ProfilePage() {
       router.refresh();
     } catch (deleteError) {
       console.error("Failed to delete account:", deleteError);
-      setError("Failed to delete account");
+      setError("Gagal menghapus akun");
     } finally {
       setDeleting(false);
+    }
+  };
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setChangingPassword(true);
+    setPasswordChanged(false);
+    setError("");
+
+    try {
+      const { error } = await authClient.changePassword({
+        newPassword: newPassword,
+        currentPassword: currentPassword,
+        revokeOtherSessions: true,
+      });
+
+      if (error) {
+        setError(error.message || "Gagal mengganti kata sandi");
+      } else {
+        setPasswordChanged(true);
+        setCurrentPassword("");
+        setNewPassword("");
+        setTimeout(() => setPasswordChanged(false), 3000);
+      }
+    } catch (err) {
+      console.error("Failed to change password:", err);
+      setError("Terjadi kesalahan sistem");
+    } finally {
+      setChangingPassword(false);
     }
   };
 
@@ -82,8 +115,8 @@ export default function ProfilePage() {
   return (
     <div className={styles.profileContainer}>
       <div className={styles.header}>
-        <h1 className={styles.title}>My Profile</h1>
-        <p style={{ color: "var(--text-muted)" }}>Manage your account information and preferences.</p>
+        <h1 className={styles.title}>Profil Saya</h1>
+        <p style={{ color: "var(--text-muted)" }}>Kelola informasi akun dan preferensi Anda.</p>
       </div>
 
       {error && (
@@ -108,7 +141,7 @@ export default function ProfilePage() {
               {name?.charAt(0)?.toUpperCase() || "?"}
             </div>
             <div className={styles.avatarInfo}>
-              <div className={styles.avatarName}>{name || "Your Name"}</div>
+              <div className={styles.avatarName}>{name || "Nama Anda"}</div>
               <div className={styles.avatarEmail}>{email}</div>
               <span className={styles.memberBadge}>{role}</span>
             </div>
@@ -117,29 +150,29 @@ export default function ProfilePage() {
           {/* Form Fields */}
           <div className={styles.formRow}>
             <div className={styles.formGroup}>
-              <label className={styles.formLabel}>Full Name</label>
+              <label className={styles.formLabel}>Nama Lengkap</label>
               <input
                 type="text"
                 className={styles.formInput}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Enter your name"
+                placeholder="Masukkan nama Anda"
               />
             </div>
             <div className={styles.formGroup}>
-              <label className={styles.formLabel}>Email Address</label>
+              <label className={styles.formLabel}>Alamat Email</label>
               <input
                 type="email"
                 className={styles.formInput}
                 value={email}
                 disabled
-                title="Email cannot be changed"
+                title="Email tidak dapat diubah"
               />
             </div>
           </div>
 
           <div className={styles.formGroup}>
-            <label className={styles.formLabel}>Role</label>
+            <label className={styles.formLabel}>Peran</label>
             <input
               type="text"
               className={styles.formInput}
@@ -150,22 +183,67 @@ export default function ProfilePage() {
 
           <div style={{ display: "flex", alignItems: "center" }}>
             <button type="submit" className={styles.saveBtn} disabled={saving}>
-              {saving ? "Saving..." : "Save Changes"}
+              {saving ? "Menyimpan..." : "Simpan Perubahan"}
             </button>
             {saved && (
               <span className={styles.successMsg}>
-                ✓ Profile updated successfully
+                ✓ Profil berhasil diperbarui
               </span>
             )}
           </div>
         </div>
       </form>
 
+      {/* Security Section */}
+      <div className={styles.profileCard} style={{ marginTop: "1rem" }}>
+        <h3 className={styles.sectionTitle}>Keamanan</h3>
+        <p className={styles.sectionDesc}>Ganti kata sandi akun Anda secara berkala.</p>
+        
+        <form onSubmit={handleChangePassword}>
+          <div className={styles.formRow}>
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel}>Kata Sandi Saat Ini</label>
+              <input
+                type="password"
+                className={styles.formInput}
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+              />
+            </div>
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel}>Kata Sandi Baru</label>
+              <input
+                type="password"
+                className={styles.formInput}
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+                minLength={6}
+              />
+            </div>
+          </div>
+
+          <div style={{ display: "flex", alignItems: "center", marginTop: "1rem" }}>
+            <button type="submit" className={styles.saveBtn} disabled={changingPassword}>
+              {changingPassword ? "Memperbarui..." : "Ganti Kata Sandi"}
+            </button>
+            {passwordChanged && (
+              <span className={styles.successMsg}>
+                ✓ Kata sandi berhasil diperbarui
+              </span>
+            )}
+          </div>
+        </form>
+      </div>
+
       {/* Danger Zone */}
       <div className={styles.dangerZone}>
-        <div className={styles.dangerTitle}>Danger Zone</div>
+        <div className={styles.dangerTitle}>Zona Berbahaya</div>
         <p className={styles.dangerText}>
-          Once you delete your account, there is no going back. All your progress, certificates, and data will be permanently removed.
+          Setelah Anda menghapus akun, tindakan ini tidak dapat dibatalkan. Semua progres, sertifikat, dan data Anda akan dihapus secara permanen.
         </p>
         <button
           type="button"
@@ -173,7 +251,7 @@ export default function ProfilePage() {
           onClick={handleDeleteAccount}
           disabled={deleting}
         >
-          {deleting ? "Deleting..." : "Delete Account"}
+          {deleting ? "Menghapus..." : "Hapus Akun"}
         </button>
       </div>
     </div>

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useSession } from "@/lib/auth-client";
 import styles from "./page.module.css";
 import Link from "next/link";
+import Skeleton from "@/components/Skeleton";
 
 type DashboardData = {
   stats: {
@@ -15,6 +16,8 @@ type DashboardData = {
   user?: {
     xp: number;
     level: number;
+    currentStreak: number;
+    lastLearningDate: string | null;
   };
   continueLearning: {
     id: string;
@@ -79,18 +82,18 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <div className={styles.dashboardContainer}>
-        <div className={styles.headerSkeleton}>
-          <div className={`${styles.skeletonPulse} ${styles.skeletonText}`} style={{ width: "40%", height: "2.5rem" }} />
-          <div className={`${styles.skeletonPulse} ${styles.skeletonText}`} style={{ width: "20%", height: "1.2rem", marginTop: "1rem" }} />
+        <div className={styles.header}>
+          <Skeleton width="40%" height="2.5rem" />
+          <Skeleton width="20%" height="1.2rem" style={{ marginTop: "1rem" }} />
         </div>
         <div className={styles.statsGrid}>
-          {[1, 2, 3].map(i => (
-            <div key={i} className={`${styles.statCard} ${styles.skeletonPulse}`} style={{ height: "80px" }} />
-          ))}
+          <Skeleton height="80px" />
+          <Skeleton height="80px" />
+          <Skeleton height="80px" />
         </div>
         <div className={styles.contentGrid} style={{ marginTop: "2rem" }}>
-          <div className={`${styles.sectionBox} ${styles.skeletonPulse}`} style={{ height: "300px" }} />
-          <div className={`${styles.sectionBox} ${styles.skeletonPulse}`} style={{ height: "300px" }} />
+          <Skeleton height="300px" />
+          <Skeleton height="300px" />
         </div>
       </div>
     );
@@ -171,6 +174,13 @@ export default function DashboardPage() {
           <div>
             <div className={styles.statValue}>{stats?.certificatesEarned || 0}</div>
             <div className={styles.statLabel}>Sertifikat</div>
+          </div>
+        </div>
+        <div className={styles.statCard} style={{ background: "linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)", color: "white" }}>
+          <div className={styles.statIcon} style={{ fontSize: "2rem" }}>🔥</div>
+          <div>
+            <div className={styles.statValue} style={{ color: "white" }}>{dashboard?.user?.currentStreak || 0} Hari</div>
+            <div className={styles.statLabel} style={{ color: "rgba(255,255,255,0.9)" }}>Learning Streak</div>
           </div>
         </div>
       </div>

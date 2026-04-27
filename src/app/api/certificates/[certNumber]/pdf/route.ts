@@ -125,7 +125,7 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
   page.drawCircle({
     x: sealX + 30,
     y: footerY + 30,
-    radius: 30,
+    size: 30,
     borderColor: goldColor,
     borderWidth: 1,
     color: rgb(0.98, 0.75, 0.14),

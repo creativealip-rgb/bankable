@@ -174,7 +174,7 @@ export default function AdminUsersPage() {
                   </tr>
                 ) : users.map((user) => (
                   <tr key={user.id}>
-                    <td>
+                    <td data-label="User">
                       <div className="admin-inline-row">
                         <div className="admin-user-avatar admin-user-avatar-sm">
                           {user.name.charAt(0).toUpperCase()}
@@ -182,18 +182,18 @@ export default function AdminUsersPage() {
                         <span className="admin-name-strong">{user.name}</span>
                       </div>
                     </td>
-                    <td className="admin-email-cell">{user.email}</td>
-                    <td>
+                    <td data-label="Email" className="admin-email-cell">{user.email}</td>
+                    <td data-label="Role">
                       <span className={`admin-badge-status ${user.role.toLowerCase()}`}>
                         {user.role}
                       </span>
                     </td>
-                    <td>
+                    <td data-label="Membership">
                       <span className={`admin-badge-status ${user.membership === "PREMIUM" || user.membership === "LIFETIME" ? "published" : user.membership === "BASIC" ? "draft" : "archived"}`}>
                         {user.membership}
                       </span>
                     </td>
-                    <td>
+                    <td data-label="Videos Watched">
                       <div className="admin-inline-row">
                         <div className="admin-progress-track">
                           <div
@@ -206,7 +206,7 @@ export default function AdminUsersPage() {
                         </span>
                       </div>
                     </td>
-                    <td>
+                    <td data-label="Certificates">
                       {user.certificateCount > 0 ? (
                         <span className="admin-crown">
                           🏆 {user.certificateCount}
@@ -215,7 +215,7 @@ export default function AdminUsersPage() {
                         <span className="admin-table-placeholder">—</span>
                       )}
                     </td>
-                    <td className="admin-email-cell">
+                    <td data-label="Joined" className="admin-email-cell">
                       {new Date(user.createdAt).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}
                     </td>
                   </tr>

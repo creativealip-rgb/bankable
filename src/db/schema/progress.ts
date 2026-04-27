@@ -1,4 +1,4 @@
-import { pgTable, text, integer, boolean, numeric, timestamp, unique } from "drizzle-orm/pg-core";
+import { pgTable, text, integer, boolean, numeric, timestamp, unique, index } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { users } from "./users";
 import { videos } from "./courses";
@@ -20,6 +20,7 @@ export const videoProgress = pgTable(
   },
   (table) => [
     unique("video_progress_user_video").on(table.userId, table.videoId),
+    index("progress_user_idx").on(table.userId),
   ]
 );
 

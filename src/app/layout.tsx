@@ -11,6 +11,7 @@ export const metadata: Metadata = {
 };
 
 import AnnouncementBanner from "@/components/AnnouncementBanner";
+import SWRegistration from "@/components/SWRegistration";
 
 export default function RootLayout({
   children,
@@ -20,6 +21,7 @@ export default function RootLayout({
   return (
     <html lang="id" suppressHydrationWarning>
       <body>
+        <SWRegistration />
         <ToastProvider>
           <AnnouncementBanner />
           <MainNav />

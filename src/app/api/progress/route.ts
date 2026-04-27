@@ -4,6 +4,7 @@ import { videoProgress, videos, courses, users } from "@/db/schema";
 import { eq, and, inArray } from "drizzle-orm";
 import { requireMember } from "@/lib/auth-helpers";
 import { hasCourseLearningAccess } from "@/lib/course-entitlement";
+import { calculateStreak } from "@/lib/streak";
 import crypto from "crypto";
 
 function isTrackableVideoSource(url: string | null): boolean {
@@ -180,8 +181,21 @@ export async function POST(request: NextRequest) {
         if (currentUser) {
           const newXp = (currentUser.xp || 0) + 100;
           const newLevel = Math.floor(newXp / 1000) + 1;
+
+          // Update streak
+          const { newStreak, shouldUpdateDate } = calculateStreak(
+            currentUser.lastLearningDate,
+            currentUser.currentStreak || 0
+          );
+
           await db.update(users)
-            .set({ xp: newXp, level: newLevel, updatedAt: new Date() })
+            .set({ 
+              xp: newXp, 
+              level: newLevel, 
+              currentStreak: newStreak,
+              lastLearningDate: shouldUpdateDate ? new Date() : currentUser.lastLearningDate,
+              updatedAt: new Date() 
+            })
             .where(eq(users.id, session.user.id));
         }
       }
@@ -201,19 +215,30 @@ export async function POST(request: NextRequest) {
         })
         .returning();
 
-      // Award XP if created as completed
-      if (isCompleted) {
-        const currentUser = await db.query.users.findFirst({
-          where: eq(users.id, session.user.id),
-        });
-        if (currentUser) {
-          const newXp = (currentUser.xp || 0) + 100;
-          const newLevel = Math.floor(newXp / 1000) + 1;
-          await db.update(users)
-            .set({ xp: newXp, level: newLevel, updatedAt: new Date() })
-            .where(eq(users.id, session.user.id));
-        }
-      }
+      // Award XP & Update Streak
+      const currentUser = await db.query.users.findFirst({
+        where: eq(users.id, session.user.id),
+      });
+      if (currentUser) {
+        const newXp = (isCompleted) ? (currentUser.xp || 0) + 100 : (currentUser.xp || 0);
+        const newLevel = Math.floor(newXp / 1000) + 1;
+        
+      // Update streak
+      const { newStreak, shouldUpdateDate } = calculateStreak(
+        currentUser.lastLearningDate,
+        currentUser.currentStreak || 0
+      );
+
+      await db.update(users)
+        .set({ 
+          xp: newXp, 
+          level: newLevel, 
+          currentStreak: newStreak,
+          lastLearningDate: shouldUpdateDate ? new Date() : currentUser.lastLearningDate,
+          updatedAt: new Date() 
+        })
+        .where(eq(users.id, session.user.id));
+    }
 
       return NextResponse.json(created, { status: 201 });
     }

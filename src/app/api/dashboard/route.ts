@@ -130,13 +130,15 @@ export async function GET() {
     // User Gamification
     const user = await db.query.users.findFirst({
       where: eq(users.id, userId),
-      columns: { xp: true, level: true },
+      columns: { xp: true, level: true, currentStreak: true, lastLearningDate: true },
     });
 
     return NextResponse.json({
       user: {
         xp: user?.xp || 0,
         level: user?.level || 1,
+        currentStreak: user?.currentStreak || 0,
+        lastLearningDate: user?.lastLearningDate || null,
       },
       stats: {
         coursesInProgress,

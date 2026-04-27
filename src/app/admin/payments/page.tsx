@@ -153,15 +153,15 @@ export default function AdminPaymentsPage() {
                 ) : (
                   items.map((item) => (
                     <tr key={item.id}>
-                      <td>{item.externalId}</td>
-                      <td>{item.user.name}</td>
-                      <td>{item.tier}</td>
-                      <td>{item.provider}</td>
-                      <td>Rp {Number(item.amount).toLocaleString("id-ID")}</td>
-                      <td>
+                      <td data-label="External ID">{item.externalId}</td>
+                      <td data-label="Member">{item.user.name}</td>
+                      <td data-label="Tier">{item.tier}</td>
+                      <td data-label="Provider">{item.provider}</td>
+                      <td data-label="Amount">Rp {Number(item.amount).toLocaleString("id-ID")}</td>
+                      <td data-label="Status">
                         <span className={`admin-badge-status ${item.status.toLowerCase()}`}>{item.status}</span>
                       </td>
-                      <td>
+                      <td data-label="Proof">
                         {item.paymentProofUrl ? (
                           <div className="admin-row-actions">
                             <a
@@ -185,8 +185,8 @@ export default function AdminPaymentsPage() {
                           <div className="admin-note">{item.paymentProofNote}</div>
                         ) : null}
                       </td>
-                      <td>{new Date(item.createdAt).toLocaleDateString("id-ID")}</td>
-                      <td>
+                      <td data-label="Created">{new Date(item.createdAt).toLocaleDateString("id-ID")}</td>
+                      <td data-label="Action">
                         {item.provider === "MANUAL" && item.status !== "PAID" ? (
                           <button
                             type="button"

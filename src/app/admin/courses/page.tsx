@@ -24,7 +24,7 @@ type AdminCourse = {
 function formatDuration(seconds: number): string {
   const h = Math.floor(seconds / 3600);
   const m = Math.floor((seconds % 3600) / 60);
-  if (h > 0) return `${h}h ${m}m`;
+  if (h > 0) return `${h}j ${m}m`;
   return `${m}m`;
 }
 
@@ -37,7 +37,7 @@ export default function AdminCoursesPage() {
 
   // Create form state
   const [form, setForm] = useState({
-    title: "", description: "", category: "Business", type: "MULTI", level: "BEGINNER", price: "", status: "DRAFT"
+    title: "", description: "", category: "Bisnis", type: "MULTI", level: "BEGINNER", price: "", status: "DRAFT"
   });
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState("");
@@ -75,11 +75,11 @@ export default function AdminCoursesPage() {
       });
       if (!res.ok) {
         const data = await res.json();
-        setCreateError(data.error || "Failed to create course");
+        setCreateError(data.error || "Gagal membuat kursus");
         return;
       }
       setShowCreate(false);
-      setForm({ title: "", description: "", category: "Business", type: "MULTI", level: "BEGINNER", price: "", status: "DRAFT" });
+      setForm({ title: "", description: "", category: "Bisnis", type: "MULTI", level: "BEGINNER", price: "", status: "DRAFT" });
       setLoading(true);
       fetchCourses();
     } catch {
@@ -90,7 +90,7 @@ export default function AdminCoursesPage() {
   };
 
   const handleDelete = async (slug: string) => {
-    if (!confirm("Are you sure you want to delete this course?")) return;
+    if (!confirm("Apakah Anda yakin ingin menghapus kursus ini?")) return;
     try {
       const res = await fetch(`/api/courses/${slug}`, { method: "DELETE" });
       if (res.ok) {
@@ -131,18 +131,18 @@ export default function AdminCoursesPage() {
   return (
     <>
       <div className="admin-page-header">
-        <h1 className="admin-page-title">Course Management</h1>
-        <p className="admin-page-subtitle">Create, edit, and manage all courses</p>
+        <h1 className="admin-page-title">Manajemen Kursus</h1>
+        <p className="admin-page-subtitle">Buat, edit, dan kelola semua kursus</p>
       </div>
 
       {/* Stats */}
       <div className="admin-stats-grid">
         <div className="admin-stat-card">
-          <div className="admin-stat-label">Total Courses</div>
+          <div className="admin-stat-label">Total Kursus</div>
           <div className="admin-stat-value">{courses.length}</div>
         </div>
         <div className="admin-stat-card">
-          <div className="admin-stat-label">Published</div>
+          <div className="admin-stat-label">Diterbitkan</div>
           <div className="admin-stat-value admin-kpi-success">
             {courses.filter(c => c.status === "PUBLISHED").length}
           </div>
@@ -163,7 +163,7 @@ export default function AdminCoursesPage() {
               <input
                 type="text"
                 className="admin-search-input"
-                placeholder="Search courses..."
+                placeholder="Cari kursus..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
@@ -181,10 +181,10 @@ export default function AdminCoursesPage() {
           <div className="admin-toolbar-actions">
             <button className="btn-primary admin-btn-compact"
               onClick={() => setShowCreate(!showCreate)}>
-              {showCreate ? "Cancel" : "+ Quick Create"}
+              {showCreate ? "Batal" : "+ Buat Cepat"}
             </button>
             <Link href="/admin/courses/new" className="btn-secondary admin-btn-compact">
-              📝 Full Form
+              📝 Form Lengkap
             </Link>
           </div>
         </div>
@@ -192,7 +192,7 @@ export default function AdminCoursesPage() {
         {/* Create Form */}
         {showCreate && (
           <div className="admin-quick-card">
-            <h4 className="admin-quick-title">Create New Course</h4>
+            <h4 className="admin-quick-title">Buat Kursus Baru</h4>
             {createError && (
               <div className="admin-quick-error">
                 {createError}
@@ -200,20 +200,20 @@ export default function AdminCoursesPage() {
             )}
             <form onSubmit={handleCreate} className="admin-grid-two">
               <div className="admin-grid-full">
-                <label className="admin-field-label">Title</label>
+                <label className="admin-field-label">Judul</label>
                 <input className="admin-search-input admin-input-full"
                   value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} required />
               </div>
               <div className="admin-grid-full">
-                <label className="admin-field-label">Description</label>
+                <label className="admin-field-label">Deskripsi</label>
                 <textarea className="admin-search-input admin-input-full admin-textarea"
                   value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} />
               </div>
               <div>
-                <label className="admin-field-label">Category</label>
+                <label className="admin-field-label">Kategori</label>
                 <select className="admin-search-input admin-input-full"
                   value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}>
-                  {["Business", "Programming", "Design", "Audio/Video", "Marketing", "Personal Growth"].map(c => (
+                  {["Bisnis", "Pemrograman", "Desain", "Audio/Video", "Pemasaran", "Pengembangan Diri"].map(c => (
                     <option key={c} value={c}>{c}</option>
                   ))}
                 </select>
@@ -222,31 +222,35 @@ export default function AdminCoursesPage() {
                 <label className="admin-field-label">Level</label>
                 <select className="admin-search-input admin-input-full"
                   value={form.level} onChange={e => setForm({ ...form, level: e.target.value })}>
-                  {["BEGINNER", "INTERMEDIATE", "ADVANCED"].map(l => (
-                    <option key={l} value={l}>{l}</option>
+                  {[
+                    { val: "BEGINNER", label: "Pemula" },
+                    { val: "INTERMEDIATE", label: "Menengah" },
+                    { val: "ADVANCED", label: "Mahir" }
+                  ].map(l => (
+                    <option key={l.val} value={l.val}>{l.label}</option>
                   ))}
                 </select>
               </div>
               <div>
-                <label className="admin-field-label">Type</label>
+                <label className="admin-field-label">Tipe</label>
                 <select className="admin-search-input admin-input-full"
                   value={form.type} onChange={e => setForm({ ...form, type: e.target.value })}>
-                  <option value="SINGLE">Single Video</option>
-                  <option value="MULTI">Multi Video</option>
+                  <option value="SINGLE">Video Tunggal</option>
+                  <option value="MULTI">Multi Video (Modul)</option>
                 </select>
               </div>
               <div>
-                <label className="admin-field-label">Price (Rp)</label>
+                <label className="admin-field-label">Harga (Rp)</label>
                 <input className="admin-search-input admin-input-full" type="number"
-                  placeholder="0 = Free" value={form.price} onChange={e => setForm({ ...form, price: e.target.value })} />
+                  placeholder="0 = Gratis" value={form.price} onChange={e => setForm({ ...form, price: e.target.value })} />
               </div>
               <div className="admin-grid-full admin-row">
                 <button type="submit" className="btn-primary admin-btn-compact" disabled={creating}>
-                  {creating ? "Creating..." : "Create Course"}
+                  {creating ? "Memproses..." : "Buat Kursus"}
                 </button>
                 <button type="button" className="btn-secondary admin-btn-compact"
                   onClick={() => setShowCreate(false)}>
-                  Cancel
+                  Batal
                 </button>
               </div>
             </form>
@@ -257,28 +261,28 @@ export default function AdminCoursesPage() {
         {loading ? (
           <div className="admin-empty">
             <div className="admin-loading-spinner admin-loading-compact" />
-            Loading courses...
+            Memuat kursus...
           </div>
         ) : (
           <div className="admin-table-wrapper">
             <table className="admin-table">
               <thead>
                 <tr>
-                  <th>Course</th>
-                  <th>Category</th>
-                  <th>Type</th>
-                  <th>Videos</th>
-                  <th>Duration</th>
-                  <th>Quiz</th>
+                  <th>Kursus</th>
+                  <th>Kategori</th>
+                  <th>Tipe</th>
+                  <th>Video</th>
+                  <th>Durasi</th>
+                  <th>Kuis</th>
                   <th>Status</th>
-                  <th>Actions</th>
+                  <th>Aksi</th>
                 </tr>
               </thead>
               <tbody>
                 {courses.length === 0 ? (
                   <tr>
                     <td colSpan={8} className="admin-table-empty">
-                      No courses found
+                      Tidak ada kursus ditemukan
                     </td>
                   </tr>
                 ) : courses.map((course) => (
@@ -289,7 +293,7 @@ export default function AdminCoursesPage() {
                     </td>
                     <td>{course.category}</td>
                     <td>
-                      {course.type === "SINGLE" ? "🎥 Single" : "📚 Multi"}
+                      {course.type === "SINGLE" ? "🎥 Tunggal" : "📚 Multi"}
                     </td>
                     <td>{course.totalModules}M / {course.totalVideos}V</td>
                     <td>{formatDuration(course.totalDuration)}</td>
