@@ -11,6 +11,8 @@ type Video = {
   title: string;
   duration: number;
   order: number;
+  url: string | null;
+  subtitleUrl: string | null;
 };
 
 type Module = {
@@ -49,6 +51,7 @@ type CourseDetail = {
   isPaidOffering?: boolean;
   hasPremiumAccess?: boolean;
   hasMainAccess?: boolean;
+  hasCourseAccess?: boolean;
 };
 
 type Review = {
@@ -119,39 +122,55 @@ export default function CourseDetailPage({ params }: PageProps) {
   }, [params]);
 
   useEffect(() => {
-    if (!slug || isPending) return;
-
+    console.log("[DEBUG] CourseDetailPage Session:", { userId: session?.user?.id, role: (session?.user as any)?.role, session });
+    
     const role = (session?.user as Record<string, unknown> | undefined)?.role as string | undefined;
     const isAdmin = role === "ADMIN" || role === "SUPER_ADMIN";
+    
     if (isAdmin) {
+      console.log("[DEBUG] User is Admin, granting quick access.");
       setAccessChecked(true);
       return;
     }
 
     if (!session) {
+      console.log("[DEBUG] No session, redirecting to pricing.");
       router.replace("/pricing");
       return;
     }
 
+    // Always fetch course data first to see if user HAS premium access already
+    // but the actual access check for non-premium courses is handled by ensureMainAccess
     let cancelled = false;
-    async function ensureMainAccess() {
+    async function checkAccess() {
       try {
-        const res = await fetch("/api/access/main");
-        if (!res.ok) {
-          router.replace("/pricing");
+        // First check the course details to see if it's premium and if user HAS it
+        const cRes = await fetch(`/api/courses/${slug}`);
+        if (!cRes.ok) return; // fetchCourse useEffect will handle 404
+        const cData = await cRes.json();
+        
+        // If user already has access to this specific course (premium or owner), skip main membership check
+        if (cData.hasCourseAccess) {
+          if (!cancelled) setAccessChecked(true);
           return;
         }
-        const data = await res.json();
-        if (!data.hasMainAccess) {
-          router.replace("/pricing");
-          return;
+
+        // If not premium/not owned, check if they have main membership
+        if (!cData.isPaidOffering) {
+          const res = await fetch("/api/access/main");
+          const data = await res.json();
+          if (!data.hasMainAccess) {
+            router.replace("/pricing");
+            return;
+          }
         }
+        
         if (!cancelled) setAccessChecked(true);
-      } catch {
-        router.replace("/pricing");
+      } catch (err) {
+        console.error("Access check failed:", err);
       }
     }
-    void ensureMainAccess();
+    void checkAccess();
     return () => {
       cancelled = true;
     };
@@ -162,9 +181,10 @@ export default function CourseDetailPage({ params }: PageProps) {
 
     async function fetchCourse() {
       try {
-        const res = await fetch(`/api/courses/${slug}`);
+        const res = await fetch(`/api/courses/${slug}`, { cache: "no-store" });
         if (res.ok) {
           const data = await res.json();
+          console.log("[DEBUG] Course Detail Data:", data);
           setCourse(data);
           // Expand first module by default
           if (data.modules.length > 0) {
@@ -260,10 +280,12 @@ export default function CourseDetailPage({ params }: PageProps) {
   }
 
   const quiz = course.quiz?.[0];
-  const isPaidCourse = Boolean(course.isPaidOffering ?? Number(course.price || 0) > 0);
+  const isPaidCourse = Boolean(course.isPaidOffering ?? (Number(course.price || 0) > 0));
   const hasPremiumAccess = Boolean(course.hasPremiumAccess);
   const hasMainAccess = course.hasMainAccess !== false;
-  const hasCourseAccess = isPaidCourse ? hasPremiumAccess : hasMainAccess;
+  const hasCourseAccess = Boolean(course.hasCourseAccess);
+  
+  console.log("[DEBUG] Render Access Flags:", { isPaidCourse, hasPremiumAccess, hasMainAccess, hasCourseAccess });
 
   const handleCheckout = async (mode: "PREMIUM" | "LIFETIME") => {
     if ((mode === "PREMIUM" && !isPaidCourse) || buying) return;
@@ -391,7 +413,7 @@ export default function CourseDetailPage({ params }: PageProps) {
                     {mod.videos.map((video, index) => (
                       <li key={video.id} className={styles.videoPreviewItem}>
                         <span className={styles.videoPreviewIcon}>
-                          {index === 0 ? "▶️" : "🔒"}
+                          {video.url ? "▶️" : "🔒"}
                         </span>
                         <span className={styles.videoPreviewTitle}>{video.title}</span>
                         <span className={styles.videoPreviewDuration}>

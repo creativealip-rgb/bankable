@@ -8,6 +8,8 @@ import { hasMainCatalogAccess, isPaidOfferingCourse } from "@/lib/course-entitle
 import { writeAdminAudit } from "@/lib/admin-audit";
 import { logError } from "@/lib/logger";
 
+export const dynamic = "force-dynamic";
+
 type RouteParams = { params: Promise<{ slug: string }> };
 const VALID_STATUSES = new Set(["DRAFT", "PUBLISHED", "ARCHIVED"]);
 
@@ -19,6 +21,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const session = await getSession();
     const role = (session?.user as Record<string, unknown> | undefined)?.role as string | undefined;
     const isAdmin = role === "ADMIN" || role === "SUPER_ADMIN";
+
+    console.log(`[DEBUG] GET /api/courses/${slug} - User: ${session?.user?.id || 'Guest'} - Role: ${role || 'None'} - isAdmin: ${isAdmin}`);
 
     const course = await db.query.courses.findFirst({
       where: eq(courses.slug, slug),
@@ -54,9 +58,14 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     }
 
     const isPaidCourse = await isPaidOfferingCourse(course.slug, course.price);
-    const hasPremiumAccess = !isPaidCourse || (session ? await hasPaidCourseAccess(session.user.id, slug) : false);
+    const hasPaidAccessResult = session ? await hasPaidCourseAccess(session.user.id, slug) : false;
+    
+    // UI FLAGS: Strictly based on purchase/membership (No Admin bypass here so Admins can test the "Buy" flow)
+    const hasPremiumAccess = !isPaidCourse || hasPaidAccessResult;
     const hasMainAccess = isPaidCourse ? true : (session ? await hasMainCatalogAccess(session.user.id) : false);
-    const hasCourseAccess = isPaidCourse ? hasPremiumAccess : hasMainAccess;
+    
+    // FUNCTIONAL ACCESS: Controls video playback (Admins ALWAYS have access)
+    const hasCourseAccess = isAdmin || (hasPremiumAccess && (isPaidCourse || hasMainAccess));
 
     const sanitizedModules = course.modules.map((mod) => ({
       ...mod,

@@ -1,19 +1,17 @@
+import "dotenv/config";
 import { db } from "./index";
-import { users, accounts, courses, modules, videos, quizzes, questions, memberships, paymentSettings } from "./schema";
+import { users, accounts, courses, modules, videos, quizzes, questions, memberships, paymentSettings, sidebarItems } from "./schema";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { eq } from "drizzle-orm";
 
-// Load env
-import "dotenv/config";
-
 async function main() {
   console.log("🌱 Seeding BELAJARIA database...\n");
 
-  // --- Users ---
-  let adminId: string = crypto.randomUUID();
-  let admin2Id: string = crypto.randomUUID();
-  let memberId: string = crypto.randomUUID();
+  // --- Users (Fixed UUIDs for idempotency) ---
+  let adminId = "00000000-0000-0000-0000-000000000001";
+  let admin2Id = "00000000-0000-0000-0000-000000000002";
+  let memberId = "00000000-0000-0000-0000-000000000003";
   const adminPasswordHash = await bcrypt.hash("admin123", 12);
   const admin2PasswordHash = await bcrypt.hash("password123", 12);
   const memberPasswordHash = await bcrypt.hash("member123", 12);
@@ -24,21 +22,21 @@ async function main() {
     {
       id: adminId,
       name: "Admin BELAJARIA",
-      email: "admin@belajaria.local",
+      email: "admin@bankable.local",
       emailVerified: true,
       role: "ADMIN",
     },
     {
       id: memberId,
       name: "Member Demo",
-      email: "member@belajaria.local",
+      email: "member@bankable.local",
       emailVerified: true,
       role: "MEMBER",
     },
     {
       id: admin2Id,
       name: "Admin BELAJARIA 2",
-      email: "admin2@belajaria.local",
+      email: "admin2@bankable.local",
       emailVerified: true,
       role: "ADMIN",
     },
@@ -47,17 +45,17 @@ async function main() {
   const [adminUser] = await db
     .select({ id: users.id })
     .from(users)
-    .where(eq(users.email, "admin@belajaria.local"))
+    .where(eq(users.email, "admin@bankable.local"))
     .limit(1);
   const [admin2User] = await db
     .select({ id: users.id })
     .from(users)
-    .where(eq(users.email, "admin2@belajaria.local"))
+    .where(eq(users.email, "admin2@bankable.local"))
     .limit(1);
   const [memberUser] = await db
     .select({ id: users.id })
     .from(users)
-    .where(eq(users.email, "member@belajaria.local"))
+    .where(eq(users.email, "member@bankable.local"))
     .limit(1);
   if (!adminUser || !admin2User || !memberUser) {
     throw new Error("Seed users not found after insert");
@@ -128,8 +126,8 @@ async function main() {
 
   // --- Course 1: Single Video ---
   console.log("Creating courses...");
-  const course1Id = crypto.randomUUID();
-  const course1ModuleId = crypto.randomUUID();
+  const course1Id = "11111111-1111-1111-1111-111111111111";
+  const course1ModuleId = "21111111-1111-1111-1111-111111111111";
 
   await db.insert(courses).values({
     id: course1Id,
@@ -139,7 +137,7 @@ async function main() {
     type: "SINGLE",
     category: "Business",
     level: "BEGINNER",
-    price: "0",
+    price: "49000",
     status: "PUBLISHED",
     minWatchPct: 90,
     createdById: adminId,
@@ -164,10 +162,10 @@ async function main() {
   console.log("  ✅ Course 1: Dasar Investasi Saham (Single Video)");
 
   // --- Course 2: Multi Video ---
-  const course2Id = crypto.randomUUID();
-  const mod2aId = crypto.randomUUID();
-  const mod2bId = crypto.randomUUID();
-  const mod2cId = crypto.randomUUID();
+  const course2Id = "11111111-1111-1111-1111-111111111112";
+  const mod2aId = "21111111-1111-1111-1111-111111111112";
+  const mod2bId = "21111111-1111-1111-1111-111111111113";
+  const mod2cId = "21111111-1111-1111-1111-111111111114";
 
   await db.insert(courses).values({
     id: course2Id,
@@ -177,7 +175,7 @@ async function main() {
     type: "MULTI",
     category: "Business",
     level: "INTERMEDIATE",
-    price: "0",
+    price: "199000",
     status: "PUBLISHED",
     minWatchPct: 90,
     createdById: adminId,
@@ -216,7 +214,7 @@ async function main() {
     type: "MULTI",
     category: "Programming",
     level: "ADVANCED",
-    price: "0",
+    price: "299000",
     status: "PUBLISHED",
     minWatchPct: 90,
     createdById: adminId,
@@ -266,7 +264,7 @@ async function main() {
       type: "MULTI",
       category: i % 2 === 0 ? "Marketing" : "Business",
       level: i <= 4 ? "BEGINNER" : i <= 7 ? "INTERMEDIATE" : "ADVANCED",
-      price: "0",
+      price: i === 1 ? "149000" : "0",
       status: "PUBLISHED",
       minWatchPct: 90,
       createdById: adminId,
@@ -534,10 +532,62 @@ async function main() {
 
   console.log("  ✅ Quiz for Advanced React (3 questions)\n");
 
+  // --- Sidebar Items ---
+  console.log("Creating sidebar items...");
+  await db.insert(sidebarItems).values([
+    {
+      id: crypto.randomUUID(),
+      section: "WEBINAR",
+      title: "Live Masterclass: Strategi Scale-Up Bisnis",
+      subtitle: "Bersama Founder Bankable",
+      dateLabel: "15 Mei 2026",
+      ctaLabel: "Daftar Sekarang",
+      href: "/courses/financial-planning-masterclass",
+      priceLabel: "FREE",
+      sortOrder: 0,
+      isActive: true,
+    },
+    {
+      id: crypto.randomUUID(),
+      section: "WEBINAR",
+      title: "Q&A: Membangun Personal Brand di LinkedIn",
+      subtitle: "Sesi Tanya Jawab Eksklusif",
+      dateLabel: "22 Mei 2026",
+      ctaLabel: "Amankan Slot",
+      href: "/courses/dasar-investasi-saham",
+      priceLabel: "FREE",
+      sortOrder: 1,
+      isActive: true,
+    },
+    {
+      id: crypto.randomUUID(),
+      section: "PREMIUM_VIDEO",
+      title: "Mastering TikTok Ads 2026",
+      subtitle: "Panduan Lengkap Beriklan",
+      priceLabel: "Rp 149.000",
+      ctaLabel: "Beli Course",
+      href: "/courses/advanced-react-patterns",
+      sortOrder: 0,
+      isActive: true,
+    },
+    {
+      id: crypto.randomUUID(),
+      section: "PREMIUM_VIDEO",
+      title: "Bongkar Rahasia Copywriting",
+      subtitle: "Teknik Menulis yang Menjual",
+      priceLabel: "Rp 99.000",
+      ctaLabel: "Beli Course",
+      href: "/courses/video-course-growth-sprint-1",
+      sortOrder: 1,
+      isActive: true,
+    },
+  ]).onConflictDoNothing();
+  console.log("  ✅ Sidebar items created\n");
+
   console.log("🎉 Seeding complete!");
   console.log("\nLogin credentials:");
-  console.log("  Admin:  admin@belajaria.local  / admin123");
-  console.log("  Member: member@belajaria.local / member123");
+  console.log("  Admin:  admin@bankable.local  / admin123");
+  console.log("  Member: member@bankable.local / member123");
 }
 
 main().catch((e) => {

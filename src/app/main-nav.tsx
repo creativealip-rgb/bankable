@@ -89,7 +89,11 @@ export function MainNav() {
     }
     document.addEventListener("mousedown", handleOutsideClick);
     document.addEventListener("keydown", handleKeyDown);
-    document.body.style.overflow = (mobileMenuOpen || searchModalOpen) ? "hidden" : "";
+    
+    // Prevent scroll only on mobile when menu is open
+    const shouldLock = (mobileMenuOpen && window.innerWidth <= 768) || searchModalOpen;
+    document.body.style.overflow = shouldLock ? "hidden" : "";
+    
     return () => {
       document.removeEventListener("mousedown", handleOutsideClick);
       document.removeEventListener("keydown", handleKeyDown);
@@ -161,7 +165,7 @@ export function MainNav() {
                     key={item.href}
                     href={item.href}
                     onClick={() => setMobileMenuOpen(false)}
-                    className={`nav-drawer-link ${isActivePath(pathname, item.href) ? "nav-link-active" : ""}`}
+                    className={`nav-link ${isActivePath(pathname, item.href) ? "nav-link-active" : ""}`}
                     aria-current={isActivePath(pathname, item.href) ? "page" : undefined}
                   >
                     <span className="nav-link-icon-box">{item.icon}</span>
