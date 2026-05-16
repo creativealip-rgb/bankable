@@ -24,7 +24,14 @@ type Course = {
   contentType: "EBOOK" | "VIDEO" | "VOICE";
 };
 
-const categories = ["Business", "Programming", "Design", "Audio/Video", "Marketing", "Personal Growth"];
+const categories = [
+  "Business",
+  "Programming",
+  "Design",
+  "Audio/Video",
+  "Marketing",
+  "Personal Growth",
+];
 const levels = ["BEGINNER", "INTERMEDIATE", "ADVANCED"] as const;
 const contentTypes = [
   { value: "ALL", label: "Semua Format" },
@@ -41,13 +48,37 @@ const sortOptions = [
 ] as const;
 
 const upcomingWebinars = [
-  { date: "28 Apr", title: "Live Webinar: AI for UMKM", speaker: "Coach Rani", cta: "Save Seat", href: "/courses/live-webinar-ai-for-umkm-webinar" },
-  { date: "05 Mei", title: "Workshop: Personal Branding", speaker: "Dimas F", cta: "Join Waitlist", href: "/courses/workshop-personal-branding-webinar" },
+  {
+    date: "28 Apr",
+    title: "Live Webinar: AI for UMKM",
+    speaker: "Coach Rani",
+    cta: "Save Seat",
+    href: "/courses/live-webinar-ai-for-umkm-webinar",
+  },
+  {
+    date: "05 Mei",
+    title: "Workshop: Personal Branding",
+    speaker: "Dimas F",
+    cta: "Join Waitlist",
+    href: "/courses/workshop-personal-branding-webinar",
+  },
 ];
 
 const premiumVideos = [
-  { title: "Mentoring Rekaman: Closing Sales", price: "Rp149.000", note: "Akses terpisah, tidak termasuk paket 29rb", cta: "Lihat Detail", href: "/courses/mentoring-rekaman-closing-sales-premium" },
-  { title: "Deep Dive Ads Optimization", price: "Rp199.000", note: "Akses terpisah, tidak termasuk paket 29rb", cta: "Lihat Detail", href: "/courses/deep-dive-ads-optimization-premium" },
+  {
+    title: "Mentoring Rekaman: Closing Sales",
+    price: "Rp149.000",
+    note: "Akses terpisah, tidak termasuk paket 29rb",
+    cta: "Lihat Detail",
+    href: "/courses/mentoring-rekaman-closing-sales-premium",
+  },
+  {
+    title: "Deep Dive Ads Optimization",
+    price: "Rp199.000",
+    note: "Akses terpisah, tidak termasuk paket 29rb",
+    cta: "Lihat Detail",
+    href: "/courses/deep-dive-ads-optimization-premium",
+  },
 ];
 
 type SidebarItem = {
@@ -59,6 +90,15 @@ type SidebarItem = {
   ctaLabel: string | null;
   href: string | null;
   priceLabel: string | null;
+};
+
+type FeaturedRailItem = {
+  key: string;
+  section: "WEBINAR" | "PREMIUM_VIDEO";
+  title: string;
+  subtitle: string;
+  href: string;
+  ctaLabel: string;
 };
 
 function formatDuration(seconds: number): string {
@@ -74,16 +114,42 @@ function getContentIcon(contentType: "EBOOK" | "VIDEO" | "VOICE") {
   return "🎬";
 }
 
-function getCategoryStyle(category: string): { background: string; icon: string } {
+function getCategoryStyle(category: string): {
+  background: string;
+  icon: string;
+} {
   const map: Record<string, { background: string; icon: string }> = {
-    Business:        { background: "linear-gradient(135deg, #dbeafe, #bfdbfe)", icon: "💼" },
-    Programming:     { background: "linear-gradient(135deg, #ede9fe, #c4b5fd)", icon: "💻" },
-    Design:          { background: "linear-gradient(135deg, #fce7f3, #f9a8d4)", icon: "🎨" },
-    "Audio/Video":   { background: "linear-gradient(135deg, #fef3c7, #fcd34d)", icon: "🎧" },
-    Marketing:       { background: "linear-gradient(135deg, #d1fae5, #6ee7b7)", icon: "📢" },
-    "Personal Growth":{ background: "linear-gradient(135deg, #ffedd5, #fdba74)", icon: "🌱" },
+    Business: {
+      background: "linear-gradient(135deg, #dbeafe, #bfdbfe)",
+      icon: "💼",
+    },
+    Programming: {
+      background: "linear-gradient(135deg, #ede9fe, #c4b5fd)",
+      icon: "💻",
+    },
+    Design: {
+      background: "linear-gradient(135deg, #fce7f3, #f9a8d4)",
+      icon: "🎨",
+    },
+    "Audio/Video": {
+      background: "linear-gradient(135deg, #fef3c7, #fcd34d)",
+      icon: "🎧",
+    },
+    Marketing: {
+      background: "linear-gradient(135deg, #d1fae5, #6ee7b7)",
+      icon: "📢",
+    },
+    "Personal Growth": {
+      background: "linear-gradient(135deg, #ffedd5, #fdba74)",
+      icon: "🌱",
+    },
   };
-  return map[category] || { background: "linear-gradient(135deg, #ede9fe, #e0e7ff)", icon: "📦" };
+  return (
+    map[category] || {
+      background: "linear-gradient(135deg, #ede9fe, #e0e7ff)",
+      icon: "📦",
+    }
+  );
 }
 
 export default function CatalogPage() {
@@ -94,7 +160,9 @@ export default function CatalogPage() {
 
   const selectedSearch = searchParams.get("search") || "";
   const selectedCategory = searchParams.get("category") || "ALL";
-  const selectedContentType = (searchParams.get("contentType") || "ALL").toUpperCase();
+  const selectedContentType = (
+    searchParams.get("contentType") || "ALL"
+  ).toUpperCase();
   const selectedLevel = (searchParams.get("level") || "ALL").toUpperCase();
   const selectedSort = (searchParams.get("sort") || "NEWEST").toUpperCase();
 
@@ -110,7 +178,8 @@ export default function CatalogPage() {
   useEffect(() => {
     if (isPending) return;
 
-    const role = (session?.user as Record<string, unknown> | undefined)?.role as string | undefined;
+    const role = (session?.user as Record<string, unknown> | undefined)
+      ?.role as string | undefined;
     const isAdmin = role === "ADMIN" || role === "SUPER_ADMIN";
     if (isAdmin) {
       setAccessReady(true);
@@ -177,7 +246,9 @@ export default function CatalogPage() {
       }
     });
     const query = params.toString();
-    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+    router.replace(query ? `${pathname}?${query}` : pathname, {
+      scroll: false,
+    });
   };
 
   const clearAllFilters = () => {
@@ -186,7 +257,11 @@ export default function CatalogPage() {
   };
 
   const hasActiveFilters = Boolean(
-    selectedSearch || selectedCategory !== "ALL" || selectedContentType !== "ALL" || selectedLevel !== "ALL" || selectedSort !== "NEWEST"
+    selectedSearch ||
+    selectedCategory !== "ALL" ||
+    selectedContentType !== "ALL" ||
+    selectedLevel !== "ALL" ||
+    selectedSort !== "NEWEST",
   );
   const activeFilterCount =
     Number(Boolean(selectedSearch)) +
@@ -202,8 +277,10 @@ export default function CatalogPage() {
       setLoading(true);
       try {
         const params = new URLSearchParams();
-        if (selectedCategory !== "ALL") params.set("category", selectedCategory);
-        if (selectedContentType !== "ALL") params.set("contentType", selectedContentType);
+        if (selectedCategory !== "ALL")
+          params.set("category", selectedCategory);
+        if (selectedContentType !== "ALL")
+          params.set("contentType", selectedContentType);
         if (selectedLevel !== "ALL") params.set("level", selectedLevel);
         if (selectedSort !== "NEWEST") params.set("sort", selectedSort);
         if (selectedSearch.trim()) params.set("search", selectedSearch.trim());
@@ -223,7 +300,14 @@ export default function CatalogPage() {
       }
     }
     void fetchCourses();
-  }, [accessReady, selectedCategory, selectedContentType, selectedLevel, selectedSort, selectedSearch]);
+  }, [
+    accessReady,
+    selectedCategory,
+    selectedContentType,
+    selectedLevel,
+    selectedSort,
+    selectedSearch,
+  ]);
 
   useEffect(() => {
     async function fetchSidebarItems() {
@@ -243,11 +327,61 @@ export default function CatalogPage() {
   const searchSummary = useMemo(() => {
     if (loading || !accessReady) {
       return (
-        <div className={`${styles.skeletonText} ${styles.skeletonPulse}`} style={{ width: "120px", height: "1.2rem", borderRadius: "6px" }} />
+        <div
+          className={`${styles.skeletonText} ${styles.skeletonPulse}`}
+          style={{ width: "120px", height: "1.2rem", borderRadius: "6px" }}
+        />
       );
     }
     return `${courses.length} konten tersedia`;
   }, [accessReady, courses.length, loading]);
+
+  const featuredRailItems = useMemo<FeaturedRailItem[]>(() => {
+    const webinarRail: FeaturedRailItem[] =
+      webinars.length > 0
+        ? webinars.slice(0, 3).map((item) => ({
+            key: item.id,
+            section: "WEBINAR",
+            title: item.title,
+            subtitle:
+              item.priceLabel ||
+              item.dateLabel ||
+              item.subtitle ||
+              "Jadwal terbaru",
+            href: item.href || "/courses/live-webinar-ai-for-umkm-webinar",
+            ctaLabel: item.ctaLabel || "Daftar",
+          }))
+        : upcomingWebinars.slice(0, 3).map((item, idx) => ({
+            key: `fallback-webinar-${idx}`,
+            section: "WEBINAR",
+            title: item.title,
+            subtitle: item.date,
+            href: item.href,
+            ctaLabel: item.cta,
+          }));
+
+    const premiumRail: FeaturedRailItem[] =
+      premiumItems.length > 0
+        ? premiumItems.slice(0, 3).map((item) => ({
+            key: item.id,
+            section: "PREMIUM_VIDEO",
+            title: item.title,
+            subtitle: item.priceLabel || item.subtitle || "Konten premium",
+            href:
+              item.href || "/courses/mentoring-rekaman-closing-sales-premium",
+            ctaLabel: item.ctaLabel || "Lihat",
+          }))
+        : premiumVideos.slice(0, 3).map((item, idx) => ({
+            key: `fallback-premium-${idx}`,
+            section: "PREMIUM_VIDEO",
+            title: item.title,
+            subtitle: item.price,
+            href: item.href,
+            ctaLabel: item.cta,
+          }));
+
+    return [...webinarRail, ...premiumRail];
+  }, [premiumItems, webinars]);
 
   const onSearchSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -314,6 +448,48 @@ export default function CatalogPage() {
           <h1 className={styles.catalogTitle}>Katalog Konten</h1>
           <div className={styles.catalogMeta}>{searchSummary}</div>
           {error ? <p className={styles.catalogError}>{error}</p> : null}
+          {featuredRailItems.length > 0 ? (
+            <section
+              className={styles.mobileFeaturedSection}
+              aria-label="Pilihan Minggu Ini"
+            >
+              <div className={styles.mobileFeaturedHead}>
+                <h2 className={styles.mobileFeaturedTitle}>
+                  🔥 Pilihan Minggu Ini
+                </h2>
+                <span className={styles.mobileFeaturedHint}>Geser</span>
+              </div>
+              <div className={styles.mobileFeaturedRail}>
+                {featuredRailItems.map((item) => (
+                  <Link
+                    key={item.key}
+                    href={item.href}
+                    className={styles.mobileFeaturedCard}
+                  >
+                    <span
+                      className={`${styles.mobileFeaturedBadge} ${
+                        item.section === "WEBINAR"
+                          ? styles.webinarBadge
+                          : styles.premiumBadge
+                      }`}
+                    >
+                      {item.section === "WEBINAR" ? "WEBINAR" : "PREMIUM"}
+                    </span>
+                    <div className={styles.mobileFeaturedCardTitle}>
+                      {item.title}
+                    </div>
+                    <div className={styles.mobileFeaturedCardSub}>
+                      {item.subtitle}
+                    </div>
+                    <div className={styles.mobileFeaturedCardCta}>
+                      {item.ctaLabel} →
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          ) : null}
+
           <button
             type="button"
             className={styles.mobileFilterTrigger}
@@ -323,11 +499,20 @@ export default function CatalogPage() {
           >
             <span className={styles.mobileFilterIcon} aria-hidden>
               <svg viewBox="0 0 24 24" fill="none">
-                <path d="M4 6h16M7 12h10M10 18h4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                <path
+                  d="M4 6h16M7 12h10M10 18h4"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                />
               </svg>
             </span>
             Filter Lanjutan
-            {activeFilterCount > 0 ? <span className={styles.mobileFilterBadge}>{activeFilterCount}</span> : null}
+            {activeFilterCount > 0 ? (
+              <span className={styles.mobileFilterBadge}>
+                {activeFilterCount}
+              </span>
+            ) : null}
           </button>
 
           <form className={styles.filterBar} onSubmit={onSearchSubmit}>
@@ -344,7 +529,9 @@ export default function CatalogPage() {
             >
               <option value="ALL">Semua Level</option>
               {levels.map((level) => (
-                <option key={level} value={level}>{level}</option>
+                <option key={level} value={level}>
+                  {level}
+                </option>
               ))}
             </select>
             <select
@@ -353,12 +540,22 @@ export default function CatalogPage() {
               onChange={(event) => applyFilters({ sort: event.target.value })}
             >
               {sortOptions.map((option) => (
-                <option key={option.value} value={option.value}>{option.label}</option>
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
               ))}
             </select>
-            <button type="submit" className={styles.filterActionBtn}>Terapkan</button>
+            <button type="submit" className={styles.filterActionBtn}>
+              Terapkan
+            </button>
             {hasActiveFilters ? (
-              <button type="button" className={styles.filterResetBtn} onClick={clearAllFilters}>Reset</button>
+              <button
+                type="button"
+                className={styles.filterResetBtn}
+                onClick={clearAllFilters}
+              >
+                Reset
+              </button>
             ) : null}
           </form>
         </div>
@@ -366,8 +563,13 @@ export default function CatalogPage() {
         <div className={styles.assetGrid}>
           {loading ? (
             Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className={`${styles.assetCard} ${styles.skeletonCard}`}>
-                <div className={`${styles.skeletonThumbnail} ${styles.skeletonPulse}`}></div>
+              <div
+                key={i}
+                className={`${styles.assetCard} ${styles.skeletonCard}`}
+              >
+                <div
+                  className={`${styles.skeletonThumbnail} ${styles.skeletonPulse}`}
+                ></div>
                 <div className={styles.skeletonInfo}>
                   <div
                     className={`${styles.skeletonText} ${styles.skeletonPulse}`}
@@ -375,15 +577,28 @@ export default function CatalogPage() {
                   ></div>
                   <div
                     className={`${styles.skeletonText} ${styles.skeletonPulse}`}
-                    style={{ width: "100%", height: "1.2rem", marginTop: "0.4rem" }}
+                    style={{
+                      width: "100%",
+                      height: "1.2rem",
+                      marginTop: "0.4rem",
+                    }}
                   ></div>
                   <div
                     className={`${styles.skeletonText} ${styles.skeletonPulse}`}
-                    style={{ width: "80%", height: "1.2rem", marginTop: "0.2rem" }}
+                    style={{
+                      width: "80%",
+                      height: "1.2rem",
+                      marginTop: "0.2rem",
+                    }}
                   ></div>
                   <div
                     className={`${styles.skeletonText} ${styles.skeletonPulse}`}
-                    style={{ width: "100%", height: "2.5rem", marginTop: "0.8rem", borderRadius: "8px" }}
+                    style={{
+                      width: "100%",
+                      height: "2.5rem",
+                      marginTop: "0.8rem",
+                      borderRadius: "8px",
+                    }}
                   ></div>
                 </div>
               </div>
@@ -392,38 +607,68 @@ export default function CatalogPage() {
             <div className={styles.emptyContainer}>
               <div className={styles.emptyIcon}>🔍</div>
               <h3 className={styles.emptyTitle}>Kursus tidak ditemukan</h3>
-              <p className={styles.emptyText}>Maaf, kami tidak menemukan kursus yang sesuai dengan kriteria Anda.</p>
-              <button onClick={clearAllFilters} className="btn-secondary" style={{ marginTop: "1.5rem" }}>
+              <p className={styles.emptyText}>
+                Maaf, kami tidak menemukan kursus yang sesuai dengan kriteria
+                Anda.
+              </p>
+              <button
+                onClick={clearAllFilters}
+                className="btn-secondary"
+                style={{ marginTop: "1.5rem" }}
+              >
                 Reset Semua Filter
               </button>
             </div>
           ) : (
             courses.map((course) => (
-              <Link href={`/courses/${course.slug}`} key={course.id} className={styles.assetCard}>
-                <div className={styles.assetThumbnail} style={{ background: course.thumbnail ? 'none' : getCategoryStyle(course.category).background }}>
+              <Link
+                href={`/courses/${course.slug}`}
+                key={course.id}
+                className={styles.assetCard}
+              >
+                <div
+                  className={styles.assetThumbnail}
+                  style={{
+                    background: course.thumbnail
+                      ? "none"
+                      : getCategoryStyle(course.category).background,
+                  }}
+                >
                   {course.thumbnail ? (
-                    <Image 
-                      src={course.thumbnail} 
-                      alt={course.title} 
-                      fill 
+                    <Image
+                      src={course.thumbnail}
+                      alt={course.title}
+                      fill
                       sizes="(max-width: 768px) 100vw, 300px"
                       className={styles.thumbnailImage}
                     />
                   ) : (
-                    <span style={{ fontSize: "2.8rem" }}>{getCategoryStyle(course.category).icon}</span>
+                    <span style={{ fontSize: "2.8rem" }}>
+                      {getCategoryStyle(course.category).icon}
+                    </span>
                   )}
                 </div>
                 <div className={styles.assetInfo}>
                   <div className={styles.assetType}>
-                    <span>{getContentIcon(course.contentType)} {course.contentType}</span>
-                    <span className={`${styles.assetLevel} ${styles[course.level.toLowerCase()]}`}>{course.level}</span>
+                    <span>
+                      {getContentIcon(course.contentType)} {course.contentType}
+                    </span>
+                    <span
+                      className={`${styles.assetLevel} ${styles[course.level.toLowerCase()]}`}
+                    >
+                      {course.level}
+                    </span>
                   </div>
                   <div className={styles.assetName}>{course.title}</div>
                   <div className={styles.assetMeta}>
-                    <span>{course.totalModules} Modul • {course.totalVideos} Video</span>
+                    <span>
+                      {course.totalModules} Modul • {course.totalVideos} Video
+                    </span>
                     <span>{formatDuration(course.totalDuration)}</span>
                   </div>
-                  <div className={styles.includedTag}>Termasuk akses member</div>
+                  <div className={styles.includedTag}>
+                    Termasuk akses member
+                  </div>
                 </div>
               </Link>
             ))
@@ -434,7 +679,10 @@ export default function CatalogPage() {
       {/* Sidebar */}
 
       {mobileFiltersOpen ? (
-        <div className={styles.mobileFilterOverlay} onClick={() => setMobileFiltersOpen(false)}>
+        <div
+          className={styles.mobileFilterOverlay}
+          onClick={() => setMobileFiltersOpen(false)}
+        >
           <div
             id="mobile-advanced-filters"
             className={styles.mobileFilterDrawer}
@@ -442,7 +690,11 @@ export default function CatalogPage() {
           >
             <div className={styles.mobileFilterHeader}>
               <h2 className={styles.mobileFilterTitle}>Filter Lanjutan</h2>
-              <button type="button" className={styles.mobileFilterClose} onClick={() => setMobileFiltersOpen(false)}>
+              <button
+                type="button"
+                className={styles.mobileFilterClose}
+                onClick={() => setMobileFiltersOpen(false)}
+              >
                 ✕
               </button>
             </div>
@@ -461,7 +713,9 @@ export default function CatalogPage() {
                 placeholder="Cari judul course..."
                 className={styles.searchInput}
               />
-              <button type="submit" className={styles.filterActionBtn}>Terapkan</button>
+              <button type="submit" className={styles.filterActionBtn}>
+                Terapkan
+              </button>
             </form>
 
             <div className={styles.mobileFilterSection}>
@@ -469,11 +723,15 @@ export default function CatalogPage() {
               <select
                 className={styles.compactSelect}
                 value={selectedLevel}
-                onChange={(event) => applyFilters({ level: event.target.value })}
+                onChange={(event) =>
+                  applyFilters({ level: event.target.value })
+                }
               >
                 <option value="ALL">Semua Level</option>
                 {levels.map((level) => (
-                  <option key={level} value={level}>{level}</option>
+                  <option key={level} value={level}>
+                    {level}
+                  </option>
                 ))}
               </select>
             </div>
@@ -486,7 +744,9 @@ export default function CatalogPage() {
                 onChange={(event) => applyFilters({ sort: event.target.value })}
               >
                 {sortOptions.map((option) => (
-                  <option key={option.value} value={option.value}>{option.label}</option>
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
                 ))}
               </select>
             </div>
@@ -541,7 +801,11 @@ export default function CatalogPage() {
               >
                 Reset Semua
               </button>
-              <button type="button" className={styles.filterActionBtn} onClick={() => setMobileFiltersOpen(false)}>
+              <button
+                type="button"
+                className={styles.filterActionBtn}
+                onClick={() => setMobileFiltersOpen(false)}
+              >
                 Selesai
               </button>
             </div>
@@ -554,53 +818,77 @@ export default function CatalogPage() {
           <div className={styles.sidebarSection}>
             <h3 className={styles.sidebarTitle}>Webinar Mendatang</h3>
             <div className={styles.webinarList}>
-              {(webinars.length > 0 ? webinars : upcomingWebinars).map((webinar) => {
-                const dateLabel = "id" in webinar ? webinar.dateLabel : webinar.date;
-                const subtitle = "id" in webinar ? webinar.subtitle : webinar.speaker;
-                const ctaLabel = "id" in webinar ? webinar.ctaLabel : webinar.cta;
-                const href = "id" in webinar ? webinar.href : webinar.href;
-                const targetHref = href || "/courses/live-webinar-ai-for-umkm-webinar";
+              {(webinars.length > 0 ? webinars : upcomingWebinars).map(
+                (webinar) => {
+                  const dateLabel =
+                    "id" in webinar ? webinar.dateLabel : webinar.date;
+                  const subtitle =
+                    "id" in webinar ? webinar.subtitle : webinar.speaker;
+                  const ctaLabel =
+                    "id" in webinar ? webinar.ctaLabel : webinar.cta;
+                  const href = "id" in webinar ? webinar.href : webinar.href;
+                  const targetHref =
+                    href || "/courses/live-webinar-ai-for-umkm-webinar";
 
-                return (
-                  <Link 
-                    key={"id" in webinar ? webinar.id : webinar.title} 
-                    href={targetHref} 
-                    className={styles.webinarCard}
-                  >
-                    <div className={styles.webinarDate}>📅 {dateLabel || "Soon"}</div>
-                    <div className={styles.webinarTitle}>{webinar.title}</div>
-                    <div className={styles.webinarSpeaker}>{subtitle || "-"}</div>
-                    {ctaLabel && <span className={styles.webinarBtn}>{ctaLabel}</span>}
-                  </Link>
-                );
-              })}
+                  return (
+                    <Link
+                      key={"id" in webinar ? webinar.id : webinar.title}
+                      href={targetHref}
+                      className={styles.webinarCard}
+                    >
+                      <div className={styles.webinarDate}>
+                        📅 {dateLabel || "Soon"}
+                      </div>
+                      <div className={styles.webinarTitle}>{webinar.title}</div>
+                      <div className={styles.webinarSpeaker}>
+                        {subtitle || "-"}
+                      </div>
+                      {"id" in webinar && webinar.priceLabel ? (
+                        <div className={styles.premiumPrice}>
+                          {webinar.priceLabel}
+                        </div>
+                      ) : null}
+                      {ctaLabel && (
+                        <span className={styles.webinarBtn}>{ctaLabel}</span>
+                      )}
+                    </Link>
+                  );
+                },
+              )}
             </div>
           </div>
 
           <div className={styles.sidebarSection}>
             <h3 className={styles.sidebarTitle}>Video Premium</h3>
             <div className={styles.webinarList}>
-              {(premiumItems.length > 0 ? premiumItems : premiumVideos).map((item) => {
-                const subtitle = "id" in item ? item.subtitle : item.note;
-                const price = "id" in item ? item.priceLabel : item.price;
-                const href = "id" in item ? item.href : item.href;
-                const ctaLabel = "id" in item ? item.ctaLabel : item.cta;
-                const targetHref = href || "/courses/mentoring-rekaman-closing-sales-premium";
+              {(premiumItems.length > 0 ? premiumItems : premiumVideos).map(
+                (item) => {
+                  const subtitle = "id" in item ? item.subtitle : item.note;
+                  const price = "id" in item ? item.priceLabel : item.price;
+                  const href = "id" in item ? item.href : item.href;
+                  const ctaLabel = "id" in item ? item.ctaLabel : item.cta;
+                  const targetHref =
+                    href || "/courses/mentoring-rekaman-closing-sales-premium";
 
-                return (
-                  <Link 
-                    key={"id" in item ? item.id : item.title} 
-                    href={targetHref} 
-                    className={styles.webinarCard}
-                  >
-                    <div className={styles.webinarDate}>💎</div>
-                    <div className={styles.webinarTitle}>{item.title}</div>
-                    <div className={styles.webinarSpeaker}>{subtitle || "-"}</div>
-                    <div className={styles.premiumPrice}>{price || "-"}</div>
-                    {ctaLabel && <span className={styles.webinarBtn}>{ctaLabel}</span>}
-                  </Link>
-                );
-              })}
+                  return (
+                    <Link
+                      key={"id" in item ? item.id : item.title}
+                      href={targetHref}
+                      className={styles.webinarCard}
+                    >
+                      <div className={styles.webinarDate}>💎</div>
+                      <div className={styles.webinarTitle}>{item.title}</div>
+                      <div className={styles.webinarSpeaker}>
+                        {subtitle || "-"}
+                      </div>
+                      <div className={styles.premiumPrice}>{price || "-"}</div>
+                      {ctaLabel && (
+                        <span className={styles.webinarBtn}>{ctaLabel}</span>
+                      )}
+                    </Link>
+                  );
+                },
+              )}
             </div>
           </div>
         </div>
@@ -608,4 +896,3 @@ export default function CatalogPage() {
     </div>
   );
 }
-
